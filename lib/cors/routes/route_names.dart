@@ -1,0 +1,78 @@
+class RouteNames {
+  static const String splashScreen = '/';
+  static const String onBoardingScreen = '/onBoardingScreen';
+  static const String chooseAccount = '/chooseAccount';
+  static const String loginScreen = '/loginScreen';
+  static const String registerScreen = '/registerScreen';
+  static const String forgotPasswordScreen = '/forgotPasswordScreen';
+  static const String otpVerifyScreen = '/otpVerifyScreen';
+  static const String setNewPasswordScreen = '/setNewPasswordScreen';
+  static const String parentScreen = '/parentScreen';
+  static const String scanner = '/scanner';
+  static const String courseModuleScreens = '/courseModuleScreens';
+  static const String otherCourseScreen = '/otherCourseScreen';
+  static const String loginAndSignUpScreen = '/loginAndSignUpScreen';
+
+  static const String myCourseScreen = '/myCourseScreen';
+  static const String courseModuleScreen = '/courseModuleScreen';
+  static const String startEnrollment = '/startEnrollment';
+  static const String selectCourse = '/selectCourse';
+  static const String courseModule = '/courseModule';
+
+
+  static const String personalInfoScreen = '/personalInfoScreen';
+  static const String subscriptionScreen = '/subscriptionScreen';
+  static const String paymentHistoryScreen = '/paymentHistoryScreen';
+  static const String accountSettingsScreen = '/accountSettingsScreen';
+  static const String feedbackScreen = '/feedbackScreen';
+  static const String pushNotificationScreen = '/pushNotificationScreen';
+  static const String helpSupportScreen = '/helpSupportScreen';
+  static const String editPersonalInfoScreen = '/editPersonalInfoScreen';
+
+  static const String myClassScreen = '/myClassScreen';
+  static const String myAssignmentScreen = '/myAssignmentScreen';
+  static const String submittedAssignmentScreen = '/submittedAssignmentScreen';
+  static const String assetsScreen = '/assetsScreen';
+  static const String fillEnrollmentForm = '/fillEnrollmentForm';
+  static const String rulesRegulations = '/rulesRegulations';
+  static const String digitalContractSigning = '/digitalContractSigning';
+  static const String payment = '/payment';
+  static const String profileSetup = '/profileSetup';
+  static const String subscriptions = '/subscriptions';
+  static const String trackPayment = '/trackPayment';
+  static const String changePassword = '/changePassword';
+  static const String changeStripe = '/changeStripe';
+  static const String contractAndDocumentScreen = '/contractAndDocumentScreen';
+
+
+  static const String feedbackPage = '/feedbackPage';
+  static const String certificate = '/certificate';
+  static const String supportUser = '/supportUser';
+  static const String pushNotifications = '/pushNotifications';
+  static const String commentScreen = '/commentScreen';
+  static const String createPost = '/createPost';
+  static const String createPool = '/createPool';
+  static const String myProfilePublic = '/myProfilePublic';
+  static const String myProfilePrivate = '/myProfilePrivate';
+  static const String editProfile = '/editProfile';
+  static const String othersProfile = '/othersProfile';
+  static const String reportListPage = '/reportListPage';
+  static const String newMessageScreens = '/newMessageScreens';
+  static const String createGroupScreen = '/createGroupScreen';
+  static const String oneTwoOneChatScreen = '/oneTwoOneChatScreen';
+  static const String userProfileScreen = '/userProfileScreen';
+  static const String groupProfileScreen = '/groupProfileScreen';
+  static const String addGroupMember = '/addGroupMember';
+  static const String seeGroupMemberScreen = '/seeGroupMemberScreen';
+  static const String eventDetails = '/eventDetails';
+  static const String completePayment = '/completePayment';
+  static const String prosHome = '/prosHome';
+  static const String myCourse = '/myCourse';
+  static const String courseModules = '/courseModules';
+  static const String parentScreenTwo = '/parentScreenTwo';
+  static const String allEvents = '/allEvents';
+  static const String assetsPdfVideo = '/assetsPdfVideo';
+  static const String videoPlayerScreen = '/videoPlayerScreen';
+  static const String pdfWidget = '/pdfWidget';
+  static const String lediKhadashProtiva = '/lediKhadashProtiva';
+}

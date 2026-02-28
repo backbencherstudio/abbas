@@ -1,0 +1,45 @@
+[
+  {
+    "id": "p1",
+    "author_name": "Sophie Lambert",
+    "author_avatar": "https://i.pravatar.cc/100?img=11",
+    "minutes_ago": 10,
+    "type": "video",
+    "text": "Behind the scenes of our latest project! The team has been working incredibly hard. ✨",
+    "video_url": "https://example.com/video.mp4",
+    "video_thumb_url": "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=1200",
+    "likes": 4800,
+    "comments": 12,
+    "shares": 3
+  },
+  {
+    "id": "p2",
+    "author_name": "Kathryn Murphy",
+    "author_avatar": "https://i.pravatar.cc/100?img=32",
+    "minutes_ago": 10,
+    "type": "poll",
+    "text": "Which acting technique would you like to master next? 🎭✨",
+    "poll_options": [
+      { "label": "Meisner Technique", "votes": 74 },
+      { "label": "Classical Theatre", "votes": 32 },
+      { "label": "Screen Acting", "votes": 24 }
+    ],
+    "selected_index": 0,
+    "total_votes": 130,
+    "likes": 2200,
+    "comments": 32,
+    "shares": 4
+  },
+  {
+    "id": "p3",
+    "author_name": "Darlene Robertson",
+    "author_avatar": "https://i.pravatar.cc/100?img=45",
+    "minutes_ago": 4,
+    "type": "image",
+    "text": "Excited for tomorrow’s improv session! Who’s joining? 🎭🙌",
+    "image_url": "https://img.freepik.com/free-photo/young-lady-taking-care-plants-flowers-her-backyard-ready-start-online-business-consulting-greenhouse-care_197531-31039.jpg",
+    "likes": 1200,
+    "comments": 40,
+    "shares": 74
+  }
+]

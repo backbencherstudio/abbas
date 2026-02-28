@@ -1,0 +1,112 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import '../../../widgets/secondary_appber.dart';
+
+class CreateGroupScreen extends StatelessWidget {
+  const CreateGroupScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Color(0xff030D15),
+      body: Column(
+        children: [
+          SecondaryAppBar(title: "New Group"),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 17.w),
+            child: Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 18.h),
+                  TextFormField(
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.transparent,
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Color(0xff3D4566)),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Color(0xff3D4566)),
+
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Color(0xff3D4566)),
+
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      hintText: "Group Name :",
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  TextFormField(
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: Colors.transparent,
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Color(0xff3D4566)),
+                        borderRadius: BorderRadius.circular(99),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(color: Color(0xff3D4566)),
+
+                        borderRadius: BorderRadius.circular(99),
+                      ),
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: Color(0xff3D4566)),
+
+                        borderRadius: BorderRadius.circular(99),
+                      ),
+                      prefixIcon: Icon(Icons.search, color: Colors.white),
+                      hintText: "Search",
+                    ),
+                  ),
+                  SizedBox(height: 30.h),
+                  Text("Suggested"),
+                  ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: 6,
+                    itemBuilder: (context, child) {
+                      return Padding(
+                        padding: EdgeInsets.only(bottom: 10),
+                        child: Row(
+                          children: [
+                            ClipOval(
+                              child: Image.network(
+                                "https://i.pravatar.cc/150?img=13",
+                                height: 50,
+                                width: 50,
+                              ),
+                            ),
+                            SizedBox(width: 14),
+                            Text("Mohammad Wahab Reja"),
+                            Spacer(),
+                            Container(
+                              padding: EdgeInsets.all(8),
+
+                              decoration: BoxDecoration(
+                                color: Colors.transparent,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Color(0xff3D4566),
+                                  width: 2,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
