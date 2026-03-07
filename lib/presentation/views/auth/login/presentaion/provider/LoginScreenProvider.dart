@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import '../../domain/loginEntity.dart';
 import '../../domain/loginUseCase.dart';
@@ -30,6 +32,8 @@ class LoginScreenProvider extends ChangeNotifier {
   }
 
   Future<void> login() async {
+
+    log("you cliek the login method");
     if (!isButtonEnabled) {
       _errorMessage = "Please enter email and password";
       notifyListeners();
@@ -41,6 +45,8 @@ class LoginScreenProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      log("you enter  the try block");
+
       final result = await loginUseCase(
         emailController.text.trim(),
         passwordController.text.trim(),
@@ -48,6 +54,8 @@ class LoginScreenProvider extends ChangeNotifier {
 
       _user = result;
     } catch (e) {
+      log("you enter  the cath block $e");
+
       _errorMessage = e.toString().replaceAll("Exception: ", "");
     }
 
