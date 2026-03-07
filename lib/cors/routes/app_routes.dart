@@ -1,6 +1,7 @@
 import 'package:abbas/cors/routes/route_names.dart';
 import 'package:flutter/material.dart';
 import '../../presentation/views/auth/forgot_password/screen/forgot_password_screen.dart';
+import '../../presentation/views/auth/login/presentaion/screen/login_screen.dart';
 import '../../presentation/views/auth/otp_verify/screen/otp_verify_screen.dart';
 import '../../presentation/views/auth/register/presentaion/screen/register_screen.dart';
 import '../../presentation/views/auth/set_new_password/screen/set_new_password_screen.dart';
@@ -70,7 +71,7 @@ class AppRoutes {
     RouteNames.splashScreen: (context) =>  SplashScreen(),
     RouteNames.onBoardingScreen: (context) => const OnboardingScreen(),
     RouteNames.loginAndSignUpScreen: (context) =>  LoginAndSignupScreen(),
-    //RouteNames.loginScreen: (context) =>  const LoginScreen(),
+    RouteNames.loginScreen: (context) =>  const LoginScreen(),
     RouteNames.registerScreen: (context) =>  const RegisterScreen(),
     RouteNames.forgotPasswordScreen : (context) =>  const ForgotPasswordScreen(),
     RouteNames.otpVerifyScreen : (context) =>  OtpVerifyScreen(),
