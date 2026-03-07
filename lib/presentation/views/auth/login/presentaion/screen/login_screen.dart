@@ -56,11 +56,6 @@ class LoginScreen extends StatelessWidget {
 
               SizedBox(height: 16.h),
 
-              /// Error Message
-              _buildErrorMessage(),
-
-              SizedBox(height: 16.h),
-
               /// Login Button
               _buildLoginButton(context),
 
@@ -148,25 +143,6 @@ class LoginScreen extends StatelessWidget {
           ],
         ),
       ],
-    );
-  }
-
-  /// Error Message
-  Widget _buildErrorMessage() {
-    return Consumer<LoginScreenProvider>(
-      builder: (context, viewModel, child) {
-        return viewModel.errorMessage != null
-            ? Padding(
-          padding: EdgeInsets.only(bottom: 10.h),
-          child: Text(
-            viewModel.errorMessage!,
-            style: AppTextStyles.textTheme.bodyMedium?.copyWith(
-              color: Colors.red,
-            ),
-          ),
-        )
-            : const SizedBox.shrink();
-      },
     );
   }
 
