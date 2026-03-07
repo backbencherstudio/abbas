@@ -1,25 +1,47 @@
-import 'dart:convert';
+import 'dart:developer';
+import 'package:abbas/cors/services/token_storage.dart';
+
+import 'loginModel.dart';
 import 'package:abbas/cors/constants/api_endpoints.dart';
 import 'package:abbas/cors/services/api_client.dart';
-import 'package:http/http.dart' as http;
-import 'loginModel.dart';
 
 class LoginRemoteDataSource {
   final ApiClient apiClient;
 
   LoginRemoteDataSource(this.apiClient);
 
-  @override
+  final _tokenStorage = TokenStorage();
+
   Future<LoginModel> login(String email, String password) async {
-    final response = await apiClient.post(ApiEndpoints.login,
+    final response = await apiClient.post(
+      ApiEndpoints.login,
       headers: {"Content-Type": "application/json"},
       body: {"email": email, "password": password},
     );
 
-    if (response.statusCode == 200) {
-      return LoginModel.fromJson(jsonDecode(response.body));
+    // ApiClient already decoded JSON into Map<String,dynamic>
+    if (response['success'] == true && response['authorization'] != null) {
+      final tokenSave = response['authorization']['access_token'];
+      log(
+        "=============== Save Login $tokenSave==========",
+      );
+
+      if(tokenSave != null){
+        await _tokenStorage.saveToken(tokenSave);
+        log(
+          "=============== Save token Login $tokenSave==========",
+        );
+      }else{
+        log(
+          "=============== Save token Login failed ==========",
+        );
+      }
+
+
+      return LoginModel.fromJson(response);
     } else {
-      throw Exception("Login failed");
+      final message = response['message'] ?? "Login failed";
+      throw Exception(message);
     }
   }
 }

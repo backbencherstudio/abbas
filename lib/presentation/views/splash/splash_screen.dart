@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,7 +20,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with TickerProviderStateMixin {
   late AnimationController _aController;
   late AnimationController _cinCtController;
   late AnimationController _subtitleController;
@@ -33,11 +36,12 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     super.initState();
 
     _refreshTokenViewModel = RefreshTokenViewModel(
-      getNewAccessToken: GetNewAccessToken(refreshTokenRepository: getIt<RefreshTokenRepository>()),
+      getNewAccessToken: GetNewAccessToken(
+        refreshTokenRepository: getIt<RefreshTokenRepository>(),
+      ),
       refreshTokenStorage: RefreshTokenStorage(),
       tokenStorage: TokenStorage(),
     );
-
 
     // First show "A"
     _aController = AnimationController(
@@ -61,8 +65,19 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _fetchAccessToken();
 
 
-    Future.delayed(const Duration(seconds: 2), () {
-      _navigateToNextScreen();
+
+
+    Future.delayed(const Duration(milliseconds: 1500), () async {
+      // Optional: you can add a small extra check or animation completion here
+
+      if (!mounted) return; // ← very important safety check
+      final token =  await TokenStorage().getToken();
+      log("========== Splash Screen $token ===========");
+      if (token != null) {
+        Navigator.pushReplacementNamed(context, RouteNames.parentScreen);
+      } else {
+        Navigator.pushReplacementNamed(context, RouteNames.onBoardingScreen);
+      }
     });
   }
 
@@ -71,25 +86,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     if (_refreshTokenViewModel.errorMessage != null) {
       print(_refreshTokenViewModel.errorMessage);
       await TokenStorage().clearToken();
-     // Navigator.pushNamed(context, RouteNames.onBoardingScreen);
+      // Navigator.pushNamed(context, RouteNames.onBoardingScreen);
     } else {
       print("New access token fetched successfully!");
-    }
-  }
-
-  Future<void> _navigateToNextScreen() async {
-
-    final token = await TokenStorage().getToken();
-
-    await Future.delayed(const Duration(seconds: 3));
-    if (mounted) {
-      if (token != null && token.isNotEmpty) {
-        // Navigator.pushReplacementNamed(context, RouteNames.editPersonalInfoScreen);
-          Navigator.pushReplacementNamed(context, RouteNames.startEnrollment);
-      } else {
-         // Navigator.pushReplacementNamed(context, RouteNames.editPersonalInfoScreen);
-        Navigator.pushReplacementNamed(context, RouteNames.onBoardingScreen);
-      }
     }
   }
 
@@ -121,20 +120,14 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       body: TweenAnimationBuilder<Color?>(
         duration: const Duration(milliseconds: 2000),
         curve: Curves.easeInOut,
-        tween: ColorTween(
-          begin: Colors.black,
-          end: AppColors.splashRed,
-        ),
+        tween: ColorTween(begin: Colors.black, end: AppColors.splashRed),
         builder: (context, color, child) {
           return Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.bottomCenter,
                 end: Alignment.topCenter,
-                colors: [
-                  color ?? Colors.black,
-                  Colors.black,
-                ],
+                colors: [color ?? Colors.black, Colors.black],
               ),
             ),
             child: Center(
@@ -201,7 +194,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                         ),
                       ],
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
