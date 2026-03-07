@@ -1,6 +1,7 @@
-import '../../../../../domain/repositories/auth/login_repository.dart';
 import '../domain/loginEntity.dart';
+import '../domain/loginRepository.dart';
 import 'loginRemoteDataSources.dart';
+
 
 class LoginRepositoryImpl implements LoginRepository {
   final LoginRemoteDataSource loginRemoteDataSource;
@@ -8,15 +9,16 @@ class LoginRepositoryImpl implements LoginRepository {
   LoginRepositoryImpl(this.loginRemoteDataSource);
 
   @override
-  Future<LoginEntity> login(String email, String password) async {
-    // Call the remote data source
+  Future<LoginEntity> login({
+    required String email,
+    required String password,
+  }) async {
     final loginModel = await loginRemoteDataSource.login(email, password);
 
     if (loginModel.authorization == null) {
       throw Exception('Authorization data missing from login response');
     }
 
-    // Map LoginModel to LoginEntity
     return LoginEntity(
       accessToken: loginModel.authorization!.accessToken ?? '',
       refreshToken: loginModel.authorization!.refreshToken ?? '',

@@ -1,3 +1,7 @@
+import 'package:abbas/presentation/views/auth/login/data/loginRemoteDataSources.dart';
+import 'package:abbas/presentation/views/auth/login/data/loginRepositoryimpl.dart';
+import 'package:abbas/presentation/views/auth/login/domain/loginUseCase.dart';
+import 'package:abbas/presentation/views/auth/login/presentaion/provider/LoginScreenProvider.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import '../../data/datasources/auth/change_password_datasource.dart';
@@ -54,6 +58,7 @@ import '../../presentation/viewmodels/community/post_viewmodel.dart';
 import '../../presentation/viewmodels/course/course_viewmodel.dart';
 import '../../presentation/viewmodels/onboardibng/onboarding_viewmodel.dart';
 import '../../presentation/viewmodels/parent/parent_screen_provider.dart';
+import '../../presentation/views/auth/login/domain/loginRepository.dart';
 import '../../presentation/views/auth/register/data/SignUpRemoteDataSource.dart';
 import '../../presentation/views/auth/register/data/SignUpRepositoryImpl.dart';
 import '../../presentation/views/auth/register/domain/signUpRepository.dart';
@@ -75,9 +80,7 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<ChangePasswordDataSource>(
     () => ChangePasswordDataSourceImpl(apiService: getIt<ApiService>()),
   );
-  getIt.registerLazySingleton<LoginDataSource>(
-    () => LoginDataSourceImpl(apiService: getIt<ApiService>()),
-  );
+
   getIt.registerLazySingleton<OTPDataSource>(
     () => OTPDataSourceImpl(apiService: getIt<ApiService>()),
   );
@@ -245,7 +248,7 @@ Future<void> configureDependencies() async {
   // 1️ Remote Data Source
   getIt.registerLazySingleton<SignUpRemoteDatasource>(
     () => SignUpRemoteDatasource(
-      getIt<ApiClient>(), // ApiClient অবশ্যই আগে register থাকতে হবে
+      getIt<ApiClient>(), // ApiClient
     ),
   );
 
@@ -264,5 +267,32 @@ Future<void> configureDependencies() async {
   //  Provider
   getIt.registerFactory<SignupScreenProvider>(
     () => SignupScreenProvider(getIt<SignUpUseCase>()),
+  );
+
+// ===============================
+// LOGIN DEPENDENCY INJECTION
+// ===============================
+
+// 2️⃣ Remote Data Source
+  getIt.registerLazySingleton<LoginRemoteDataSource>(
+        () => LoginRemoteDataSource(
+      getIt<ApiClient>(), // ApiClient injected
+    ),
+  );
+
+// 3️⃣ Repository
+  getIt.registerLazySingleton<LoginRepository>(
+        () => LoginRepositoryImpl(getIt<LoginRemoteDataSource>()),
+  );
+// 4️⃣ UseCase
+  getIt.registerLazySingleton<LoginUseCase>(
+        () => LoginUseCase(getIt<LoginRepository>()),
+  );
+
+// 5️⃣ Provider
+  getIt.registerFactory<LoginScreenProvider>(
+        () => LoginScreenProvider(
+      loginUseCase: getIt<LoginUseCase>(),
+    ),
   );
 }
