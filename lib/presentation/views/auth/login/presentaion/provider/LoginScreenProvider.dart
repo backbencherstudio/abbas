@@ -73,6 +73,7 @@ class LoginScreenProvider extends ChangeNotifier {
         _passwordController.text.trim(),
       );
 
+
       _user = result;
     } catch (e) {
       log("you enter  the cath block $e");
