@@ -5,6 +5,8 @@ import 'package:abbas/cors/services/token_storage.dart';
 import 'package:abbas/data/models/response_model.dart';
 import 'package:dio/dio.dart';
 
+import 'api_client.dart';
+
 class DioClient {
   final _tokenStorage = TokenStorage();
   final Dio _dio = Dio(
@@ -20,10 +22,17 @@ class DioClient {
   /// -------------------- Get Http --------------------------------------------
   Future<dynamic> getHttp(String path) async {
     final token = await _tokenStorage.getToken();
+    logger.d("================ $token");
+
     try {
       final response = await _dio.get(
         path,
-        options: Options(headers: {'Authorization': '$token'}),
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        ),
       );
       return ResponseHandle.handleResponse(response);
     } catch (e) {

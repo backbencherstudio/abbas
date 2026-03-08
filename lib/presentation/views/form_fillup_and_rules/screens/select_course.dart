@@ -1,4 +1,4 @@
-import 'package:abbas/presentation/views/form_fillup_and_rules/model/get_all_courses_model.dart';
+import 'package:abbas/cors/services/api_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -14,31 +14,18 @@ class SelectCourse extends ConsumerStatefulWidget {
 }
 
 class _SelectCourseState extends ConsumerState<SelectCourse> {
-  GetAllCoursesModel? getAllCoursesModel;
 
   @override
   void initState() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadData();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await ref.read(getAllCoursesProvider.notifier).getAllCourses();
     });
     super.initState();
   }
 
-  Future<void> _loadData() async {
-    try {
-      var res = await ref
-          .read(formFillAndRulesProvider.notifier)
-          .getAllCourses();
-      setState(() {
-        getAllCoursesModel = res;
-      });
-    } catch (e) {
-      debugPrint("$e");
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final getAllCourse = ref.watch(getAllCoursesProvider);
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -51,64 +38,79 @@ class _SelectCourseState extends ConsumerState<SelectCourse> {
           },
         ),
       ),
-      body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 24.h),
-              child: Text(
-                'Select Course',
-                style: TextStyle(
-                  fontSize: 24.sp,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white,
+      body: getAllCourse.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(child: Text('Error: $error')),
+        data: (data) {
+          final course = data;
+          if (course == null) {
+            return const Center(child: Text('No data available'));
+          }
+          return Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24.h),
+                  child: Text(
+                    'Select Course',
+                    style: TextStyle(
+                      fontSize: 24.sp,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: getAllCoursesModel?.data?.length,
-                itemBuilder: (BuildContext context, int index) {
-                  final title = getAllCoursesModel?.data?[index];
-                  return Card(
-                    color: const Color(0xFF0A1A29),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                      side: BorderSide(
-                        color: const Color(0xFF3D4566),
-                        width: 2.w,
-                      ),
-                    ),
-                    child: ListTile(
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 16.w,
-                        vertical: 8.h,
-                      ),
-                      title: Text(
-                        title?.title ?? "N/A",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.w500,
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: data?.data?.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      final value = data?.data?[index];
+                      return Card(
+                        color: const Color(0xFF0A1A29),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                          side: BorderSide(
+                            color: const Color(0xFF3D4566),
+                            width: 2.w,
+                          ),
                         ),
-                      ),
-                      trailing: Icon(
-                        Icons.arrow_forward_ios,
-                        color: Colors.white,
-                        size: 18.sp,
-                      ),
-                      onTap: () {
-                        Navigator.pushNamed(context, RouteNames.courseModule);
-                      },
-                    ),
-                  );
-                },
-              ),
+                        child: ListTile(
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16.w,
+                            vertical: 8.h,
+                          ),
+                          title: Text(
+                            value?.title ?? "N/A",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          trailing: Icon(
+                            Icons.arrow_forward_ios,
+                            color: Colors.white,
+                            size: 18.sp,
+                          ),
+                          onTap: () {
+                            logger.d("=============${value?.id}");
+                            Navigator.pushNamed(
+                              context,
+                              RouteNames.courseModule,
+                              arguments: value?.id,
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

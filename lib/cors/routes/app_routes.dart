@@ -21,7 +21,8 @@ import '../../presentation/views/course_screen/screens/my_course/my_assignment/d
 import '../../presentation/views/course_screen/screens/my_course/my_assignment/submitted_assignment_screen.dart';
 import '../../presentation/views/course_screen/screens/my_course/my_course_screen.dart';
 import '../../presentation/views/course_screen/screens/other_corses/other_course_screen.dart';
-import '../../presentation/views/course_screen/screens/video_player/video_player_screen.dart' hide VideoPlayerScreen;
+import '../../presentation/views/course_screen/screens/video_player/video_player_screen.dart'
+    hide VideoPlayerScreen;
 import '../../presentation/views/form_fillup_and_rules/screens/course_module/screen/course_module.dart';
 import '../../presentation/views/form_fillup_and_rules/screens/digital_contract/digital_contract_signing.dart';
 import '../../presentation/views/form_fillup_and_rules/screens/fill_enrollment_form/screen/fill_enrollment_form.dart';
@@ -68,14 +69,14 @@ class AppRoutes {
   static const String initialRoute = RouteNames.splashScreen;
 
   static final Map<String, WidgetBuilder> routes = {
-    RouteNames.splashScreen: (context) =>  SplashScreen(),
+    RouteNames.splashScreen: (context) => SplashScreen(),
     RouteNames.onBoardingScreen: (context) => const OnboardingScreen(),
-    RouteNames.loginAndSignUpScreen: (context) =>  LoginAndSignupScreen(),
-    RouteNames.loginScreen: (context) =>  const LoginScreen(),
-    RouteNames.registerScreen: (context) =>  const RegisterScreen(),
-    RouteNames.forgotPasswordScreen : (context) =>  const ForgotPasswordScreen(),
-    RouteNames.otpVerifyScreen : (context) =>  OtpVerifyScreen(),
-    RouteNames.setNewPasswordScreen: (context) =>  SetNewPasswordScreen(),
+    RouteNames.loginAndSignUpScreen: (context) => LoginAndSignupScreen(),
+    RouteNames.loginScreen: (context) => const LoginScreen(),
+    RouteNames.registerScreen: (context) => const RegisterScreen(),
+    RouteNames.forgotPasswordScreen: (context) => const ForgotPasswordScreen(),
+    RouteNames.otpVerifyScreen: (context) => OtpVerifyScreen(),
+    RouteNames.setNewPasswordScreen: (context) => SetNewPasswordScreen(),
     RouteNames.parentScreen: (context) => const ParentScreen(),
     RouteNames.scanner: (context) => const Scanner(),
     RouteNames.courseModuleScreens: (context) => const CourseModuleScreen(),
@@ -87,53 +88,60 @@ class AppRoutes {
     // RouteNames.editPersonalInfoScreen: (context) =>  const EditPersonalInfoScreen(),
     RouteNames.myClassScreen: (context) => const MyClassScreen(),
     RouteNames.myAssignmentScreen: (context) => const DueAssignmentScreen(),
-    RouteNames.submittedAssignmentScreen: (context) => const SubmittedAssignmentScreen(),
+    RouteNames.submittedAssignmentScreen: (context) =>
+        const SubmittedAssignmentScreen(),
     RouteNames.assetsScreen: (context) => const AssetsScreen(),
     RouteNames.startEnrollment: (context) => const StartEnrollment(),
     RouteNames.selectCourse: (context) => const SelectCourse(),
-    RouteNames.courseModule: (context) => const CourseModule(),
+    RouteNames.courseModule: (context) {
+      final courseId = ModalRoute.of(context)!.settings.arguments as String;
+      return CourseModule(courseId: courseId);
+    },
     RouteNames.fillEnrollmentForm: (context) => const FillEnrollmentForm(),
     RouteNames.rulesRegulations: (context) => const RulesRegulations(),
-    RouteNames.digitalContractSigning: (context) => const DigitalContractSigning(),
+    RouteNames.digitalContractSigning: (context) =>
+        const DigitalContractSigning(),
     RouteNames.payment: (context) => const Payment(),
     RouteNames.profileSetup: (context) => const ProfileSetup(),
     RouteNames.subscriptions: (context) => const Subscriptions(),
     RouteNames.trackPayment: (context) => const TrackPayment(),
     RouteNames.changeStripe: (context) => const ChangeStripe(),
-    RouteNames.contractAndDocumentScreen: (context) => const ContractDocumentScreen(),
+    RouteNames.contractAndDocumentScreen: (context) =>
+        const ContractDocumentScreen(),
     RouteNames.accountSettingsScreen: (context) => const AccountSettingScreen(),
     RouteNames.changePassword: (context) => const ChangePassword(),
-    RouteNames.feedbackScreen: (context) => const FeedbackAndCertificatesScreen(),
+    RouteNames.feedbackScreen: (context) =>
+        const FeedbackAndCertificatesScreen(),
     RouteNames.feedbackPage: (context) => const FeedbackScreen(),
     RouteNames.helpSupportScreen: (context) => const SupportScreen(),
 
     RouteNames.certificate: (context) => const Certificate(),
     RouteNames.supportUser: (context) => const SupportUser(),
     RouteNames.pushNotifications: (context) => const PushNotifications(),
-    RouteNames.commentScreen: (context) =>  CommentPostScreen(),
-    RouteNames.createPost: (context) =>  CreatePost(),
-    RouteNames.createPool: (context) =>  CreatePool(),
-    RouteNames.myProfilePublic: (context) =>  MyProfilePublic(),
-    RouteNames.myProfilePrivate: (context) =>  MyProfilePrivate(),
-    RouteNames.editProfile: (context) =>  EditProfile(),
-    RouteNames.othersProfile: (context) =>  OthersProfile(),
-    RouteNames.reportListPage: (context) =>  ReportListPage(),
-    RouteNames.newMessageScreens: (context) =>  NewMessageScreens(),
-    RouteNames.createGroupScreen: (context) =>  CreateGroupScreen(),
-    RouteNames.oneTwoOneChatScreen: (context) =>  OneTwoOneChatScreen(),
-    RouteNames.userProfileScreen: (context) =>  UserProfileScreen(),
-    RouteNames.groupProfileScreen: (context) =>  GroupProfileScreen(),
-    RouteNames.addGroupMember: (context) =>  AddGroupMember(),
-    RouteNames.seeGroupMemberScreen: (context) =>  SeeGroupMemberScreen(),
-    RouteNames.eventDetails: (context) =>  EventDetails(),
-    RouteNames.completePayment: (context) =>  CompletePayment(),
-    RouteNames.prosHome: (context) =>  ProsHome(),
-    RouteNames.myCourse: (context) =>  MyCourse(),
-    RouteNames.courseModules: (context) =>  CourseModules(),
-    RouteNames.parentScreenTwo: (context) =>  ParentScreenTwo(),
-    RouteNames.allEvents: (context) =>  AllEvents(),
-    RouteNames.videoPlayerScreen: (context) =>  VideoPlayerScreen(url: '', title: '',),
-    RouteNames.pdfWidget: (context) =>  PdfWidget(),
-
+    RouteNames.commentScreen: (context) => CommentPostScreen(),
+    RouteNames.createPost: (context) => CreatePost(),
+    RouteNames.createPool: (context) => CreatePool(),
+    RouteNames.myProfilePublic: (context) => MyProfilePublic(),
+    RouteNames.myProfilePrivate: (context) => MyProfilePrivate(),
+    RouteNames.editProfile: (context) => EditProfile(),
+    RouteNames.othersProfile: (context) => OthersProfile(),
+    RouteNames.reportListPage: (context) => ReportListPage(),
+    RouteNames.newMessageScreens: (context) => NewMessageScreens(),
+    RouteNames.createGroupScreen: (context) => CreateGroupScreen(),
+    RouteNames.oneTwoOneChatScreen: (context) => OneTwoOneChatScreen(),
+    RouteNames.userProfileScreen: (context) => UserProfileScreen(),
+    RouteNames.groupProfileScreen: (context) => GroupProfileScreen(),
+    RouteNames.addGroupMember: (context) => AddGroupMember(),
+    RouteNames.seeGroupMemberScreen: (context) => SeeGroupMemberScreen(),
+    RouteNames.eventDetails: (context) => EventDetails(),
+    RouteNames.completePayment: (context) => CompletePayment(),
+    RouteNames.prosHome: (context) => ProsHome(),
+    RouteNames.myCourse: (context) => MyCourse(),
+    RouteNames.courseModules: (context) => CourseModules(),
+    RouteNames.parentScreenTwo: (context) => ParentScreenTwo(),
+    RouteNames.allEvents: (context) => AllEvents(),
+    RouteNames.videoPlayerScreen: (context) =>
+        VideoPlayerScreen(url: '', title: ''),
+    RouteNames.pdfWidget: (context) => PdfWidget(),
   };
 }

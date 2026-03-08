@@ -1,5 +1,4 @@
 class ApiEndpoints {
-
   ApiEndpoints._();
 
   static const String baseUrl = 'http://192.168.7.12:4000';
@@ -18,5 +17,9 @@ class ApiEndpoints {
   //profile
   static const String profileInfo = '/api/auth/me';
 
+  /// ---------------------- Enrollment ----------------------------------------
+  static const String getAllCourses = '$baseUrl/api/course/all';
 
+  static String getCourseDetails(String courseId) =>
+      '$baseUrl/api/course/details/$courseId';
 }
