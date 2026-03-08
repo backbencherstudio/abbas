@@ -36,6 +36,8 @@ class _CourseModuleState extends ConsumerState<CourseModule> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+
+      extendBodyBehindAppBar: true,
       body: courseDetailsState.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text('Error: $error')),
