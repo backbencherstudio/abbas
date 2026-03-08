@@ -3,7 +3,6 @@ import 'package:abbas/cors/constants/api_endpoints.dart';
 import 'package:abbas/cors/services/api_client.dart';
 import '../../../../../cors/network/api_response_model.dart';
 import 'community_model.dart';
-
 class CommunityRemoteDataSource {
   final ApiClient apiClient;
 
@@ -11,7 +10,6 @@ class CommunityRemoteDataSource {
 
   Future<List<GetFeedModel>> getCommunityFeeds() async {
     try {
-      // call GET via ApiClient
       final ApiResponseModel response = await apiClient.get(
         ApiEndpoints.getFeed,
         headers: {"Content-Type": "application/json"},
