@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:abbas/cors/services/api_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -33,52 +34,47 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void initState() {
-    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      _refreshTokenViewModel = RefreshTokenViewModel(
+        getNewAccessToken: GetNewAccessToken(
+          refreshTokenRepository: getIt<RefreshTokenRepository>(),
+        ),
+        refreshTokenStorage: RefreshTokenStorage(),
+        tokenStorage: TokenStorage(),
+      );
 
-    _refreshTokenViewModel = RefreshTokenViewModel(
-      getNewAccessToken: GetNewAccessToken(
-        refreshTokenRepository: getIt<RefreshTokenRepository>(),
-      ),
-      refreshTokenStorage: RefreshTokenStorage(),
-      tokenStorage: TokenStorage(),
-    );
+      // First show "A"
+      _aController = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 800),
+      );
 
-    // First show "A"
-    _aController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
+      // Then show CIN and CT
+      _cinCtController = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 800),
+      );
 
-    // Then show CIN and CT
-    _cinCtController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
+      // Subtitle text
+      _subtitleController = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 800),
+      );
 
-    // Subtitle text
-    _subtitleController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
+      _startAnimationSequence();
+      _fetchAccessToken();
 
-    _startAnimationSequence();
-    _fetchAccessToken();
-
-
-
-
-    Future.delayed(const Duration(milliseconds: 1500), () async {
-      // Optional: you can add a small extra check or animation completion here
-
-      if (!mounted) return; // ← very important safety check
-      final token =  await TokenStorage().getToken();
-      log("========== Splash Screen $token ===========");
+      final token = await TokenStorage().getToken();
+      logger.d("========== Splash Screen $token ===========");
       if (token != null) {
-        Navigator.pushReplacementNamed(context, RouteNames.parentScreen);
+        Future.delayed(const Duration(milliseconds: 1500), () async {
+          Navigator.pushReplacementNamed(context, RouteNames.parentScreen);
+        });
       } else {
         Navigator.pushReplacementNamed(context, RouteNames.onBoardingScreen);
       }
     });
+    super.initState();
   }
 
   Future<void> _fetchAccessToken() async {

@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:logger/logger.dart';
 
+final logger = Logger();
 class ApiClient {
   final Map<String, String> defaultHeaders;
   final String? token;
+
 
   ApiClient({this.token, this.defaultHeaders = const {"Content-Type": "application/json"}});
 
@@ -29,7 +32,7 @@ class ApiClient {
 
   Future<dynamic> post(String endpoint, {Map<String, String>? headers, Map<String, dynamic>? body}) async {
     try {
-      if (kDebugMode) print('[API POST] URL: $endpoint, BODY: ${jsonEncode(body)}');
+      if (kDebugMode) logger.i('[API POST] URL: $endpoint, BODY: ${jsonEncode(body)}');
       final response = await http.post(
         Uri.parse(endpoint),
         headers: _buildHeaders(headers),
@@ -47,7 +50,7 @@ class ApiClient {
     final responseBody = response.body;
 
     if (kDebugMode) {
-      print('[API RESPONSE] URL: $url, Status: $statusCode, Body: $responseBody');
+      logger.i('[API RESPONSE] URL: $url, Status: $statusCode, Body: $responseBody');
     }
 
     if (statusCode >= 200 && statusCode < 300) {

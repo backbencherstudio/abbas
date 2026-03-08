@@ -21,16 +21,12 @@ class LoginRemoteDataSource {
 
     // ApiClient already decoded JSON into Map<String,dynamic>
     if (response['success'] == true && response['authorization'] != null) {
-      final tokenSave = response['authorization']['access_token'];
-      log(
-        "=============== Save Login $tokenSave==========",
-      );
+      final tokenSave = response['authorization']['refresh_token'];
+
 
       if(tokenSave != null){
         await _tokenStorage.saveToken(tokenSave);
-        log(
-          "=============== Save token Login $tokenSave==========",
-        );
+       logger.d("========= Login Token Save $tokenSave");
       }else{
         log(
           "=============== Save token Login failed ==========",

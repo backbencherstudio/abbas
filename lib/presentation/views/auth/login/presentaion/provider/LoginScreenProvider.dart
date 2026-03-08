@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:abbas/cors/services/api_client.dart';
 import 'package:flutter/material.dart';
 import '../../domain/loginEntity.dart';
 import '../../domain/loginUseCase.dart';
@@ -8,13 +9,22 @@ class LoginScreenProvider extends ChangeNotifier {
   final LoginUseCase loginUseCase;
 
   LoginScreenProvider({required this.loginUseCase}) {
-    emailController.addListener(_onTextChanged);
-    passwordController.addListener(_onTextChanged);
+    _emailController.addListener(_onTextChanged);
+    _passwordController.addListener(_onTextChanged);
   }
 
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  /// ------------------- TextEditingController --------------------------------
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
+  TextEditingController get emailController => _emailController;
+
+  TextEditingController get passwordController => _passwordController;
+
+  GlobalKey<FormState> get formKey => _formKey;
+
+  /// ------------------------ Loading State -----------------------------------
   bool _isLoading = false;
   String? _errorMessage;
   LoginEntity? _user;
@@ -24,7 +34,7 @@ class LoginScreenProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   bool get isButtonEnabled =>
-      emailController.text.isNotEmpty && passwordController.text.isNotEmpty;
+      _emailController.text.isNotEmpty && _passwordController.text.isNotEmpty;
 
   LoginEntity? get user => _user;
 
@@ -32,9 +42,19 @@ class LoginScreenProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> login() async {
+  /// ------------------------- Toggle Password Visible ------------------------
+  bool _isPasswordVisible = false;
 
-    log("you cliek the login method");
+  bool get isPasswordVisible => _isPasswordVisible;
+
+  void setIsPasswordVisible() {
+    _isPasswordVisible = !_isPasswordVisible;
+    notifyListeners();
+    logger.d("Toggle Password Visibility $_isPasswordVisible");
+  }
+
+  /// ------------------------- Function to call (Login) -----------------------
+  Future<void> login() async {
     if (!isButtonEnabled) {
       _errorMessage = "Please enter email and password";
       notifyListeners();
@@ -49,8 +69,8 @@ class LoginScreenProvider extends ChangeNotifier {
       log("you enter  the try block");
 
       final result = await loginUseCase(
-        emailController.text.trim(),
-        passwordController.text.trim(),
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
       );
 
       _user = result;
@@ -66,8 +86,8 @@ class LoginScreenProvider extends ChangeNotifier {
 
   @override
   void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 }
