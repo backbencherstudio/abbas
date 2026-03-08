@@ -5,7 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../../../cors/theme/app_colors.dart';
 import '../../viewmodels/parent/parent_screen_provider.dart';
-import '../community/screen/community_screen.dart';
+import '../community/presentaion/screen/community_screen.dart';
 import '../course_screen/course_screen.dart' show CourseScreen;
 import '../home/screen/home_screen.dart';
 import '../message/screen/message_screens.dart';

@@ -7,7 +7,7 @@ import '../../widgets/custom_appbar.dart';
 import '../../widgets/custom_bottom_sheet.dart';
 
 class ProfileScreen extends StatelessWidget {
-   const ProfileScreen({super.key});
+  const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +36,9 @@ class ProfileScreen extends StatelessWidget {
                   SizedBox(height: 4.h),
                   Text(
                     "Membership Active",
-                    style: textTheme.bodySmall?.copyWith(color: Color(0xFF5F6CA0)),
+                    style: textTheme.bodySmall?.copyWith(
+                      color: Color(0xFF5F6CA0),
+                    ),
                   ),
                   SizedBox(height: 32.h),
                   Padding(
@@ -44,21 +46,53 @@ class ProfileScreen extends StatelessWidget {
                     child: Column(
                       spacing: 12.h,
                       children: [
-                        OptionCard(title: "Personal Info", iconPath: "assets/icons/user.svg", route: RouteNames.personalInfoScreen,),
-                        OptionCard(title: "Subscription & Payment", iconPath: "assets/icons/credit.svg", route: RouteNames.subscriptions,),
-                        OptionCard(title: "Contract Document", iconPath: "assets/icons/document.svg", route: RouteNames.contractAndDocumentScreen,),
-                        OptionCard(title: "Account Settings", iconPath: "assets/icons/settings.svg", route: RouteNames.accountSettingsScreen,),
-                        OptionCard(title: "Feedback & Certificates", iconPath: "assets/icons/certificate.svg", route: RouteNames.feedbackScreen,),
-                        OptionCard(title: "Push Notification", iconPath: "assets/icons/notification.svg", route: RouteNames.pushNotifications,),
-                        OptionCard(title: "Help & Support", iconPath: "assets/icons/support.svg", route: RouteNames.helpSupportScreen,),
-                        OptionCard(title: "Logout", iconPath: "assets/icons/logout.svg", isLast: true, bottomSheet: CustomBottomSheet(
-
-                          title: "Confirm Logout",
-                          description: "Are you sure you want to log out?",
+                        OptionCard(
+                          title: "Personal Info",
+                          iconPath: "assets/icons/user.svg",
+                          route: RouteNames.personalInfoScreen,
+                        ),
+                        OptionCard(
+                          title: "Subscription & Payment",
+                          iconPath: "assets/icons/credit.svg",
+                          route: RouteNames.subscriptions,
+                        ),
+                        OptionCard(
+                          title: "Contract Document",
+                          iconPath: "assets/icons/document.svg",
+                          route: RouteNames.contractAndDocumentScreen,
+                        ),
+                        OptionCard(
+                          title: "Account Settings",
+                          iconPath: "assets/icons/settings.svg",
+                          route: RouteNames.accountSettingsScreen,
+                        ),
+                        OptionCard(
+                          title: "Feedback & Certificates",
+                          iconPath: "assets/icons/certificate.svg",
+                          route: RouteNames.feedbackScreen,
+                        ),
+                        OptionCard(
+                          title: "Push Notification",
+                          iconPath: "assets/icons/notification.svg",
+                          route: RouteNames.pushNotifications,
+                        ),
+                        OptionCard(
+                          title: "Help & Support",
+                          iconPath: "assets/icons/support.svg",
+                          route: RouteNames.helpSupportScreen,
+                        ),
+                        OptionCard(
+                          title: "Logout",
                           iconPath: "assets/icons/logout.svg",
-                          buttonTitle: "Yes, Logout",
-                          buttonIconPath: "assets/icons/logout_white.svg",
-                        ),),
+                          isLast: true,
+                          bottomSheet: CustomBottomSheet(
+                            title: "Confirm Logout",
+                            description: "Are you sure you want to log out?",
+                            iconPath: "assets/icons/logout.svg",
+                            buttonTitle: "Yes, Logout",
+                            buttonIconPath: "assets/icons/logout_white.svg",
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -71,8 +105,4 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
-
-
-
-
 }

@@ -2,13 +2,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../../cors/routes/route_names.dart';
-import '../../../../../cors/theme/app_colors.dart';
-import '../../../../widgets/custom_appbar.dart';
-import '../../widgets/comment_field.dart';
-import '../../widgets/comment_widget.dart';
-import '../../widgets/create_post_widget.dart';
-import '../../widgets/post_widget.dart';
+import '../../../../../../cors/theme/app_colors.dart';
+import '../../../../../widgets/custom_appbar.dart';
+import '../../../widgets/comment_field.dart';
+import '../../../widgets/comment_widget.dart';
+import '../../../widgets/create_post_widget.dart';
+import '../../../widgets/post_widget.dart';
+
 
 class CommentPostScreen extends StatelessWidget {
   CommentPostScreen({super.key});

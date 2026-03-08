@@ -6,7 +6,6 @@ class ApiEndpoints {
   static const String register = '$baseUrl/api/auth/register';
   static const String login = '$baseUrl/api/auth/login';
   static const String refreshToken = '$baseUrl/api/auth/refresh-token';
-  static const String getFeed = '$baseUrl/api/community/feed';
   static const String forgetPasswordEmail =
       '$baseUrl/api/auimportth/resend-verification-email';
   static const String verifyEmail = '$baseUrl/api/auth/verify-email';
@@ -17,6 +16,11 @@ class ApiEndpoints {
 
   //profile
   static const String profileInfo = '/api/auth/me';
+
+  //community section
+
+
+  static const String getFeed = '$baseUrl/api/community/feed';
 
 
 }

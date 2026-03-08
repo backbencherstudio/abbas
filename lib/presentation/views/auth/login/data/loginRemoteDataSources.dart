@@ -1,4 +1,6 @@
 import 'dart:developer';
+import 'package:abbas/cors/services/token_storage.dart';
+
 import 'loginModel.dart';
 import 'package:abbas/cors/constants/api_endpoints.dart';
 import 'package:abbas/cors/services/api_client.dart';
@@ -7,6 +9,8 @@ class LoginRemoteDataSource {
   final ApiClient apiClient;
 
   LoginRemoteDataSource(this.apiClient);
+
+  final _tokenStorage = TokenStorage();
 
   Future<LoginModel> login(String email, String password) async {
     final response = await apiClient.post(
@@ -17,10 +21,21 @@ class LoginRemoteDataSource {
 
     // ApiClient already decoded JSON into Map<String,dynamic>
     if (response['success'] == true && response['authorization'] != null) {
-      log("===========Login success=============");
+      final tokenSave = response['authorization']['refresh_token'];
+
+
+      if(tokenSave != null){
+        await _tokenStorage.saveToken(tokenSave);
+       logger.d("========= Login Token Save $tokenSave");
+      }else{
+        log(
+          "=============== Save token Login failed ==========",
+        );
+      }
+
+
       return LoginModel.fromJson(response);
     } else {
-      log("============Login failed============");
       final message = response['message'] ?? "Login failed";
       throw Exception(message);
     }

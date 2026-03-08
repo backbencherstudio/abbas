@@ -1,5 +1,6 @@
 import 'package:abbas/presentation/views/auth/login/presentaion/widgets/custom_textfield.dart';
 import 'package:abbas/presentation/widgets/custom_button.dart';
+import 'package:abbas/presentation/widgets/validator.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -46,13 +47,8 @@ class LoginScreen extends StatelessWidget {
 
               SizedBox(height: 30.h),
 
-              /// Email Field
-              _buildEmailField(provider),
-
-              SizedBox(height: 16.h),
-
               /// Password Field
-              _buildPasswordField(provider, context),
+              _buildFormField(provider, context),
 
               SizedBox(height: 16.h),
 
@@ -67,9 +63,7 @@ class LoginScreen extends StatelessWidget {
               SizedBox(height: 15.h),
 
               /// Social Button
-              const CustomButton(
-                title: 'Sign In With Facebook',
-              ),
+              const CustomButton(title: 'Sign In With Facebook'),
 
               SizedBox(height: 30.h),
 
@@ -82,67 +76,73 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  /// Email Field
-  Widget _buildEmailField(LoginScreenProvider provider) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Email',
-          style: AppTextStyles.textTheme.bodyMedium?.copyWith(
-            color: AppColors.lightGreyTextColor,
-          ),
-        ),
-        SizedBox(height: 6.h),
-        AppTextField(
-          controller: provider.emailController,
-          hintText: 'Enter your email',
-          isRequired: true,
-        ),
-      ],
-    );
-  }
-
   /// Password Field
-  Widget _buildPasswordField(
-      LoginScreenProvider provider, BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Password',
-          style: AppTextStyles.textTheme.bodyMedium?.copyWith(
-            color: AppColors.lightGreyTextColor,
-          ),
-        ),
-        SizedBox(height: 6.h),
-        AppTextField(
-          controller: provider.passwordController,
-          hintText: 'Enter your password',
-          isRequired: true,
-          //obscureText: true,
-        ),
-        SizedBox(height: 6.h),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            InkWell(
-              onTap: () {
-                Navigator.pushNamed(
-                  context,
-                  RouteNames.forgotPasswordScreen,
-                );
-              },
-              child: Text(
-                'Forgot Password?',
+  Widget _buildFormField(LoginScreenProvider provider, BuildContext context) {
+    return Consumer<LoginScreenProvider>(
+      builder: (context, viewModel, child) {
+        return Form(
+          key: viewModel.formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Email',
                 style: AppTextStyles.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.white,
+                  color: AppColors.lightGreyTextColor,
                 ),
               ),
-            ),
-          ],
-        ),
-      ],
+              SizedBox(height: 6.h),
+              AppTextField(
+                controller: provider.emailController,
+                hintText: 'Enter your email',
+                isRequired: true,
+                validator: emailValidator
+              ),
+              SizedBox(height: 16.h),
+              Text(
+                'Password',
+                style: AppTextStyles.textTheme.bodyMedium?.copyWith(
+                  color: AppColors.lightGreyTextColor,
+                ),
+              ),
+              SizedBox(height: 6.h),
+              AppTextField(
+                controller: provider.passwordController,
+                hintText: 'Enter your password',
+                isPassword: viewModel.isPasswordVisible,
+                suffixIcon: GestureDetector(
+                  onTap: viewModel.setIsPasswordVisible,
+                  child: viewModel.isPasswordVisible
+                      ? Icon(Icons.visibility_off_outlined)
+                      : Icon(Icons.visibility_outlined),
+                ),
+               validator: passwordValidator,
+              ),
+              SizedBox(height: 6.h),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  InkWell(
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        RouteNames.forgotPasswordScreen,
+                      );
+                    },
+                    child: Text(
+                      'Forgot Password?',
+                      style: AppTextStyles.textTheme.bodyMedium?.copyWith(
+                        color: AppColors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -151,9 +151,7 @@ class LoginScreen extends StatelessWidget {
     return Consumer<LoginScreenProvider>(
       builder: (context, viewModel, child) {
         if (viewModel.isLoading) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
+          return const Center(child: CircularProgressIndicator());
         }
 
         return PrimaryButton(
@@ -169,7 +167,7 @@ class LoginScreen extends StatelessWidget {
               Navigator.pushNamedAndRemoveUntil(
                 context,
                 RouteNames.parentScreen,
-                    (route) => false,
+                (route) => false,
               );
             }
           },
@@ -183,10 +181,7 @@ class LoginScreen extends StatelessWidget {
     return Row(
       children: [
         const Expanded(
-          child: Divider(
-            color: AppColors.cardBackground,
-            thickness: 1,
-          ),
+          child: Divider(color: AppColors.cardBackground, thickness: 1),
         ),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 10.w),
@@ -198,10 +193,7 @@ class LoginScreen extends StatelessWidget {
           ),
         ),
         const Expanded(
-          child: Divider(
-            color: AppColors.cardBackground,
-            thickness: 1,
-          ),
+          child: Divider(color: AppColors.cardBackground, thickness: 1),
         ),
       ],
     );
@@ -226,10 +218,7 @@ class LoginScreen extends StatelessWidget {
               ),
               recognizer: TapGestureRecognizer()
                 ..onTap = () {
-                  Navigator.pushNamed(
-                    context,
-                    RouteNames.registerScreen,
-                  );
+                  Navigator.pushNamed(context, RouteNames.registerScreen);
                 },
             ),
           ],

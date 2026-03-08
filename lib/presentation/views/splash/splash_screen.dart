@@ -1,3 +1,6 @@
+import 'dart:developer';
+
+import 'package:abbas/cors/services/api_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,7 +21,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with TickerProviderStateMixin {
   late AnimationController _aController;
   late AnimationController _cinCtController;
   late AnimationController _subtitleController;
@@ -30,66 +34,57 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
   @override
   void initState() {
-    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      _refreshTokenViewModel = RefreshTokenViewModel(
+        getNewAccessToken: GetNewAccessToken(
+          refreshTokenRepository: getIt<RefreshTokenRepository>(),
+        ),
+        refreshTokenStorage: RefreshTokenStorage(),
+        tokenStorage: TokenStorage(),
+      );
 
-    _refreshTokenViewModel = RefreshTokenViewModel(
-      getNewAccessToken: GetNewAccessToken(refreshTokenRepository: getIt<RefreshTokenRepository>()),
-      refreshTokenStorage: RefreshTokenStorage(),
-      tokenStorage: TokenStorage(),
-    );
+      // First show "A"
+      _aController = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 800),
+      );
 
+      // Then show CIN and CT
+      _cinCtController = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 800),
+      );
 
-    // First show "A"
-    _aController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
+      // Subtitle text
+      _subtitleController = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 800),
+      );
 
-    // Then show CIN and CT
-    _cinCtController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
+      _startAnimationSequence();
+      _fetchAccessToken();
 
-    // Subtitle text
-    _subtitleController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
-
-    _startAnimationSequence();
-    _fetchAccessToken();
-
-
-    Future.delayed(const Duration(seconds: 2), () {
-      _navigateToNextScreen();
+      final token = await TokenStorage().getToken();
+      logger.d("========== Splash Screen $token ===========");
+      if (token != null) {
+        Future.delayed(const Duration(milliseconds: 1500), () async {
+          Navigator.pushReplacementNamed(context, RouteNames.parentScreen);
+        });
+      } else {
+        Navigator.pushReplacementNamed(context, RouteNames.onBoardingScreen);
+      }
     });
+    super.initState();
   }
 
   Future<void> _fetchAccessToken() async {
     await _refreshTokenViewModel.fetchNewAccessToken();
     if (_refreshTokenViewModel.errorMessage != null) {
       print(_refreshTokenViewModel.errorMessage);
-      await TokenStorage().clearToken();
-     // Navigator.pushNamed(context, RouteNames.onBoardingScreen);
+      // await TokenStorage().clearToken();
+      // Navigator.pushNamed(context, RouteNames.onBoardingScreen);
     } else {
       print("New access token fetched successfully!");
-    }
-  }
-
-  Future<void> _navigateToNextScreen() async {
-
-    final token = await TokenStorage().getToken();
-
-    await Future.delayed(const Duration(seconds: 3));
-    if (mounted) {
-      if (token != null && token.isNotEmpty) {
-        // Navigator.pushReplacementNamed(context, RouteNames.editPersonalInfoScreen);
-          Navigator.pushReplacementNamed(context, RouteNames.startEnrollment);
-      } else {
-         // Navigator.pushReplacementNamed(context, RouteNames.editPersonalInfoScreen);
-        Navigator.pushReplacementNamed(context, RouteNames.onBoardingScreen);
-      }
     }
   }
 
@@ -121,20 +116,14 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       body: TweenAnimationBuilder<Color?>(
         duration: const Duration(milliseconds: 2000),
         curve: Curves.easeInOut,
-        tween: ColorTween(
-          begin: Colors.black,
-          end: AppColors.splashRed,
-        ),
+        tween: ColorTween(begin: Colors.black, end: AppColors.splashRed),
         builder: (context, color, child) {
           return Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.bottomCenter,
                 end: Alignment.topCenter,
-                colors: [
-                  color ?? Colors.black,
-                  Colors.black,
-                ],
+                colors: [color ?? Colors.black, Colors.black],
               ),
             ),
             child: Center(
@@ -201,7 +190,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                         ),
                       ],
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
