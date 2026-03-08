@@ -8,17 +8,16 @@ import 'package:flutter_riverpod/legacy.dart';
 
 /// ------------------ Get All Courses Provider --------------------------------
 final getAllCoursesProvider =
-    StateNotifierProvider<
-      GetAllCoursesProvider,
-      AsyncValue<GetAllCoursesModel?>
-    >((ref) => GetAllCoursesProvider(dioClient: DioClient()));
+    StateNotifierProvider<GetAllCoursesProvider, AsyncValue<GetAllCoursesModel?>>(
+      (ref) => GetAllCoursesProvider(dioClient: DioClient()),
+    );
 
-class GetAllCoursesProvider
-    extends StateNotifier<AsyncValue<GetAllCoursesModel?>> {
+class GetAllCoursesProvider extends StateNotifier<AsyncValue<GetAllCoursesModel?>> {
   DioClient dioClient;
 
   GetAllCoursesProvider({required this.dioClient})
     : super(AsyncValue.data(null));
+
 
   Future<void> getAllCourses() async {
     try {
@@ -43,6 +42,7 @@ class GetAllCoursesProvider
 }
 
 /// ------------------------- Get Course Details -------------------------------
+
 
 final getCourseDetailsProvider =
     StateNotifierProvider<
