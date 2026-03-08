@@ -2,8 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../widgets/primary_button.dart';
-import '../../../widgets/secondary_appber.dart';
+import '../../../../widgets/primary_button.dart';
+import '../../../../widgets/secondary_appber.dart';
 
 class EditProfile extends StatefulWidget {
   EditProfile({super.key});

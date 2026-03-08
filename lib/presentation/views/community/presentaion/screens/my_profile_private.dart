@@ -2,11 +2,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../../../cors/routes/route_names.dart';
-import '../../../widgets/custom_bottom_sheet.dart';
-import '../../../widgets/secondary_appber.dart';
-import '../widgets/create_post_widget.dart';
-import '../widgets/post_actions.dart';
+import '../../../../../cors/routes/route_names.dart';
+import '../../../../widgets/custom_bottom_sheet.dart';
+import '../../../../widgets/secondary_appber.dart';
+import '../../widgets/create_post_widget.dart';
+import '../../widgets/post_actions.dart';
+
 
 class MyProfilePrivate extends StatelessWidget {
   const MyProfilePrivate({super.key});

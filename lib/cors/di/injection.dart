@@ -2,6 +2,10 @@ import 'package:abbas/presentation/views/auth/login/data/loginRemoteDataSources.
 import 'package:abbas/presentation/views/auth/login/data/loginRepositoryimpl.dart';
 import 'package:abbas/presentation/views/auth/login/domain/loginUseCase.dart';
 import 'package:abbas/presentation/views/auth/login/presentaion/provider/LoginScreenProvider.dart';
+import 'package:abbas/presentation/views/community/data/community/community_repository_impl.dart';
+import 'package:abbas/presentation/views/community/domain/community/community_repository.dart';
+import 'package:abbas/presentation/views/community/domain/community/community_usecase.dart';
+import 'package:abbas/presentation/views/community/presentaion/provider/community/community_screen_provider.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import '../../data/datasources/auth/change_password_datasource.dart';
@@ -59,6 +63,7 @@ import '../../presentation/views/auth/register/data/SignUpRepositoryImpl.dart';
 import '../../presentation/views/auth/register/domain/signUpRepository.dart';
 import '../../presentation/views/auth/register/domain/signUpUseCase.dart';
 import '../../presentation/views/auth/register/presentaion/provider/signupScreen_provider.dart';
+import '../../presentation/views/community/data/community/community_remote_datasource.dart';
 import '../services/api_client.dart';
 import '../services/api_services.dart';
 import '../services/token_storage.dart';
@@ -288,6 +293,33 @@ Future<void> configureDependencies() async {
   getIt.registerFactory<LoginScreenProvider>(
         () => LoginScreenProvider(
       loginUseCase: getIt<LoginUseCase>(),
+    ),
+  );
+
+  // ===============================
+// Get feed DEPENDENCY INJECTION
+// ===============================
+
+// 2️⃣ Remote Data Source
+  getIt.registerLazySingleton<CommunityRemoteDataSource>(
+        () => CommunityRemoteDataSource(
+      getIt<ApiClient>(), // ApiClient injected
+    ),
+  );
+
+// 3️⃣ Repository
+  getIt.registerLazySingleton<CommunityRepository>(
+        () => CommunityRepositoryImpl(getIt<CommunityRemoteDataSource>()),
+  );
+// 4️⃣ UseCase
+  getIt.registerLazySingleton<GetCommunityFeedUseCase>(
+        () => GetCommunityFeedUseCase(getIt<CommunityRepository>()),
+  );
+
+// 5️⃣ Provider
+  getIt.registerFactory<CommunityScreenProvider>(
+        () => CommunityScreenProvider(
+      getCommunityFeedsUseCase: getIt<GetCommunityFeedUseCase>(),
     ),
   );
 }

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../../../cors/routes/route_names.dart';
-import '../../../widgets/custom_bottom_sheet.dart';
-import '../../../widgets/secondary_appber.dart';
-import '../widgets/post_actions.dart';
-import '../widgets/share_bottom_sheet.dart';
+import '../../../../../cors/routes/route_names.dart';
+import '../../../../widgets/custom_bottom_sheet.dart';
+import '../../../../widgets/secondary_appber.dart';
+import '../../widgets/post_actions.dart';
+import '../../widgets/share_bottom_sheet.dart';
 
 class OthersProfile extends StatelessWidget {
   const OthersProfile({super.key});

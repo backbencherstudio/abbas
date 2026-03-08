@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../widgets/secondary_appber.dart';
-
+import '../../../../widgets/secondary_appber.dart';
 class CreatePost extends StatefulWidget {
   const CreatePost({super.key});
 
