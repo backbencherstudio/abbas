@@ -68,7 +68,7 @@ class _SplashScreenState extends State<SplashScreen>
       logger.d("========== Splash Screen $token ===========");
       if (token != null) {
         Future.delayed(const Duration(milliseconds: 1500), () async {
-          Navigator.pushReplacementNamed(context, RouteNames.parentScreen);
+          Navigator.pushReplacementNamed(context, RouteNames.startEnrollment);
         });
       } else {
         Navigator.pushReplacementNamed(context, RouteNames.onBoardingScreen);
@@ -81,7 +81,7 @@ class _SplashScreenState extends State<SplashScreen>
     await _refreshTokenViewModel.fetchNewAccessToken();
     if (_refreshTokenViewModel.errorMessage != null) {
       print(_refreshTokenViewModel.errorMessage);
-      await TokenStorage().clearToken();
+      // await TokenStorage().clearToken();
       // Navigator.pushNamed(context, RouteNames.onBoardingScreen);
     } else {
       print("New access token fetched successfully!");
