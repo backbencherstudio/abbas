@@ -18,9 +18,13 @@ class ApiEndpoints {
 
   /// ---------------------- Enrollment ----------------------------------------
   static const String getAllCourses = '$baseUrl/api/course/all';
+  static String getCourseDetails(String courseId) =>
+      '$baseUrl/api/course/details/$courseId';
+  static String enrollPersonalInfo(String courseId) => '$baseUrl/api/enrollment/pinfo/$courseId';
+  static String acceptRulesRegulations(String enrollmentId) => '$baseUrl/api/enrollment/accept-rules/$enrollmentId';
+
 
   static const String getFeed = '$baseUrl/api/community/feed';
 
-  static String getCourseDetails(String courseId) =>
-      '$baseUrl/api/course/details/$courseId';
+
 }

@@ -1,4 +1,3 @@
-import 'package:abbas/cors/services/api_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -95,10 +94,9 @@ class _SelectCourseState extends ConsumerState<SelectCourse> {
                             size: 18.sp,
                           ),
                           onTap: () {
-                            logger.d("=============${value?.id}");
                             Navigator.pushNamed(
                               context,
-                              RouteNames.courseModule,
+                              RouteNames.fillEnrollmentForm,
                               arguments: value?.id,
                             );
                           },

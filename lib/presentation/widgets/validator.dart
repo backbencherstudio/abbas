@@ -29,3 +29,51 @@ String? confirmPasswordValidator(String? value) {
   }
   return null;
 }
+
+String? selectedCourseValidator(String? value) {
+  if (value == null || value.isEmpty) {
+    return 'Please select a course';
+  }
+  return null;
+}
+
+String? nameValidator(String? value) {
+  if (value == null || value.isEmpty) {
+    return 'Please enter your name';
+  }
+  return null;
+}
+
+String? phoneValidator(String? value) {
+  if (value == null || value.isEmpty) {
+    return 'Please enter a valid phone number';
+  }
+  return null;
+}
+
+String? addressValidator(String? value) {
+  if (value == null || value.isEmpty) {
+    return 'Please enter your address';
+  }
+  return null;
+}
+
+String? dateOfBirthValidator(String? value) {
+  if (value == null || value.isEmpty) {
+    return 'Please select date of birth';
+  }
+  return null;
+}
+String? experienceLevelValidator(String? value) {
+  if (value == null || value.isEmpty) {
+    return 'Please select experience level';
+  }
+  return null;
+}
+
+String? actingGoalsValidator(String? value) {
+  if (value == null || value.isEmpty) {
+    return 'Please select experience level';
+  }
+  return null;
+}

@@ -127,10 +127,10 @@ class _CourseModuleState extends ConsumerState<CourseModule> {
                                 ),
                               ),
                               SizedBox(height: 8.h),
-                              const Text(
+                               Text(
                                 'One-time',
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 14.sp,
                                   color: Color(0xFF8D9CDC),
                                 ),
                               ),
