@@ -9,16 +9,16 @@ class EnrollPersonalInfoModel {
     success = json['success'];
     message = json['message'];
     enrollment = json['enrollment'] != null
-        ? new Enrollment.fromJson(json['enrollment'])
+        ? Enrollment.fromJson(json['enrollment'])
         : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['success'] = this.success;
-    data['message'] = this.message;
-    if (this.enrollment != null) {
-      data['enrollment'] = this.enrollment!.toJson();
+    final Map<String, dynamic> data = {};
+    data['success'] = success;
+    data['message'] = message;
+    if (enrollment != null) {
+      data['enrollment'] = enrollment!.toJson();
     }
     return data;
   }
