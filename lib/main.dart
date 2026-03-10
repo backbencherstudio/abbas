@@ -22,6 +22,7 @@ void main() async {
 
   await ScreenUtil.ensureScreenSize();
 
+
   await configureDependencies();
 
   // Initialize notifications
