@@ -1,10 +1,9 @@
-import 'package:abbas/cors/services/api_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../cors/routes/route_names.dart';
 import '../../../../cors/theme/app_colors.dart';
-import '../view_model/form_fill_and_rules_provider.dart';
+import '../../course_screen/view_model/get_all_courses_provider.dart';
 
 class SelectCourse extends ConsumerStatefulWidget {
   const SelectCourse({super.key});
@@ -95,10 +94,9 @@ class _SelectCourseState extends ConsumerState<SelectCourse> {
                             size: 18.sp,
                           ),
                           onTap: () {
-                            logger.d("=============${value?.id}");
                             Navigator.pushNamed(
                               context,
-                              RouteNames.courseModule,
+                              RouteNames.fillEnrollmentForm,
                               arguments: value?.id,
                             );
                           },

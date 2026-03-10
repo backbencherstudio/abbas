@@ -97,8 +97,16 @@ class AppRoutes {
       final courseId = ModalRoute.of(context)!.settings.arguments as String;
       return CourseModule(courseId: courseId);
     },
-    RouteNames.fillEnrollmentForm: (context) => const FillEnrollmentForm(),
-    RouteNames.rulesRegulations: (context) => const RulesRegulations(),
+    RouteNames.fillEnrollmentForm: (context) {
+      final courseId = ModalRoute.of(context)!.settings.arguments as String;
+      return FillEnrollmentForm(courseId: courseId);
+    },
+    RouteNames.rulesRegulations: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final enrollmentId = args is String ? args : '';
+
+      return RulesRegulations(enrollmentId: enrollmentId);
+    },
     RouteNames.digitalContractSigning: (context) =>
         const DigitalContractSigning(),
     RouteNames.payment: (context) => const Payment(),

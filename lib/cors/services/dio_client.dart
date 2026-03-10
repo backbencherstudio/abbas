@@ -38,7 +38,34 @@ class DioClient {
     } catch (e) {
       if (e is DioException) {
         return ResponseModel(
-          success: true,
+          success: false,
+          message: ErrorHandle.handleError(e),
+        );
+      } else {
+        return ResponseModel(success: false, message: "$e");
+      }
+    }
+  }
+
+  /// -------------------------- Post Http -------------------------------------
+  Future<dynamic> postHttp(String path, Map<String, dynamic>? data) async {
+    final token = await _tokenStorage.getToken();
+    try {
+      final response = await _dio.post(
+        path,
+        data: data,
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+      return ResponseHandle.handleResponse(response);
+    } catch (e) {
+      if (e is DioException) {
+        return ResponseModel(
+          success: false,
           message: ErrorHandle.handleError(e),
         );
       } else {
