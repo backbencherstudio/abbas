@@ -16,16 +16,42 @@ class ApiEndpoints {
   //profile
   static const String profileInfo = '/api/auth/me';
 
-  /// ---------------------- Enrollment ----------------------------------------
+  /// ------------------- Courses ----------------------------------------------
+  static String submitAssignment(String assignmentId) =>
+      '$baseUrl/course/assignment/$assignmentId/submit';
   static const String getAllCourses = '$baseUrl/api/course/all';
+  static const String getMyCourses = '$baseUrl/course/my-courses';
+
+  static String getMyAssignments(String courseId) =>
+      '$baseUrl/course/assignments/$courseId';
+
+  static String getAssignmentDetails(String assignmentId) =>
+      '$baseUrl/course/assignments/details/$assignmentId';
+
+  static String getCourseAssets(String assetsId) =>
+      '$baseUrl/course/assets/$assetsId';
+
+  static String getModuleDetails(String moduleId) =>
+      '$baseUrl/course/module/$moduleId';
+
+  static String getClassDetails(String classId) =>
+      '$baseUrl/course/class/$classId';
+
   static String getCourseDetails(String courseId) =>
       '$baseUrl/api/course/details/$courseId';
-  static String enrollPersonalInfo(String enrollmentId) => '$baseUrl/api/enrollment/pinfo/$enrollmentId';
-  static String acceptRulesRegulations(String enrollmentId) => '$baseUrl/api/enrollment/accept-rules/$enrollmentId';
-  static String acceptContractTerms(String enrollmentId) => '$baseUrl/api/enrollment/accept-contract/$enrollmentId';
-  static const String createPaymentIntent = '$baseUrl/payment/stripe/create-intent';
+
+  /// ---------------------- Enrollment ----------------------------------------
+
+  static String enrollPersonalInfo(String enrollmentId) =>
+      '$baseUrl/api/enrollment/pinfo/$enrollmentId';
+
+  static String acceptRulesRegulations(String enrollmentId) =>
+      '$baseUrl/api/enrollment/accept-rules/$enrollmentId';
+
+  static String acceptContractTerms(String enrollmentId) =>
+      '$baseUrl/api/enrollment/accept-contract/$enrollmentId';
+  static const String createPaymentIntent =
+      '$baseUrl/payment/stripe/create-intent';
 
   static const String getFeed = '$baseUrl/api/community/feed';
-
-
 }
