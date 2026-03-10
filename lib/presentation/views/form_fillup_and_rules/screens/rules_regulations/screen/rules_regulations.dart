@@ -1,21 +1,27 @@
+import 'package:abbas/presentation/views/form_fillup_and_rules/view_model/form_fill_and_rules_provider.dart';
+import 'package:abbas/presentation/widgets/validator.dart';
+import 'package:abbas/utils/app_utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
 import '../../../../../../cors/routes/route_names.dart';
 import '../../../../../widgets/primary_button.dart';
 
-class RulesRegulations extends StatefulWidget {
-  const RulesRegulations({Key? key}) : super(key: key);
+class RulesRegulations extends ConsumerStatefulWidget {
+  final String enrollmentId;
+
+  const RulesRegulations({super.key, required this.enrollmentId});
 
   @override
-  _RulesRegulationsState createState() => _RulesRegulationsState();
+  ConsumerState<RulesRegulations> createState() => _RulesRegulationsState();
 }
 
-class _RulesRegulationsState extends State<RulesRegulations> {
-  bool _isAcknowledged = false;
+class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
   final TextEditingController _fullNameController = TextEditingController();
-  final TextEditingController _digitalSignatureController = TextEditingController();
+  final TextEditingController _digitalSignatureController =
+      TextEditingController();
   final TextEditingController _dateController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
@@ -45,10 +51,7 @@ class _RulesRegulationsState extends State<RulesRegulations> {
           children: [
             Text(
               'Rules & Regulations Signing',
-              style: TextStyle(
-                fontSize: 24.sp,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 8.h),
             Text(
@@ -123,11 +126,11 @@ class _RulesRegulationsState extends State<RulesRegulations> {
             Row(
               children: [
                 Checkbox(
-                  value: _isAcknowledged,
-                  onChanged: (bool? value) {
-                    setState(() {
-                      _isAcknowledged = value ?? false;
-                    });
+                  value: ref.watch(acknowledgeProvider),
+
+                  onChanged: (value) {
+                    ref.read(acknowledgeProvider.notifier).state =
+                        value ?? false;
                   },
                   activeColor: Colors.black,
                 ),
@@ -142,30 +145,94 @@ class _RulesRegulationsState extends State<RulesRegulations> {
             SizedBox(height: 24.h),
             Image.asset('assets/images/vector_line.png', width: 1.sw),
             SizedBox(height: 24.h),
-            Text(
-              'Digital Signature',
-              style: TextStyle(
-                fontSize: 18.sp,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 10.h),
-            _buildFormSection('Full Name', _buildTextField('Enter your full name')),
-            SizedBox(height: 10.h),
-            _buildFormSection('Digital Signature', _buildTextField('Type your full name as signature')),
-            SizedBox(height: 10.h),
-            _buildFormSection('Date', _buildTextField('Type Date')),
-            SizedBox(height: 16.h),
-            SizedBox(
-              width: double.infinity,
-              child: PrimaryButton(
-                onTap: () {
-                  Navigator.pushNamed(context, RouteNames.digitalContractSigning);
-                },
-                title: 'Submit Acknowledgment',
-                color: const Color(0xFFE9201D),
-                textColor: Colors.white,
-                icon: '',
+            Form(
+              key: _formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: Column(
+                children: [
+                  Text(
+                    'Digital Signature',
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 10.h),
+                  _buildFormSection(
+                    'Full Name',
+                    _buildTextField(
+                      'Enter your full name',
+                      controller: _fullNameController,
+                      validator: nameValidator,
+                    ),
+                  ),
+                  SizedBox(height: 10.h),
+                  _buildFormSection(
+                    'Digital Signature',
+                    _buildTextField(
+                      'Type your full name as signature',
+                      controller: _digitalSignatureController,
+                      validator: digitalSignatureValidator,
+                    ),
+                  ),
+                  SizedBox(height: 10.h),
+                  _buildFormSection(
+                    'Date',
+                    _buildTextField(
+                      'Type Date',
+                      controller: _dateController,
+                      validator: dateOfBirthValidator,
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+
+                  /// ------------------- Submit Button ------------------------
+                  SizedBox(
+                    width: double.infinity,
+                    child: PrimaryButton(
+                      onTap: () async {
+                        if (_formKey.currentState!.validate()) {
+                          print("========== Enrollment Id ${widget.enrollmentId}");
+                          final result = await ref
+                              .read(acceptRulesRegulationsProvider.notifier)
+                              .acceptRulesRegulations(
+                                accepted: true,
+                                fullName: _fullNameController.text.trim(),
+                                digitalSignature: _digitalSignatureController
+                                    .text
+                                    .trim(),
+                                digitalSignatureDate: _dateController.text
+                                    .trim(),
+                                enrollmentId: widget.enrollmentId,
+                              );
+                          if (result.success) {
+                            Utils.showToast(
+                              msg: result.message,
+                              backgroundColor: Colors.green,
+                              textColor: Colors.white,
+                            );
+                            if (context.mounted) {
+                              Navigator.pushNamed(
+                                context,
+                                RouteNames.digitalContractSigning,
+                              );
+                            }
+                          } else {
+                            Utils.showToast(
+                              msg: result.message,
+                              backgroundColor: Colors.red,
+                              textColor: Colors.white,
+                            );
+                          }
+                        }
+                      },
+                      title: 'Submit Acknowledgment',
+                      color: const Color(0xFFE9201D),
+                      textColor: Colors.white,
+                      icon: '',
+                    ),
+                  ),
+                ],
               ),
             ),
             SizedBox(height: 32.h),
@@ -206,15 +273,26 @@ class _RulePoint extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('•    ', style: TextStyle(fontSize: 16.sp, color: Colors.white)),
+        Text(
+          '•    ',
+          style: TextStyle(fontSize: 16.sp, color: Colors.white),
+        ),
         Expanded(
           child: RichText(
             text: TextSpan(
-              style: TextStyle(fontSize: 15.sp, color: Colors.white, fontWeight: FontWeight.w400),
+              style: TextStyle(
+                fontSize: 15.sp,
+                color: Colors.white,
+                fontWeight: FontWeight.w400,
+              ),
               children: [
                 TextSpan(
                   text: title,
-                  style: TextStyle(fontSize: 15.sp, color: Colors.white, fontWeight: FontWeight.w400),
+                  style: TextStyle(
+                    fontSize: 15.sp,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
                 TextSpan(text: ' $description'),
               ],
@@ -227,32 +305,46 @@ class _RulePoint extends StatelessWidget {
 }
 
 Widget _buildTextField(
-    String hintText, {
-      int? maxLines,
-      TextInputType? keyboardType,
-      TextEditingController? controller,
-      FocusNode? focusNode,
-    }) {
+  String hintText, {
+  int? maxLines,
+  TextInputType? keyboardType,
+  TextEditingController? controller,
+  FocusNode? focusNode,
+  String? Function(String?)? validator,
+  String? initialValue,
+  TextInputAction? textInputAction,
+  bool? readOnly,
+  Widget? suffixIcon,
+}) {
   return TextFormField(
     controller: controller,
     focusNode: focusNode,
     keyboardType: keyboardType,
     maxLines: maxLines,
+    textInputAction: textInputAction,
+    initialValue: initialValue,
+    readOnly: readOnly ?? false,
     decoration: InputDecoration(
       hintText: hintText,
+      suffixIcon: suffixIcon,
       contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 15.h),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.r),
-        borderSide: const BorderSide(color: Color(0xFF3D4566), width: 1.5),
+        borderSide: BorderSide(color: const Color(0xFF3D4566), width: 1.5.w),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.r),
-        borderSide: const BorderSide(color: Color(0xFF3D4566), width: 1.5),
+        borderSide: BorderSide(color: const Color(0xFF3D4566), width: 1.5.w),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16.r),
-        borderSide: const BorderSide(color: Color(0xFF3D4566), width: 1),
+        borderRadius: BorderRadius.circular(12.r),
+        borderSide: BorderSide(color: const Color(0xFF3D4566), width: 1.w),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.r),
+        borderSide: BorderSide(color: Colors.redAccent, width: 1.w),
       ),
     ),
+    validator: validator,
   );
 }
