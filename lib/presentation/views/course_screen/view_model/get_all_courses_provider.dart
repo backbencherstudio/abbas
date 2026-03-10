@@ -76,6 +76,23 @@ class GetMyAssignmentsProvider
   DioClient dioClient;
 
   GetMyAssignmentsProvider({required this.dioClient}) : super(AsyncData(null));
+
+  Future<void> getMyAssignments({required String courseId}) async {
+    state = const AsyncLoading();
+    try {
+      final res = await dioClient.getHttp(ApiEndpoints.getMyAssignments(courseId));
+      if (res['success']) {
+        logger.d("${res['success']}");
+        final model = GetMyAssignmentsModel.fromJson(res);
+        state = AsyncData(model);
+      } else {
+        state = AsyncError('Failed to load assignments', StackTrace.current);
+      }
+    } catch (e, stackTrace) {
+      logger.e("Load Data Error : $e");
+      state = AsyncError(e.toString(), stackTrace);
+    }
+  }
 }
 
 /// ------------------------- Get Course Details -------------------------------
