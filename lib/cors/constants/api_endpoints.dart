@@ -20,9 +20,10 @@ class ApiEndpoints {
   static const String getAllCourses = '$baseUrl/api/course/all';
   static String getCourseDetails(String courseId) =>
       '$baseUrl/api/course/details/$courseId';
-  static String enrollPersonalInfo(String courseId) => '$baseUrl/api/enrollment/pinfo/$courseId';
+  static String enrollPersonalInfo(String enrollmentId) => '$baseUrl/api/enrollment/pinfo/$enrollmentId';
   static String acceptRulesRegulations(String enrollmentId) => '$baseUrl/api/enrollment/accept-rules/$enrollmentId';
-
+  static String acceptContractTerms(String enrollmentId) => '$baseUrl/api/enrollment/accept-contract/$enrollmentId';
+  static const String createPaymentIntent = '$baseUrl/payment/stripe/create-intent';
 
   static const String getFeed = '$baseUrl/api/community/feed';
 

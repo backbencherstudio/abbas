@@ -77,3 +77,9 @@ String? actingGoalsValidator(String? value) {
   }
   return null;
 }
+String? digitalSignatureValidator(String? value) {
+  if (value == null || value.isEmpty) {
+    return 'Please enter a signature';
+  }
+  return null;
+}

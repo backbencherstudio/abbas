@@ -1,4 +1,4 @@
-
+import 'package:abbas/presentation/views/form_fillup_and_rules/model/enroll_personal_info_model.dart';
 import 'package:abbas/presentation/views/form_fillup_and_rules/view_model/form_fill_and_rules_provider.dart';
 import 'package:abbas/presentation/widgets/validator.dart';
 import 'package:abbas/utils/app_utils.dart';
@@ -41,6 +41,9 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
   final FocusNode _addressFocus = FocusNode();
   final FocusNode _dobFocus = FocusNode();
   final FocusNode _goalsFocus = FocusNode();
+
+  /// ----------------- Enroll Personal Info Model -----------------------------
+  Enrollment? enrollment;
 
   @override
   void initState() {
@@ -390,20 +393,20 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
                             final result = await ref
                                 .read(enrollPersonalInfoProvider.notifier)
                                 .postEnrollPersonalInfo(
-                              courseType: courseTitle,
-                              fullName: _fullNameController.text.trim(),
-                              email: _emailController.text.trim(),
-                              phone: _phoneController.text.trim(),
-                              address: _addressController.text.trim(),
-                              dateOfBirth: formattedDate,
-                              experienceLevel: experienceController.text,
-                              actingGoals: _goalsController.text.trim(),
-                              courseId: widget.courseId,
-                            );
+                                  courseType: courseTitle,
+                                  fullName: _fullNameController.text.trim(),
+                                  email: _emailController.text.trim(),
+                                  phone: _phoneController.text.trim(),
+                                  address: _addressController.text.trim(),
+                                  dateOfBirth: formattedDate,
+                                  experienceLevel: experienceController.text,
+                                  actingGoals: _goalsController.text.trim(),
+                                  enrollmentId: widget.courseId,
+                                );
 
-                            if (result.success) {
+                            if (result.success!) {
                               Utils.showToast(
-                                msg: result.message,
+                                msg: result.message!,
                                 backgroundColor: Colors.green,
                                 textColor: Colors.white,
                               );
@@ -411,11 +414,12 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
                                 Navigator.pushNamed(
                                   context,
                                   RouteNames.rulesRegulations,
+                                  arguments: result.enrollment?.id
                                 );
                               }
                             } else {
                               Utils.showToast(
-                                msg: result.message,
+                                msg: result.message!,
                                 backgroundColor: Colors.red,
                                 textColor: Colors.white,
                               );
@@ -525,37 +529,6 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
         ),
       ),
       validator: validator,
-    );
-  }
-
-  Widget _buildFormFillField() {
-    return TextFormField(
-      readOnly: true,
-      onTap: () async {},
-      decoration: InputDecoration(
-        hintText: 'Select',
-        hintStyle: TextStyle(fontSize: 14.sp),
-        suffixIcon: Padding(
-          padding: EdgeInsets.all(12.w),
-          child: SvgPicture.asset(
-            'assets/icons/arrow_down.svg',
-            width: 20.w,
-            height: 20.h,
-          ),
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(color: const Color(0xFF3D4566), width: 1.5.w),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(color: const Color(0xFF3D4566), width: 1.5.w),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16.r),
-          borderSide: BorderSide(color: const Color(0xFF3D4566), width: 1.w),
-        ),
-      ),
     );
   }
 }

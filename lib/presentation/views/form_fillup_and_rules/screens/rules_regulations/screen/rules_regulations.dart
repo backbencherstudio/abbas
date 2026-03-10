@@ -1,4 +1,5 @@
 import 'package:abbas/presentation/views/form_fillup_and_rules/view_model/form_fill_and_rules_provider.dart';
+import 'package:abbas/presentation/widgets/validator.dart';
 import 'package:abbas/utils/app_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -125,13 +126,11 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
             Row(
               children: [
                 Checkbox(
-                  value: ref
-                      .watch(acceptRulesRegulationsProvider.notifier)
-                      .isAcknowledged,
-                  onChanged: (bool? value) {
-                    ref
-                        .read(acceptRulesRegulationsProvider.notifier)
-                        .setAcknowledge(value);
+                  value: ref.watch(acknowledgeProvider),
+
+                  onChanged: (value) {
+                    ref.read(acknowledgeProvider.notifier).state =
+                        value ?? false;
                   },
                   activeColor: Colors.black,
                 ),
@@ -161,29 +160,49 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
                   SizedBox(height: 10.h),
                   _buildFormSection(
                     'Full Name',
-                    _buildTextField('Enter your full name'),
+                    _buildTextField(
+                      'Enter your full name',
+                      controller: _fullNameController,
+                      validator: nameValidator,
+                    ),
                   ),
                   SizedBox(height: 10.h),
                   _buildFormSection(
                     'Digital Signature',
-                    _buildTextField('Type your full name as signature'),
+                    _buildTextField(
+                      'Type your full name as signature',
+                      controller: _digitalSignatureController,
+                      validator: digitalSignatureValidator,
+                    ),
                   ),
                   SizedBox(height: 10.h),
-                  _buildFormSection('Date', _buildTextField('Type Date')),
+                  _buildFormSection(
+                    'Date',
+                    _buildTextField(
+                      'Type Date',
+                      controller: _dateController,
+                      validator: dateOfBirthValidator,
+                    ),
+                  ),
                   SizedBox(height: 16.h),
+
+                  /// ------------------- Submit Button ------------------------
                   SizedBox(
                     width: double.infinity,
                     child: PrimaryButton(
                       onTap: () async {
                         if (_formKey.currentState!.validate()) {
+                          print("========== Enrollment Id ${widget.enrollmentId}");
                           final result = await ref
                               .read(acceptRulesRegulationsProvider.notifier)
                               .acceptRulesRegulations(
                                 accepted: true,
                                 fullName: _fullNameController.text.trim(),
-                                signature: _digitalSignatureController.text
+                                digitalSignature: _digitalSignatureController
+                                    .text
                                     .trim(),
-                                signedAt: _dateController.text.trim(),
+                                digitalSignatureDate: _dateController.text
+                                    .trim(),
                                 enrollmentId: widget.enrollmentId,
                               );
                           if (result.success) {
@@ -291,27 +310,41 @@ Widget _buildTextField(
   TextInputType? keyboardType,
   TextEditingController? controller,
   FocusNode? focusNode,
+  String? Function(String?)? validator,
+  String? initialValue,
+  TextInputAction? textInputAction,
+  bool? readOnly,
+  Widget? suffixIcon,
 }) {
   return TextFormField(
     controller: controller,
     focusNode: focusNode,
     keyboardType: keyboardType,
     maxLines: maxLines,
+    textInputAction: textInputAction,
+    initialValue: initialValue,
+    readOnly: readOnly ?? false,
     decoration: InputDecoration(
       hintText: hintText,
+      suffixIcon: suffixIcon,
       contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 15.h),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.r),
-        borderSide: const BorderSide(color: Color(0xFF3D4566), width: 1.5),
+        borderSide: BorderSide(color: const Color(0xFF3D4566), width: 1.5.w),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.r),
-        borderSide: const BorderSide(color: Color(0xFF3D4566), width: 1.5),
+        borderSide: BorderSide(color: const Color(0xFF3D4566), width: 1.5.w),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16.r),
-        borderSide: const BorderSide(color: Color(0xFF3D4566), width: 1),
+        borderRadius: BorderRadius.circular(12.r),
+        borderSide: BorderSide(color: const Color(0xFF3D4566), width: 1.w),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.r),
+        borderSide: BorderSide(color: Colors.redAccent, width: 1.w),
       ),
     ),
+    validator: validator,
   );
 }

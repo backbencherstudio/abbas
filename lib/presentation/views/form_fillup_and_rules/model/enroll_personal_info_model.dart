@@ -1,28 +1,30 @@
-class PostEnrollPersonalInfoModel {
+class EnrollPersonalInfoModel {
   bool? success;
   String? message;
-  Data? data;
+  Enrollment? enrollment;
 
-  PostEnrollPersonalInfoModel({this.success, this.message, this.data});
+  EnrollPersonalInfoModel({this.success, this.message, this.enrollment});
 
-  PostEnrollPersonalInfoModel.fromJson(Map<String, dynamic> json) {
+  EnrollPersonalInfoModel.fromJson(Map<String, dynamic> json) {
     success = json['success'];
     message = json['message'];
-    data = json['data'] != null ?  Data.fromJson(json['data']) : null;
+    enrollment = json['enrollment'] != null
+        ? new Enrollment.fromJson(json['enrollment'])
+        : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['success'] = success;
-    data['message'] = message;
-    if (this.data != null) {
-      data['data'] = this.data!.toJson();
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['success'] = this.success;
+    data['message'] = this.message;
+    if (this.enrollment != null) {
+      data['enrollment'] = this.enrollment!.toJson();
     }
     return data;
   }
 }
 
-class Data {
+class Enrollment {
   String? id;
   String? createdAt;
   String? updatedAt;
@@ -39,7 +41,7 @@ class Data {
   bool? isPaymentCompleted;
   String? step;
 
-  Data(
+  Enrollment(
       {this.id,
         this.createdAt,
         this.updatedAt,
@@ -56,7 +58,7 @@ class Data {
         this.isPaymentCompleted,
         this.step});
 
-  Data.fromJson(Map<String, dynamic> json) {
+  Enrollment.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
@@ -75,22 +77,22 @@ class Data {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['id'] = id;
-    data['created_at'] = createdAt;
-    data['updated_at'] = updatedAt;
-    data['user_id'] = userId;
-    data['full_name'] = fullName;
-    data['email'] = email;
-    data['phone'] = phone;
-    data['address'] = address;
-    data['date_of_birth'] = dateOfBirth;
-    data['experience_level'] = experienceLevel;
-    data['courseId'] = courseId;
-    data['enrolled_documents'] = enrolledDocuments;
-    data['status'] = status;
-    data['IsPaymentCompleted'] = isPaymentCompleted;
-    data['step'] = step;
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['id'] = this.id;
+    data['created_at'] = this.createdAt;
+    data['updated_at'] = this.updatedAt;
+    data['user_id'] = this.userId;
+    data['full_name'] = this.fullName;
+    data['email'] = this.email;
+    data['phone'] = this.phone;
+    data['address'] = this.address;
+    data['date_of_birth'] = this.dateOfBirth;
+    data['experience_level'] = this.experienceLevel;
+    data['courseId'] = this.courseId;
+    data['enrolled_documents'] = this.enrolledDocuments;
+    data['status'] = this.status;
+    data['IsPaymentCompleted'] = this.isPaymentCompleted;
+    data['step'] = this.step;
     return data;
   }
 }

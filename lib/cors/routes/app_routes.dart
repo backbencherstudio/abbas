@@ -102,7 +102,9 @@ class AppRoutes {
       return FillEnrollmentForm(courseId: courseId);
     },
     RouteNames.rulesRegulations: (context) {
-      final enrollmentId = ModalRoute.of(context)!.settings.arguments as String;
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final enrollmentId = args is String ? args : '';
+
       return RulesRegulations(enrollmentId: enrollmentId);
     },
     RouteNames.digitalContractSigning: (context) =>
