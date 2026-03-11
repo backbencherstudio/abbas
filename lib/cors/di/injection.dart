@@ -62,7 +62,7 @@ import '../../presentation/views/auth/register/data/SignUpRemoteDataSource.dart'
 import '../../presentation/views/auth/register/data/SignUpRepositoryImpl.dart';
 import '../../presentation/views/auth/register/domain/signUpRepository.dart';
 import '../../presentation/views/auth/register/domain/signUpUseCase.dart';
-import '../../presentation/views/auth/register/presentaion/provider/signupScreen_provider.dart';
+import '../../presentation/views/auth/register/view_model/signupScreen_provider.dart';
 import '../../presentation/views/community/data/community/community_remote_datasource.dart';
 import '../services/api_client.dart';
 import '../services/api_services.dart';

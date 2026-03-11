@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../../../cors/theme/app_colors.dart';
 import '../../../../../../cors/theme/app_text_styles.dart';
-import '../provider/signupScreen_provider.dart';
+import '../../view_model/signupScreen_provider.dart';
 
 class RegisterPasswordFormField extends StatelessWidget {
   final TextEditingController controller;

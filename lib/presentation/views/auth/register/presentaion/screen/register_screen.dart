@@ -6,7 +6,7 @@ import '../../../../../../cors/di/injection.dart';
 import '../../../../../../cors/routes/route_names.dart';
 import '../../../../../../cors/theme/app_colors.dart';
 import '../../../../../../cors/theme/app_text_styles.dart';
-import '../provider/signupScreen_provider.dart';
+import '../../view_model/signupScreen_provider.dart';
 import '../../../../../widgets/primary_button.dart';
 import '../../../../../widgets/top_toast.dart';
 import '../widget/auth_from_container.dart';

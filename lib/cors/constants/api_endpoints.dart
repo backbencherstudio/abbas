@@ -20,22 +20,25 @@ class ApiEndpoints {
   static String submitAssignment(String assignmentId) =>
       '$baseUrl/course/assignment/$assignmentId/submit';
   static const String getAllCourses = '$baseUrl/api/course/all';
-  static const String getMyCourses = '$baseUrl/course/my-courses';
+  static const String getMyCourses = '$baseUrl/api/course/my-courses';
 
   static String getMyAssignments(String courseId) =>
-      '$baseUrl/course/assignments/$courseId';
+      '$baseUrl/api/course/assignments/$courseId';
 
   static String getAssignmentDetails(String assignmentId) =>
-      '$baseUrl/course/assignments/details/$assignmentId';
+      '$baseUrl/api/course/assignments/details/$assignmentId';
 
   static String getCourseAssets(String assetsId) =>
-      '$baseUrl/course/assets/$assetsId';
+      '$baseUrl/api/course/assets/$assetsId';
+
+  static String myCourseDetails(String courseId) =>
+      '$baseUrl/api/course/my-course-details/$courseId';
 
   static String getModuleDetails(String moduleId) =>
-      '$baseUrl/course/module/$moduleId';
+      '$baseUrl/api/course/module/$moduleId';
 
   static String getClassDetails(String classId) =>
-      '$baseUrl/course/class/$classId';
+      '$baseUrl/api/course/class/$classId';
 
   static String getCourseDetails(String courseId) =>
       '$baseUrl/api/course/details/$courseId';
@@ -51,7 +54,12 @@ class ApiEndpoints {
   static String acceptContractTerms(String enrollmentId) =>
       '$baseUrl/api/enrollment/accept-contract/$enrollmentId';
   static const String createPaymentIntent =
-      '$baseUrl/payment/stripe/create-intent';
+      '$baseUrl/api/payment/stripe/create-intent';
 
+  /// -------------------- Events ----------------------------------------------
+  static const String getAllEvents = '$baseUrl/api/events';
+
+  static String getEventById(String eventId) =>
+      '$baseUrl/api/events/$eventId';
   static const String getFeed = '$baseUrl/api/community/feed';
 }

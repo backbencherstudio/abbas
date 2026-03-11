@@ -5,7 +5,7 @@ import 'package:provider/single_child_widget.dart';
 
 import '../../cors/di/injection.dart';
 import '../views/auth/login/presentaion/provider/LoginScreenProvider.dart';
-import '../views/auth/register/presentaion/provider/signupScreen_provider.dart';
+import '../views/auth/register/view_model/signupScreen_provider.dart';
 import '../views/community/presentaion/provider/community/community_screen_provider.dart';
 import 'auth/forgot_password/forgot_password_viewmodel.dart';
 import 'auth/login/login_viewmodel.dart';
