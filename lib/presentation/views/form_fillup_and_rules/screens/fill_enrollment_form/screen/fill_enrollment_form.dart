@@ -1,3 +1,4 @@
+import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:abbas/presentation/views/form_fillup_and_rules/model/enroll_personal_info_model.dart';
 import 'package:abbas/presentation/views/form_fillup_and_rules/view_model/form_fill_and_rules_provider.dart';
 import 'package:abbas/presentation/widgets/validator.dart';
@@ -5,7 +6,6 @@ import 'package:abbas/utils/app_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
 import '../../../../../../cors/routes/route_names.dart';
 
 class FillEnrollmentForm extends ConsumerStatefulWidget {
@@ -43,7 +43,7 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
   final FocusNode _goalsFocus = FocusNode();
 
   /// ----------------- Enroll Personal Info Model -----------------------------
-  Enrollment? enrollment;
+  Data? data;
 
   @override
   void initState() {
@@ -404,6 +404,7 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
                                   enrollmentId: widget.courseId,
                                 );
 
+                            logger.d("Enrollment data id : ${result.data?.id}");
                             if (result.success!) {
                               Utils.showToast(
                                 msg: result.message!,
@@ -414,7 +415,7 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
                                 Navigator.pushNamed(
                                   context,
                                   RouteNames.rulesRegulations,
-                                  arguments: result.enrollment?.id
+                                  arguments: result.data?.id,
                                 );
                               }
                             } else {

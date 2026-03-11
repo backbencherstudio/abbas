@@ -38,8 +38,8 @@ class _SelectCourseState extends ConsumerState<SelectCourse> {
         ),
       ),
       body: getAllCourse.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('Error: $error')),
+        loading: () => const Center(child: CircularProgressIndicator(color: Colors.white,)),
+        error: (error, stack) => Center(child: Text('Error : Connection TimeOut. Please try again')),
         data: (data) {
           final course = data;
           if (course == null) {
