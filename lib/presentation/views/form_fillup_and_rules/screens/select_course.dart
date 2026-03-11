@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../cors/routes/route_names.dart';
 import '../../../../cors/theme/app_colors.dart';
-import '../view_model/form_fill_and_rules_provider.dart';
+import '../../course_screen/view_model/get_all_courses_provider.dart';
 
 class SelectCourse extends ConsumerStatefulWidget {
   const SelectCourse({super.key});
