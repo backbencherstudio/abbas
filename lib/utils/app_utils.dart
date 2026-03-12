@@ -12,6 +12,7 @@ class AppUtils {
           return responseData['message'];
         }
       }
+
       return responseData.toString();
     }
     return 'Unknown error occurred';

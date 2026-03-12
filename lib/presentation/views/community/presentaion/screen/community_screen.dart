@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../widgets/custom_appbar.dart';
 import '../../domain/community/community_entity.dart';
+import '../../widgets/create_post_widget.dart';
 import '../provider/community/community_screen_provider.dart';
 
 class CommunityScreen extends StatefulWidget {
@@ -13,7 +14,6 @@ class CommunityScreen extends StatefulWidget {
 }
 
 class _CommunityScreenState extends State<CommunityScreen> {
-
   @override
   void initState() {
     super.initState();
@@ -26,103 +26,116 @@ class _CommunityScreenState extends State<CommunityScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            const CustomAppbar(title: "Community"),
+      body: Column(
+        children: [
+          const CustomAppbar(title: "Community"),
 
-            Expanded(
-              child: Consumer<CommunityScreenProvider>(
-                builder: (context, provider, child) {
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: CreatePostWidget(),
+          ),
 
-                  if (provider.isLoading) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  }
+          Expanded(
+            child: Consumer<CommunityScreenProvider>(
+              builder: (context, provider, child) {
+                if (provider.isLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-                  if (provider.error != null) {
-                    return Center(
-                      child: Text(provider.error!),
-                    );
-                  }
+                if (provider.error != null) {
+                  return Center(child: Text(provider.error!));
+                }
 
-                  if (provider.feeds.isEmpty) {
-                    return const Center(
-                      child: Text("No Posts Available"),
-                    );
-                  }
+                if (provider.feeds.isEmpty) {
+                  return const Center(child: Text("No Posts Available"));
+                }
+                return ListView.builder(
+                  itemCount: provider.feeds.length,
+                  itemBuilder: (context, index) {
+                    final CommunityEntity feed = provider.feeds[index];
 
-                  return ListView.builder(
-                    itemCount: provider.feeds.length,
-                    itemBuilder: (context, index) {
-                      final CommunityEntity feed = provider.feeds[index];
-
-                      return Card(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
+                    return Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 7,
+                      ),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Color(0xff0A1A2A),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.all(12),
+                          padding:  EdgeInsets.all(12),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-
-                              /// Author
                               Row(
                                 children: [
                                   CircleAvatar(
-                                    backgroundImage:
-                                    NetworkImage(feed.author?.name ?? ""),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Text(
-                                    feed.authorId ?? "",
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
+                                    backgroundImage: NetworkImage(
+                                      feed.author?.name ?? "",
                                     ),
+                                  ),
+                                   SizedBox(width: 10),
+                                  Column(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        feed.author?.name ?? "N/A",
+                                        style:  TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      SizedBox(height: 5,),
+                                      Text(
+                                        feed.createdAt ?? "",
+                                        style:  TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
 
-                              const SizedBox(height: 10),
+                               SizedBox(height: 10),
 
-                              /// Content
                               Text(feed.content ?? ""),
 
-                              const SizedBox(height: 10),
+                               SizedBox(height: 10),
 
-                              /// Media
                               if (feed.mediaUrl != null)
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
                                   child: Image.network(feed.mediaUrl!),
                                 ),
 
-                              const SizedBox(height: 10),
+                               SizedBox(height: 10),
 
-                              /// Actions
                               Row(
                                 mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text("👍 ${feed.likeCount ?? 0}"),
+                                  Row(children: [GestureDetector(
+
+                                      child: Text("👍")),  Text("${feed.likeCount ?? 0}"),],),
+
                                   Text("💬 ${feed.commentCount ?? 0}"),
                                   Text("🔁 ${feed.shareCount ?? 0}"),
                                 ],
-                              )
+                              ),
                             ],
                           ),
                         ),
-                      );
-                    },
-                  );
-                },
-              ),
+                      ),
+                    );
+                  },
+                );
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
