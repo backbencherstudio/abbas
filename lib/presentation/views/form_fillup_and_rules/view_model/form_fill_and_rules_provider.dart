@@ -1,11 +1,39 @@
 import 'package:abbas/cors/constants/api_endpoints.dart';
 import 'package:abbas/cors/services/dio_client.dart';
 import 'package:abbas/data/models/response_model.dart';
+import 'package:abbas/presentation/views/form_fillup_and_rules/model/current_step_model.dart';
 import 'package:abbas/presentation/views/form_fillup_and_rules/model/enroll_personal_info_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
+/// ---------------------- Current Step ----------------------------------------
 
+final currentStepProvider =
+    StateNotifierProvider<CurrentStepProvider, AsyncValue<CurrentStepModel?>>(
+      (ref) => CurrentStepProvider(dioClient: DioClient()),
+    );
+
+class CurrentStepProvider extends StateNotifier<AsyncValue<CurrentStepModel?>> {
+  DioClient dioClient;
+
+  CurrentStepProvider({required this.dioClient}) : super(AsyncValue.data(null));
+
+  Future<void> currentStep({required String courseId}) async {
+    state = AsyncValue.loading();
+    try {
+      final res = await dioClient.getHttp(ApiEndpoints.currentStep(courseId));
+      if (res['success']) {
+        final model = CurrentStepModel.fromJson(res);
+        state = AsyncValue.data(model);
+      } else {
+        state = AsyncValue.error("Error Load Current Step", StackTrace.current);
+      }
+    } catch (e, stackTrace) {
+      state = AsyncValue.error('$e', stackTrace);
+    }
+  }
+}
 
 /// ------------------------ Enroll Personal Info Provider ---------------------
 

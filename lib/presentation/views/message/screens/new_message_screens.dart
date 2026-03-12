@@ -85,9 +85,9 @@ class _NewMessageScreensState extends State<NewMessageScreens> {
                     onTap: () {
                       Navigator.pushNamed(context, RouteNames.createGroupScreen);
                     },
-                    title: "Create Group Chat",
                     color: const Color(0xffE9201D),
                     textColor: Colors.white,
+                    child: Text("Create Group Chat"),
                   ),
                   SizedBox(height: 10.h),
                   const Text(

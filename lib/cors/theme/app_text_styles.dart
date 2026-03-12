@@ -37,8 +37,7 @@ class AppTextStyles {
     bodyMedium: TextStyle(
       fontFamily: 'Bryant',
       fontSize: 14.sp,
-      fontWeight: FontWeight.w500,
-      color: AppColors.white,
+      fontWeight: FontWeight.w400,
     ),
     bodySmall: TextStyle(
       fontFamily: 'Bryant',

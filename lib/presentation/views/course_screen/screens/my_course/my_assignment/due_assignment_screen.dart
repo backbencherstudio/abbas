@@ -1,4 +1,3 @@
-
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -132,21 +131,36 @@ class DueAssignmentScreen extends StatelessWidget {
                                 SizedBox(height: 10),
                                 Text(
                                   "Drag & drop files here",
-                                  style: TextStyle(color: Colors.white, fontSize: 16),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                  ),
                                 ),
                                 SizedBox(height: 12),
                                 Text(
                                   "Drag & drop files here",
-                                  style: TextStyle(color: Color(0xff8C9196), fontSize: 12),
+                                  style: TextStyle(
+                                    color: Color(0xff8C9196),
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ],
                             ),
                           ),
                         ),
                         SizedBox(height: 14.h),
-                        PrimaryButton(title: "Submit", onTap: () {
-                          Navigator.pushNamed(context, RouteNames.submittedAssignmentScreen);
-                        },color: Color(0xFFE9201D),textColor: Colors.white, icon: '',),
+                        PrimaryButton(
+                          onTap: () {
+                            Navigator.pushNamed(
+                              context,
+                              RouteNames.submittedAssignmentScreen,
+                            );
+                          },
+                          color: Color(0xFFE9201D),
+                          textColor: Colors.white,
+                          icon: '',
+                          child: Text("Submit"),
+                        ),
                       ],
                     ),
                   ),

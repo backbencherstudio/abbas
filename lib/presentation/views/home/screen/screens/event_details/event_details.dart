@@ -6,6 +6,7 @@ import '../../../../../widgets/secondary_appber.dart';
 
 class EventDetails extends StatelessWidget {
   const EventDetails({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,10 +25,7 @@ class EventDetails extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Color(0xff1C2C41),
                   borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Color(0xff2A3856),
-                      width: 2.w,
-                    )
+                  border: Border.all(color: Color(0xff2A3856), width: 2.w),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,43 +39,65 @@ class EventDetails extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 10.h),
-                    Row(children: [
-                      Image.asset('assets/icons/calender.png',scale: 3.8,color: Color(0xffE9201D)),
-                      SizedBox(width: 5.w,),
-                      Text(
-                        "12 July, Monday 󠁯•󠁏󠁏 1:30 PM",
-                        style: TextStyle(
-                          color: Color(0xffE9E9EA),
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w400,
+                    Row(
+                      children: [
+                        Image.asset(
+                          'assets/icons/calender.png',
+                          scale: 3.8,
+                          color: Color(0xffE9201D),
                         ),
-                      ),
-                    ],),
-                    Row(children: [
-                      Image.asset('assets/icons/location.png',scale: 2.8,color: Color(0xffE9201D)),
-                      SizedBox(width: 10.w,),
-                      Text(
-                        "Main Theater",
-                        style: TextStyle(
-                          color: Color(0xffE9E9EA),
+                        SizedBox(width: 5.w),
+                        Text(
+                          "12 July, Monday 󠁯•󠁏󠁏 1:30 PM",
+                          style: TextStyle(
+                            color: Color(0xffE9E9EA),
                             fontSize: 14.sp,
                             fontWeight: FontWeight.w400,
+                          ),
                         ),
-                      ),
-                    ],) ,
-                    Row(children: [
-                      Image.asset('assets/icons/coins.png',scale: 2.8,color: Color(0xffE9201D)),
-                      SizedBox(width: 5.w,),
-                      Icon(Icons.attach_money,color: Colors.grey[100],size: 20,),
-                      Text(
-                        "246",
-                        style: TextStyle(
-                          color: Color(0xffE9E9EA),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Image.asset(
+                          'assets/icons/location.png',
+                          scale: 2.8,
+                          color: Color(0xffE9201D),
+                        ),
+                        SizedBox(width: 10.w),
+                        Text(
+                          "Main Theater",
+                          style: TextStyle(
+                            color: Color(0xffE9E9EA),
                             fontSize: 14.sp,
                             fontWeight: FontWeight.w400,
+                          ),
                         ),
-                      ),
-                    ],)
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Image.asset(
+                          'assets/icons/coins.png',
+                          scale: 2.8,
+                          color: Color(0xffE9201D),
+                        ),
+                        SizedBox(width: 5.w),
+                        Icon(
+                          Icons.attach_money,
+                          color: Colors.grey[100],
+                          size: 20,
+                        ),
+                        Text(
+                          "246",
+                          style: TextStyle(
+                            color: Color(0xffE9E9EA),
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -90,10 +110,7 @@ class EventDetails extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Color(0xff1C2C41),
                   borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Color(0xff2A3856),
-                      width: 2.w,
-                    )
+                  border: Border.all(color: Color(0xff2A3856), width: 2.w),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -115,7 +132,7 @@ class EventDetails extends StatelessWidget {
                         fontWeight: FontWeight.w400,
                       ),
                     ),
-                    SizedBox(height: 15.h,),
+                    SizedBox(height: 15.h),
                     Text(
                       "Highlights of the Event",
                       style: TextStyle(
@@ -212,15 +229,13 @@ class EventDetails extends StatelessWidget {
             SizedBox(height: 18.h),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20.w),
-              child: Container(width: double.infinity,
+              child: Container(
+                width: double.infinity,
                 padding: EdgeInsets.all(13),
                 decoration: BoxDecoration(
                   color: Color(0xff1C2C41),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: Color(0xff2A3856),
-                    width: 2.w,
-                  )
+                  border: Border.all(color: Color(0xff2A3856), width: 2.w),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -233,15 +248,15 @@ class EventDetails extends StatelessWidget {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                      SizedBox(width: 10.w,),
-                      Text(
-                        "Limited tickets available — reserve early!",
-                        style: TextStyle(
-                          color: Color(0xffD2D2D5),
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w400,
-                        ),
+                    SizedBox(width: 10.w),
+                    Text(
+                      "Limited tickets available — reserve early!",
+                      style: TextStyle(
+                        color: Color(0xffD2D2D5),
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w400,
                       ),
+                    ),
                   ],
                 ),
               ),
@@ -249,9 +264,15 @@ class EventDetails extends StatelessWidget {
             SizedBox(height: 15.h),
             Align(
               alignment: Alignment.center,
-              child: PrimaryButton(title: "Get Ticket", onTap: () {
-                Navigator.pushNamed(context, RouteNames.completePayment);
-              },color: Color(0xFFE9201D),textColor: Colors.white, icon: '',),
+              child: PrimaryButton(
+                onTap: () {
+                  Navigator.pushNamed(context, RouteNames.completePayment);
+                },
+                color: Color(0xFFE9201D),
+                textColor: Colors.white,
+                icon: '',
+                child: Text("Get Ticket"),
+              ),
             ),
             SizedBox(height: 25.h),
           ],

@@ -4,7 +4,15 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../cors/theme/app_colors.dart';
 
 class CustomButton extends StatelessWidget {
-  const CustomButton({super.key, required this.title, this.onTap, this.color, this.textColor, this.hasIcon = false, this.iconWidget});
+  const CustomButton({
+    super.key,
+    required this.title,
+    this.onTap,
+    this.color,
+    this.textColor,
+    this.hasIcon = false,
+    this.iconWidget,
+  });
 
   final String title;
   final Widget? iconWidget;
@@ -27,9 +35,8 @@ class CustomButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (hasIcon ?? false)
-              iconWidget!,
-            SizedBox(width: 8.w,),
+            if (hasIcon ?? false) iconWidget!,
+            SizedBox(width: 8.w),
             Text(
               title,
               style: TextStyle(

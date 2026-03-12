@@ -6,7 +6,7 @@ import '../../../../../cors/routes/route_names.dart';
 import '../../../../widgets/primary_button.dart';
 
 class DigitalContractSigning extends StatefulWidget {
-  const DigitalContractSigning({Key? key}) : super(key: key);
+  const DigitalContractSigning({super.key});
 
   @override
   _DigitalContractSigningState createState() => _DigitalContractSigningState();
@@ -163,10 +163,10 @@ class _DigitalContractSigningState extends State<DigitalContractSigning> {
                 onTap: () {
                   Navigator.pushNamed(context, RouteNames.payment);
                 },
-                title: 'Submit',
                 color: const Color(0xFFE9201D),
                 textColor: Colors.white,
                 icon: '',
+                child: Text("Submit"),
               ),
             ),
             SizedBox(height: 32.h),

@@ -5,11 +5,15 @@ class ApiEndpoints {
   static const String register = '$baseUrl/api/auth/register';
   static const String login = '$baseUrl/api/auth/login';
   static const String refreshToken = '$baseUrl/api/auth/refresh-token';
-  static const String forgetPasswordEmail =
-      '$baseUrl/api/auimportth/resend-verification-email';
+  static const String forgotPassword = '$baseUrl/api/auth/forgot-password';
+  static const String resendVerification =
+      '$baseUrl/api/auth/resend-verification-email';
   static const String verifyEmail = '$baseUrl/api/auth/verify-email';
   static const String changePassword = '$baseUrl/api/auth/change-password';
   static const String resetPassword = '$baseUrl/api/auth/reset-password';
+  static const String changeEmail = '$baseUrl/api/auth/change-email';
+  static const String requestChangeEmail =
+      '$baseUrl/api/auth/request-email-change';
   static const String updateProfile = '$baseUrl/api/auth/update';
   static const String getProfile = '$baseUrl/api/auth/me';
 
@@ -45,6 +49,9 @@ class ApiEndpoints {
 
   /// ---------------------- Enrollment ----------------------------------------
 
+  static String currentStep(String courseId) =>
+      '$baseUrl/api/enrollment/current-step/$courseId';
+
   static String enrollPersonalInfo(String enrollmentId) =>
       '$baseUrl/api/enrollment/pinfo/$enrollmentId';
 
@@ -59,7 +66,6 @@ class ApiEndpoints {
   /// -------------------- Events ----------------------------------------------
   static const String getAllEvents = '$baseUrl/api/events';
 
-  static String getEventById(String eventId) =>
-      '$baseUrl/api/events/$eventId';
+  static String getEventById(String eventId) => '$baseUrl/api/events/$eventId';
   static const String getFeed = '$baseUrl/api/community/feed';
 }

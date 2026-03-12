@@ -51,7 +51,11 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
           children: [
             Text(
               'Rules & Regulations Signing',
-              style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 24.sp,
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+              ),
             ),
             SizedBox(height: 8.h),
             Text(
@@ -137,7 +141,11 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
                 Expanded(
                   child: Text(
                     'I acknowledge and agree to the school rules and regulations.',
-                    style: TextStyle(fontSize: 16.sp),
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
                 ),
               ],
@@ -149,11 +157,13 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
               key: _formKey,
               autovalidateMode: AutovalidateMode.onUserInteraction,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Digital Signature',
                     style: TextStyle(
-                      fontSize: 18.sp,
+                      fontSize: 16.sp,
+                      color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -184,7 +194,7 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
                       validator: dateOfBirthValidator,
                     ),
                   ),
-                  SizedBox(height: 16.h),
+                  SizedBox(height: 24.h),
 
                   /// ------------------- Submit Button ------------------------
                   SizedBox(
@@ -192,7 +202,9 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
                     child: PrimaryButton(
                       onTap: () async {
                         if (_formKey.currentState!.validate()) {
-                          print("========== Enrollment Id ${widget.enrollmentId}");
+                          print(
+                            "========== Enrollment Id Fetch ${widget.enrollmentId}",
+                          );
                           final result = await ref
                               .read(acceptRulesRegulationsProvider.notifier)
                               .acceptRulesRegulations(
@@ -226,10 +238,17 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
                           }
                         }
                       },
-                      title: 'Submit Acknowledgment',
                       color: const Color(0xFFE9201D),
                       textColor: Colors.white,
                       icon: '',
+                      child: Text(
+                        "Submit Acknowledge",
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -266,7 +285,7 @@ class _RulePoint extends StatelessWidget {
   final String title;
   final String description;
 
-  const _RulePoint(this.title, this.description, {Key? key}) : super(key: key);
+  const _RulePoint(this.title, this.description, {super.key});
 
   @override
   Widget build(BuildContext context) {

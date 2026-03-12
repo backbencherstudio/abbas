@@ -50,7 +50,7 @@ class _EditProfileState extends State<EditProfile> {
                       SizedBox(height: 16.h),
                       _buildInputField(title: 'About', controller: _bioController, hintText: 'Write here...'),
                       SizedBox(height: 15.h),
-                      PrimaryButton(onTap: (){}, title: 'Save', color: Colors.white, textColor: Colors.black, icon: '',)
+                      PrimaryButton(onTap: (){}, color: Colors.white, textColor: Colors.black, icon: '', child: Text("Save"),)
                     ],
                   ),
                 ),
