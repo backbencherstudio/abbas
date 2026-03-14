@@ -9,13 +9,12 @@ class GetFeedModel {
   String? mediaType;
   String? postType;
   String? visibility;
-  Author? author;
 
-  List<dynamic>? likes;
-  List<dynamic>? comments;
+  AuthorModel? author;
+  List<LikeModel>? likes;
+  List<CommentModel>? comments;
   List<dynamic>? shares;
-
-  List<PollOptions>? pollOptions;
+  List<PollOptionModel>? pollOptions;
 
   int? likeCount;
   int? commentCount;
@@ -42,85 +41,103 @@ class GetFeedModel {
     this.shareCount,
   });
 
-  GetFeedModel.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    authorId = json['author_Id'];
-    content = json['content'];
-    status = json['status'];
-    createdAt = json['createdAt'];
-    updatedAt = json['updatedAt'];
-    mediaUrl = json['media_Url'];
-    mediaType = json['mediaType'];
-    postType = json['post_type'];
-    visibility = json['visibility'];
+  factory GetFeedModel.fromJson(Map<String, dynamic> json) {
+    // ডিবাগ করার জন্য JSON এর keys প্রিন্ট করুন
+    print('GetFeedModel JSON keys: ${json.keys}');
 
-    author =
-    json['author'] != null ? Author.fromJson(json['author']) : null;
+    return GetFeedModel(
+      id: json['id']?.toString(),
+      authorId: json['author_Id']?.toString() ?? json['authorId']?.toString(),
+      content: json['content']?.toString(),
+      status: json['status']?.toString(),
+      createdAt: json['createdAt']?.toString(),
+      updatedAt: json['updatedAt']?.toString(),
+      mediaUrl: json['media_Url']?.toString() ?? json['mediaUrl']?.toString(),
+      mediaType: json['mediaType']?.toString(),
+      postType: json['post_type']?.toString() ?? json['postType']?.toString(),
+      visibility: json['visibility']?.toString(),
 
-    likes = json['likes'];
-    comments = json['comments'];
-    shares = json['shares'];
+      author: json['author'] != null
+          ? AuthorModel.fromJson(json['author'] as Map<String, dynamic>)
+          : null,
 
-    if (json['poll_options'] != null) {
-      pollOptions = [];
-      json['poll_options'].forEach((v) {
-        pollOptions!.add(PollOptions.fromJson(v));
-      });
-    }
+      likes: json['likes'] != null
+          ? (json['likes'] as List)
+          .map((v) => LikeModel.fromJson(v as Map<String, dynamic>))
+          .toList()
+          : null,
 
-    likeCount = json['likeCount'];
-    commentCount = json['commentCount'];
-    shareCount = json['shareCount'];
+      comments: json['comments'] != null
+          ? (json['comments'] as List)
+          .map((v) => CommentModel.fromJson(v as Map<String, dynamic>))
+          .toList()
+          : null,
+
+      shares: json['shares'] != null
+          ? List<dynamic>.from(json['shares'] as List)
+          : null,
+
+      pollOptions: json['poll_options'] != null
+          ? (json['poll_options'] as List)
+          .map((v) => PollOptionModel.fromJson(v as Map<String, dynamic>))
+          .toList()
+          : null,
+
+      likeCount: json['likeCount'] != null
+          ? int.tryParse(json['likeCount'].toString())
+          : json['likes'] != null ? (json['likes'] as List).length : 0,
+
+      commentCount: json['commentCount'] != null
+          ? int.tryParse(json['commentCount'].toString())
+          : json['comments'] != null ? (json['comments'] as List).length : 0,
+
+      shareCount: json['shareCount'] != null
+          ? int.tryParse(json['shareCount'].toString())
+          : json['shares'] != null ? (json['shares'] as List).length : 0,
+    );
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-
-    data['id'] = id;
-    data['author_Id'] = authorId;
-    data['content'] = content;
-    data['status'] = status;
-    data['createdAt'] = createdAt;
-    data['updatedAt'] = updatedAt;
-    data['media_Url'] = mediaUrl;
-    data['mediaType'] = mediaType;
-    data['post_type'] = postType;
-    data['visibility'] = visibility;
-
-    if (author != null) {
-      data['author'] = author!.toJson();
-    }
-
-    data['likes'] = likes;
-    data['comments'] = comments;
-    data['shares'] = shares;
-
-    if (pollOptions != null) {
-      data['poll_options'] =
-          pollOptions!.map((v) => v.toJson()).toList();
-    }
-
-    data['likeCount'] = likeCount;
-    data['commentCount'] = commentCount;
-    data['shareCount'] = shareCount;
-
-    return data;
+    return {
+      'id': id,
+      'author_Id': authorId,
+      'content': content,
+      'status': status,
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
+      'media_Url': mediaUrl,
+      'mediaType': mediaType,
+      'post_type': postType,
+      'visibility': visibility,
+      'author': author?.toJson(),
+      'likes': likes?.map((v) => v.toJson()).toList(),
+      'comments': comments?.map((v) => v.toJson()).toList(),
+      'shares': shares ?? [],
+      'poll_options': pollOptions?.map((v) => v.toJson()).toList(),
+      'likeCount': likeCount ?? likes?.length ?? 0,
+      'commentCount': commentCount ?? comments?.length ?? 0,
+      'shareCount': shareCount ?? shares?.length ?? 0,
+    };
   }
 }
 
-class Author {
+class AuthorModel {
   String? id;
   String? name;
   String? username;
   String? avatar;
 
-  Author({this.id, this.name, this.username, this.avatar});
+  AuthorModel({this.id, this.name, this.username, this.avatar});
 
-  Author.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    name = json['name'];
-    username = json['username'];
-    avatar = json['avatar'];
+  factory AuthorModel.fromJson(Map<String, dynamic> json) {
+    print('AuthorModel JSON keys: ${json.keys}');
+
+    return AuthorModel(
+      id: json['id']?.toString(),
+      name: json['name']?.toString(),
+      username: json['username']?.toString(),
+      avatar: json['avatar']?.toString(),
+    );
   }
 
   Map<String, dynamic> toJson() {
@@ -133,25 +150,123 @@ class Author {
   }
 }
 
-class PollOptions {
+class LikeModel {
+  String? id;
+  String? postId;
+  String? userId;
+  String? createdAt;
+
+  LikeModel({this.id, this.postId, this.userId, this.createdAt});
+
+  factory LikeModel.fromJson(Map<String, dynamic> json) {
+    print('LikeModel JSON keys: ${json.keys}');
+
+    return LikeModel(
+      id: json['id']?.toString(),
+      postId: json['postId']?.toString(),
+      userId: json['userId']?.toString(),
+      createdAt: json['createdAt']?.toString(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'postId': postId,
+      'userId': userId,
+      'createdAt': createdAt,
+    };
+  }
+}
+
+class CommentModel {
+  String? id;
+  String? postId;
+  String? userId;
+  String? content;
+  String? createdAt;
+  UserModel? user; // কিছু API তে user object থাকে
+
+  CommentModel({
+    this.id,
+    this.postId,
+    this.userId,
+    this.content,
+    this.createdAt,
+    this.user,
+  });
+
+  factory CommentModel.fromJson(Map<String, dynamic> json) {
+    print('CommentModel JSON keys: ${json.keys}');
+
+    return CommentModel(
+      id: json['id']?.toString(),
+      postId: json['postId']?.toString(),
+      userId: json['userId']?.toString(),
+      content: json['content']?.toString(),
+      createdAt: json['createdAt']?.toString(),
+      user: json['user'] != null
+          ? UserModel.fromJson(json['user'] as Map<String, dynamic>)
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'postId': postId,
+      'userId': userId,
+      'content': content,
+      'createdAt': createdAt,
+      'user': user?.toJson(),
+    };
+  }
+}
+
+class UserModel {
+  String? id;
+  String? name;
+  String? username;
+  String? avatar;
+
+  UserModel({this.id, this.name, this.username, this.avatar});
+
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    return UserModel(
+      id: json['id']?.toString(),
+      name: json['name']?.toString(),
+      username: json['username']?.toString(),
+      avatar: json['avatar']?.toString(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'username': username,
+      'avatar': avatar,
+    };
+  }
+}
+
+class PollOptionModel {
   String? id;
   String? postId;
   String? title;
-
   List<dynamic>? votes;
 
-  PollOptions({
-    this.id,
-    this.postId,
-    this.title,
-    this.votes,
-  });
+  PollOptionModel({this.id, this.postId, this.title, this.votes});
 
-  PollOptions.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    postId = json['postId'];
-    title = json['title'];
-    votes = json['votes'];
+  factory PollOptionModel.fromJson(Map<String, dynamic> json) {
+    print('PollOptionModel JSON keys: ${json.keys}');
+
+    return PollOptionModel(
+      id: json['id']?.toString(),
+      postId: json['postId']?.toString(),
+      title: json['title']?.toString(),
+      votes: json['votes'] != null ? List<dynamic>.from(json['votes'] as List) : null,
+    );
   }
 
   Map<String, dynamic> toJson() {
@@ -159,7 +274,7 @@ class PollOptions {
       'id': id,
       'postId': postId,
       'title': title,
-      'votes': votes,
+      'votes': votes ?? [],
     };
   }
 }

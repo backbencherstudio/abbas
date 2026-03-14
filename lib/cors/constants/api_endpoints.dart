@@ -66,6 +66,11 @@ class ApiEndpoints {
   /// -------------------- Events ----------------------------------------------
   static const String getAllEvents = '$baseUrl/api/events';
 
+  // community
+
+
   static String getEventById(String eventId) => '$baseUrl/api/events/$eventId';
+
   static const String getFeed = '$baseUrl/api/community/feed';
+  static const String createPost = '$baseUrl/api/community/post';
 }
