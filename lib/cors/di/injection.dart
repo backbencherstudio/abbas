@@ -6,6 +6,7 @@ import 'package:abbas/presentation/views/community/data/community/community_repo
 import 'package:abbas/presentation/views/community/domain/community/community_repository.dart';
 import 'package:abbas/presentation/views/community/domain/community/community_usecase.dart';
 import 'package:abbas/presentation/views/community/presentaion/provider/community/community_screen_provider.dart';
+import 'package:abbas/presentation/views/community/presentaion/provider/post/create_post_provider.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import '../../data/datasources/auth/change_password_datasource.dart';
@@ -64,6 +65,7 @@ import '../../presentation/views/auth/register/domain/signUpRepository.dart';
 import '../../presentation/views/auth/register/domain/signUpUseCase.dart';
 import '../../presentation/views/auth/register/presentaion/provider/signupScreen_provider.dart';
 import '../../presentation/views/community/data/community/community_remote_datasource.dart';
+import '../../presentation/views/profile/view_model/profil_screen_provider.dart';
 import '../services/api_client.dart';
 import '../services/api_services.dart';
 import '../services/token_storage.dart';
@@ -93,9 +95,7 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton<FeedRemoteDataSource>(
     () => FeedRemoteDataSourceImpl(apiService: getIt<ApiService>()),
   );
-  getIt.registerLazySingleton<PostLocalDataSource>(
-    () => PostLocalDataSourceImpl(),
-  );
+
   getIt.registerLazySingleton<CourseRemoteDataSource>(
     () => CourseRemoteDataSourceImpl(),
   );
@@ -269,57 +269,60 @@ Future<void> configureDependencies() async {
     () => SignupScreenProvider(getIt<SignUpUseCase>()),
   );
 
-// ===============================
-// LOGIN DEPENDENCY INJECTION
-// ===============================
+  // ===============================
+  // LOGIN DEPENDENCY INJECTION
+  // ===============================
 
-// 2️⃣ Remote Data Source
+  // 2️⃣ Remote Data Source
   getIt.registerLazySingleton<LoginRemoteDataSource>(
-        () => LoginRemoteDataSource(
+    () => LoginRemoteDataSource(
       getIt<ApiClient>(), // ApiClient injected
     ),
   );
 
-// 3️⃣ Repository
+  // 3️⃣ Repository
   getIt.registerLazySingleton<LoginRepository>(
-        () => LoginRepositoryImpl(getIt<LoginRemoteDataSource>()),
+    () => LoginRepositoryImpl(getIt<LoginRemoteDataSource>()),
   );
-// 4️⃣ UseCase
+  // 4️⃣ UseCase
   getIt.registerLazySingleton<LoginUseCase>(
-        () => LoginUseCase(getIt<LoginRepository>()),
+    () => LoginUseCase(getIt<LoginRepository>()),
   );
 
-// 5️⃣ Provider
+  // 5️⃣ Provider
   getIt.registerFactory<LoginScreenProvider>(
-        () => LoginScreenProvider(
-      loginUseCase: getIt<LoginUseCase>(),
-    ),
+    () => LoginScreenProvider(loginUseCase: getIt<LoginUseCase>()),
   );
 
   // ===============================
-// Get feed DEPENDENCY INJECTION
-// ===============================
+  // Get feed DEPENDENCY INJECTION
+  // ===============================
 
-// 2️⃣ Remote Data Source
+  // 2️⃣ Remote Data Source
   getIt.registerLazySingleton<CommunityRemoteDataSource>(
-        () => CommunityRemoteDataSource(
+    () => CommunityRemoteDataSource(
       getIt<ApiClient>(), // ApiClient injected
     ),
   );
 
-// 3️⃣ Repository
+  // 3️⃣ Repository
   getIt.registerLazySingleton<CommunityRepository>(
-        () => CommunityRepositoryImpl(getIt<CommunityRemoteDataSource>()),
+    () => CommunityRepositoryImpl(getIt<CommunityRemoteDataSource>()),
   );
-// 4️⃣ UseCase
+  // 4️⃣ UseCase
   getIt.registerLazySingleton<GetCommunityFeedUseCase>(
-        () => GetCommunityFeedUseCase(getIt<CommunityRepository>()),
+    () => GetCommunityFeedUseCase(getIt<CommunityRepository>()),
   );
 
-// 5️⃣ Provider
+  // 5️⃣ Provider
   getIt.registerFactory<CommunityScreenProvider>(
-        () => CommunityScreenProvider(
+    () => CommunityScreenProvider(
       getCommunityFeedsUseCase: getIt<GetCommunityFeedUseCase>(),
     ),
   );
+
+  // PROFILE PROVIDER
+  getIt.registerFactory<ProfileScreenProvider>(() => ProfileScreenProvider());
+
+  getIt.registerFactory<CreatePostProvider>(() => CreatePostProvider());
 }

@@ -65,7 +65,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Padding(
-                          padding:  EdgeInsets.all(12),
+                          padding: EdgeInsets.all(12),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -76,21 +76,22 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                       feed.author?.name ?? "",
                                     ),
                                   ),
-                                   SizedBox(width: 10),
+                                  SizedBox(width: 10),
                                   Column(
                                     mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         feed.author?.name ?? "N/A",
-                                        style:  TextStyle(
+                                        style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                      SizedBox(height: 5,),
+                                      SizedBox(height: 5),
                                       Text(
                                         feed.createdAt ?? "",
-                                        style:  TextStyle(
+                                        style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -99,27 +100,43 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                 ],
                               ),
 
-                               SizedBox(height: 10),
+                              SizedBox(height: 10),
 
                               Text(feed.content ?? ""),
 
-                               SizedBox(height: 10),
+                              SizedBox(height: 10),
 
-                              if (feed.mediaUrl != null)
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.network(feed.mediaUrl!),
-                                ),
+                              feed.mediaUrl != null && feed.mediaUrl!.isNotEmpty
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.network(feed.mediaUrl!),
+                                    )
+                                  : Container(
+                                      height: 200,
+                                      width: double.infinity,
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey[200],
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Icon(
+                                        Icons.image,
+                                        size: 50,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
 
-                               SizedBox(height: 10),
+                              SizedBox(height: 10),
 
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Row(children: [GestureDetector(
-
-                                      child: Text("👍")),  Text("${feed.likeCount ?? 0}"),],),
+                                  Row(
+                                    children: [
+                                      GestureDetector(child: Text("👍")),
+                                      Text("${feed.likeCount ?? 0}"),
+                                    ],
+                                  ),
 
                                   Text("💬 ${feed.commentCount ?? 0}"),
                                   Text("🔁 ${feed.shareCount ?? 0}"),
