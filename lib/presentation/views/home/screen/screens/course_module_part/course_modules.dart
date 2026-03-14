@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../../../cors/routes/route_names.dart';
@@ -7,6 +6,7 @@ import '../../../../../widgets/secondary_appber.dart';
 
 class CourseModules extends StatelessWidget {
   const CourseModules({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -393,9 +393,15 @@ class CourseModules extends StatelessWidget {
             SizedBox(height: 15.h),
             Align(
               alignment: Alignment.center,
-              child: PrimaryButton(title: "Enroll Now", onTap: () {
-                Navigator.pushNamed(context, RouteNames.myCourse);
-              },color: Color(0xFFE9201D),textColor: Colors.white, icon: '',),
+              child: PrimaryButton(
+                onTap: () {
+                  Navigator.pushNamed(context, RouteNames.myCourse);
+                },
+                color: Color(0xFFE9201D),
+                textColor: Colors.white,
+                icon: '',
+                child: Text("Enroll Now"),
+              ),
             ),
             SizedBox(height: 20.h),
           ],

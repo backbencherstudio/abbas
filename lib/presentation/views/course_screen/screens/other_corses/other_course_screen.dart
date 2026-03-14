@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
@@ -239,7 +238,11 @@ class OtherCourseScreen extends StatelessWidget {
                       Divider(),
                       Row(
                         children: [
-                          SvgPicture.asset('assets/icons/instructor.svg', height: 20.h, width: 20.w,),
+                          SvgPicture.asset(
+                            'assets/icons/instructor.svg',
+                            height: 20.h,
+                            width: 20.w,
+                          ),
                           SizedBox(width: 6),
                           Text(
                             "Instructor",
@@ -263,7 +266,7 @@ class OtherCourseScreen extends StatelessWidget {
                               width: 1.w,
                             ),
                           ),
-                          child: Icon(Icons.person_2, color: AppColors.grey,)
+                          child: Icon(Icons.person_2, color: AppColors.grey),
                         ),
                         title: Text(
                           "Sophie Lambert",
@@ -284,10 +287,19 @@ class OtherCourseScreen extends StatelessWidget {
                       ),
 
                       SizedBox(height: 20.h),
-                      PrimaryButton(title: "Enroll Now", onTap: () {
-                      //  Navigator.pushNamed(context, RouteNames.courseModuleScreens);
-                       Navigator.pushNamed(context, RouteNames.myCourseScreen);
-                      },color: Color(0xFFE9201D),textColor: Colors.white, icon: '',),
+                      PrimaryButton(
+                        onTap: () {
+                          //  Navigator.pushNamed(context, RouteNames.courseModuleScreens);
+                          Navigator.pushNamed(
+                            context,
+                            RouteNames.myCourseScreen,
+                          );
+                        },
+                        color: Color(0xFFE9201D),
+                        textColor: Colors.white,
+                        icon: '',
+                        child: Text("Enroll Now"),
+                      ),
                     ],
                   ),
                 ),

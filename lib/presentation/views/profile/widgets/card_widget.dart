@@ -15,7 +15,7 @@ class InstallmentCard extends StatelessWidget {
   final Color buttonTextColor;
 
   const InstallmentCard({
-    Key? key,
+    super.key,
     required this.installmentTitle,
     required this.date,
     required this.amount,
@@ -26,7 +26,7 @@ class InstallmentCard extends StatelessWidget {
     this.showPrimaryButton = true,
     required this.buttonColor,
     required this.buttonTextColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -122,10 +122,10 @@ class InstallmentCard extends StatelessWidget {
               if (showPrimaryButton)
                 PrimaryButton(
                   onTap: onTapButton,
-                  title: buttonTitle,
                   color: buttonColor,
                   textColor: buttonTextColor,
                   icon: '',
+                  child: Text(buttonTitle),
                 ),
             ],
           ),

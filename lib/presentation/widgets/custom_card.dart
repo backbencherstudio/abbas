@@ -88,9 +88,9 @@ class CustomCard extends StatelessWidget {
           SizedBox(height: 15.h),
           PrimaryButton(
             onTap: () {},
-            title: 'Enroll Now',
             color: Colors.white,
             textColor: Colors.black87,
+            child: Text("Enroll Now"),
           ),
         ],
       ),

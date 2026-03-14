@@ -120,11 +120,11 @@ class SetNewPasswordScreen extends StatelessWidget {
             onTap: viewModel.isButtonEnable && !viewModel.isLoading
                 ? () => _handleUpdatePassword(context, viewModel, email, otp)
                 : () {},
-            title: 'Update Password',
             color: viewModel.isButtonEnable && !viewModel.isLoading
                 ? AppColors.activeButtonColor
                 : AppColors.inactiveButtonColor,
             textColor: AppColors.white,
+            child: Text("Update Password"),
           );
         },
       ),

@@ -79,14 +79,25 @@ class AppRoutes {
     RouteNames.setNewPasswordScreen: (context) => SetNewPasswordScreen(),
     RouteNames.parentScreen: (context) => const ParentScreen(),
     RouteNames.scanner: (context) => const Scanner(),
-    RouteNames.courseModuleScreens: (context) => const CourseModuleScreen(),
     RouteNames.otherCourseScreen: (context) => const OtherCourseScreen(),
-    RouteNames.myCourseScreen: (context) => const MyCourseScreen(),
-    RouteNames.courseModuleScreen: (context) => const CourseModuleScreen(),
+    RouteNames.myCourseScreen: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final courseId = args is String ? args : '';
+      return MyCourseScreen(courseId: courseId);
+    },
+    RouteNames.courseModuleScreen: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final moduleId = args is String ? args : '';
+      return CourseModuleScreen(moduleId: moduleId);
+    },
     RouteNames.personalInfoScreen: (context) => const PersonalInfoScreen(),
     RouteNames.paymentHistoryScreen: (context) => const PaymentHistory(),
     // RouteNames.editPersonalInfoScreen: (context) =>  const EditPersonalInfoScreen(),
-    RouteNames.myClassScreen: (context) => const MyClassScreen(),
+    RouteNames.myClassScreen: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments;
+      final classId = args is String ? args : '';
+      return MyClassScreen(classId: classId);
+    },
     RouteNames.myAssignmentScreen: (context) => const DueAssignmentScreen(),
     RouteNames.submittedAssignmentScreen: (context) =>
         const SubmittedAssignmentScreen(),

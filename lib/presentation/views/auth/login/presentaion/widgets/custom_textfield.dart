@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:email_validator/email_validator.dart';
 import '../../../../../../cors/theme/app_colors.dart';
 import '../../../../../../cors/theme/app_text_styles.dart';
 
 class AppTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
-  final bool isRequired;
   final bool isEmail;
   final bool isPassword;
   final TextInputAction textInputAction;
@@ -18,7 +16,6 @@ class AppTextField extends StatelessWidget {
     super.key,
     required this.controller,
     required this.hintText,
-    this.isRequired = false,
     this.isEmail = false,
     this.isPassword = false,
     this.textInputAction = TextInputAction.next,

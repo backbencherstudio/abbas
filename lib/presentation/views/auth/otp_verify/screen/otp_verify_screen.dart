@@ -1,64 +1,50 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get_it/get_it.dart';
 import 'package:provider/provider.dart';
-
 import '../../../../../../cors/routes/route_names.dart';
 import '../../../../../../cors/theme/app_colors.dart';
 import '../../../../../../cors/theme/app_text_styles.dart';
 import '../../../../viewmodels/auth/otp_verify/otp_verify_viewmodel.dart';
 import '../../../../widgets/primary_button.dart';
-import '../widgets/custom_app_bar_back_button_widget.dart';
 import '../widgets/pinput_widget.dart';
 import '../widgets/resend_otp_section_widget.dart';
 
-class OtpVerifyScreen extends StatelessWidget {
-  OtpVerifyScreen({super.key});
+class OtpVerifyScreen extends StatefulWidget {
+  const OtpVerifyScreen({super.key});
 
+  @override
+  State<OtpVerifyScreen> createState() => _OtpVerifyScreenState();
+}
+
+class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
   final TextEditingController _pinController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     final email = ModalRoute.of(context)?.settings.arguments as String? ?? '';
 
-    return ChangeNotifierProvider<OtpVerifyViewmodel>(
-      create: (_) => GetIt.instance<OtpVerifyViewmodel>()..startResendTimer(),
-      child: Scaffold(
-        backgroundColor: AppColors.background,
-        body: SafeArea(
-          child: Stack(
-            children: [
-              Column(
-                children: [
-                  CustomAppBarBackButtonWidget(context: context),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 20.w,
-                        vertical: 16.h,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: 20.h),
-                          _buildHeader(),
-                          SizedBox(height: 32.h),
-                          PinputWidget(
-                            context: context,
-                            pinController: _pinController,
-                          ),
-                          SizedBox(height: 60.h),
-                          ResendOtpSectionWidget(email: email),
-                        ],
-                      ),
-                    ),
-                  ),
-                  _buildVerifyButton(context, email),
-                ],
-              ),
-              _buildLoadingIndicator(),
-            ],
-          ),
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: Icon(Icons.arrow_back_ios, size: 24.sp, color: Colors.white),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 24.h),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(height: 20.h),
+            _buildHeader(),
+            SizedBox(height: 32.h),
+            PinputWidget(context: context, pinController: _pinController),
+            SizedBox(height: 60.h),
+            ResendOtpSectionWidget(email: email),
+          ],
         ),
       ),
     );
@@ -103,7 +89,6 @@ class OtpVerifyScreen extends StatelessWidget {
                     }
                   }
                 : () {},
-            title: 'Verify',
             color: viewModel.isButtonEnable
                 ? AppColors.activeButtonColor
                 : AppColors.inactiveButtonColor,

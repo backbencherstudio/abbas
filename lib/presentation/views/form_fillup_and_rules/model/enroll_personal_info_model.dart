@@ -1,30 +1,28 @@
 class EnrollPersonalInfoModel {
   bool? success;
   String? message;
-  Enrollment? enrollment;
+  Data? data;
 
-  EnrollPersonalInfoModel({this.success, this.message, this.enrollment});
+  EnrollPersonalInfoModel({this.success, this.message, this.data});
 
   EnrollPersonalInfoModel.fromJson(Map<String, dynamic> json) {
     success = json['success'];
     message = json['message'];
-    enrollment = json['enrollment'] != null
-        ? Enrollment.fromJson(json['enrollment'])
-        : null;
+    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['success'] = success;
-    data['message'] = message;
-    if (enrollment != null) {
-      data['enrollment'] = enrollment!.toJson();
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['success'] = this.success;
+    data['message'] = this.message;
+    if (this.data != null) {
+      data['data'] = this.data!.toJson();
     }
     return data;
   }
 }
 
-class Enrollment {
+class Data {
   String? id;
   String? createdAt;
   String? updatedAt;
@@ -36,12 +34,12 @@ class Enrollment {
   String? dateOfBirth;
   String? experienceLevel;
   String? courseId;
-  dynamic enrolledDocuments;
+  Null? enrolledDocuments;
   String? status;
   bool? isPaymentCompleted;
   String? step;
 
-  Enrollment(
+  Data(
       {this.id,
         this.createdAt,
         this.updatedAt,
@@ -58,7 +56,7 @@ class Enrollment {
         this.isPaymentCompleted,
         this.step});
 
-  Enrollment.fromJson(Map<String, dynamic> json) {
+  Data.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];

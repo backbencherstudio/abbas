@@ -4,8 +4,16 @@ import 'package:flutter/material.dart';
 
 import '../../../../widgets/secondary_appber.dart';
 
-class MyCourseScreen extends StatelessWidget {
-  const MyCourseScreen({super.key});
+class MyCourseScreen extends StatefulWidget {
+  final String courseId;
+
+  const MyCourseScreen({super.key, required this.courseId});
+
+  @override
+  State<MyCourseScreen> createState() => _MyCourseScreenState();
+}
+
+class _MyCourseScreenState extends State<MyCourseScreen> {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -46,7 +54,10 @@ class MyCourseScreen extends StatelessWidget {
                   ),
                   Expanded(
                     child: TabBarView(
-                      children: [CourseWidget(), MyAssignmentWidget()],
+                      children: [
+                        CourseWidget(courseId: widget.courseId),
+                        MyAssignmentWidget(courseId: widget.courseId),
+                      ],
                     ),
                   ),
                 ],

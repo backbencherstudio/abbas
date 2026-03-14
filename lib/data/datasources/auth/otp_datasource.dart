@@ -171,7 +171,7 @@ class OTPDataSourceImpl implements OTPDataSource {
   Future<OTPResponseModel> sendOTP(String email) async {
     try {
       final response = await apiService.post(
-        ApiEndpoints.forgetPasswordEmail,
+        '',
         data: {'email': email},
         options: Options(
           headers: {'Content-Type': 'application/json'},

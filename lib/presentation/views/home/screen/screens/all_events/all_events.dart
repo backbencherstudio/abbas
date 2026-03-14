@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
@@ -11,8 +10,7 @@ import '../../../../../../data/repositories/home/home_repository_impl.dart';
 import '../../../../../../domain/entities/home/home.dart';
 import '../../../../../../domain/usecases/home/get_home_data.dart';
 import '../../../../../viewmodels/home/home_viewmodel.dart';
-import '../../../../../viewmodels/parent/parent_screen_provider.dart';
-import '../../../../../widgets/custom_appbar.dart';
+
 import '../../../../../widgets/secondary_appber.dart';
 
 class AllEvents extends StatefulWidget {
