@@ -83,3 +83,10 @@ String? digitalSignatureValidator(String? value) {
   }
   return null;
 }
+
+String? dateValidator(String? value) {
+  if (value == null || value.isEmpty) {
+    return 'Please select a date';
+  }
+  return null;
+}

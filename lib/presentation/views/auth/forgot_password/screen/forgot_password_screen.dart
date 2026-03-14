@@ -60,6 +60,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        elevation: 0,
         leading: GestureDetector(
           onTap: () => Navigator.pop(context),
           child: Icon(Icons.arrow_back_ios, size: 24.sp, color: Colors.white),

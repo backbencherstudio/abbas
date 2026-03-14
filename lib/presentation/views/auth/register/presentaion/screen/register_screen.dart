@@ -39,6 +39,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        elevation: 0,
         automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(

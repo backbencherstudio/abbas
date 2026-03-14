@@ -100,17 +100,19 @@ class EnrollPersonalInfoProvider
 
 final acknowledgeProvider = StateProvider<bool>((ref) => false);
 final acceptRulesRegulationsProvider =
-    StateNotifierProvider<AcceptRulesRegulationsProvider, ResponseModel>(
-      (ref) => AcceptRulesRegulationsProvider(dioClient: DioClient()),
-    );
+    StateNotifierProvider<
+      AcceptRulesRegulationsProvider,
+      AsyncValue<ResponseModel>
+    >((ref) => AcceptRulesRegulationsProvider(dioClient: DioClient()));
 
-class AcceptRulesRegulationsProvider extends StateNotifier<ResponseModel> {
+class AcceptRulesRegulationsProvider
+    extends StateNotifier<AsyncValue<ResponseModel>> {
   DioClient dioClient;
 
   AcceptRulesRegulationsProvider({required this.dioClient})
-    : super(ResponseModel(success: false, message: ''));
+    : super(AsyncValue.data(ResponseModel(success: false, message: '')));
 
-  Future<ResponseModel> acceptRulesRegulations({
+  Future<void> acceptRulesRegulations({
     required bool accepted,
     required String fullName,
     required String digitalSignature,
@@ -130,13 +132,17 @@ class AcceptRulesRegulationsProvider extends StateNotifier<ResponseModel> {
         body,
       );
 
-      if (res['success']) {
-        return ResponseModel(success: true, message: res['message']);
+      if (res['success'] == true) {
+        state = AsyncValue.data(
+          ResponseModel(success: true, message: res['message']),
+        );
       } else {
-        return ResponseModel(success: false, message: res['message']);
+        state = AsyncValue.data(
+          ResponseModel(success: false, message: res['message']),
+        );
       }
-    } catch (e) {
-      return ResponseModel(success: false, message: "$e");
+    } catch (e, stackTrace) {
+      state = AsyncValue.error(e.toString(), stackTrace);
     }
   }
 }

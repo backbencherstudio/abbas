@@ -63,6 +63,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        elevation: 0,
         automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(
