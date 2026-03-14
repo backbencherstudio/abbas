@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../../../cors/network/api_error_handle.dart';
-import '../../../../../../cors/routes/route_names.dart';
 import '../../../../../widgets/primary_button.dart';
 
 class RulesRegulations extends ConsumerStatefulWidget {
@@ -19,7 +18,8 @@ class RulesRegulations extends ConsumerStatefulWidget {
 
 class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
   final TextEditingController _fullNameController = TextEditingController();
-  final TextEditingController _digitalSignatureController = TextEditingController();
+  final TextEditingController _digitalSignatureController =
+      TextEditingController();
   final TextEditingController _dateController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
@@ -28,7 +28,8 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
     super.initState();
     // Pre-fill today's date
     final now = DateTime.now();
-    _dateController.text = "${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}";
+    _dateController.text =
+        "${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}";
   }
 
   @override
@@ -56,7 +57,6 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
 
   @override
   Widget build(BuildContext context) {
-    final acceptRulesState = ref.watch(acceptRulesRegulationsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -155,7 +155,8 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
                 Checkbox(
                   value: ref.watch(acknowledgeProvider),
                   onChanged: (value) {
-                    ref.read(acknowledgeProvider.notifier).state = value ?? false;
+                    ref.read(acknowledgeProvider.notifier).state =
+                        value ?? false;
                   },
                   activeColor: const Color(0xFFE9201D),
                   checkColor: Colors.white,
@@ -228,67 +229,44 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
                   SizedBox(height: 24.h),
 
                   /// ------------------- Submit Button ------------------------
-                  acceptRulesState.when(
-                    data: (response) {
-                      return SizedBox(
-                        width: double.infinity,
-                        child: PrimaryButton(
-                          onTap:() async {
-                            if (_formKey.currentState!.validate()) {
-                              logger.d("Submitting with enrollmentId: ${widget.enrollmentId}");
+                  PrimaryButton(
+                    onTap: () async {
+                      if (_formKey.currentState!.validate()) {
+                        logger.d(
+                          "Submitting with enrollmentId: ${widget.enrollmentId}",
+                        );
 
-                              await ref
-                                  .read(acceptRulesRegulationsProvider.notifier)
-                                  .acceptRulesRegulations(
-                                accepted: true,
-                                fullName: _fullNameController.text.trim(),
-                                digitalSignature: _digitalSignatureController.text.trim(),
-                                digitalSignatureDate: _dateController.text.trim(),
-                                enrollmentId: widget.enrollmentId,
-                              );
-
-                              // Check the result after submission
-                              final newState = ref.read(acceptRulesRegulationsProvider);
-                              newState.whenData((result) {
-                                if (result.success && mounted) {
-                                  Utils.showToast(
-                                    msg: result.message,
-                                    backgroundColor: Colors.green,
-                                    textColor: Colors.white,
-                                  );
-
-                                  // Navigate to next step
-                                  Navigator.pushNamed(
-                                    context,
-                                    RouteNames.digitalContractSigning,
-                                    arguments: widget.enrollmentId,
-                                  );
-                                } else if (!result.success && mounted) {
-                                  Utils.showToast(
-                                    msg: result.message,
-                                    backgroundColor: Colors.red,
-                                    textColor: Colors.white,
-                                  );
-                                }
-                              });
-                            }
-                          },
-                          color: const Color(0xFFE9201D),
-                          textColor: Colors.white,
-                          icon: '',
-                          child: Text(
-                            "Submit Acknowledge",
-                            style: TextStyle(
-                              fontSize: 16.sp,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      );
+                        print();
+                        final result = await ref
+                            .read(acceptRulesRegulationsProvider.notifier)
+                            .acceptRulesRegulations(
+                              accepted: true,
+                              fullName: _fullNameController.text.trim(),
+                              digitalSignature: _digitalSignatureController.text
+                                  .trim(),
+                              digitalSignatureDate: _dateController.text.trim(),
+                              enrollmentId: widget.enrollmentId,
+                            );
+                        if (result.success) {
+                          Utils.showToast(
+                            msg: result.message,
+                            backgroundColor: Colors.green,
+                            textColor: Colors.white,
+                          );
+                        }
+                      }
                     },
-                    loading: () => const Center(child: CircularProgressIndicator(color: Colors.white,)),
-                    error: (error, stack) => Center(child: Text("Error: $error")),
+                    color: const Color(0xFFE9201D),
+                    textColor: Colors.white,
+                    icon: '',
+                    child: Text(
+                      "Submit Acknowledge",
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -359,17 +337,17 @@ class _RulePoint extends StatelessWidget {
 }
 
 Widget _buildTextField(
-    String hintText, {
-      int? maxLines,
-      TextInputType? keyboardType,
-      TextEditingController? controller,
-      FocusNode? focusNode,
-      String? Function(String?)? validator,
-      String? initialValue,
-      TextInputAction? textInputAction,
-      bool? readOnly,
-      Widget? suffixIcon,
-    }) {
+  String hintText, {
+  int? maxLines,
+  TextInputType? keyboardType,
+  TextEditingController? controller,
+  FocusNode? focusNode,
+  String? Function(String?)? validator,
+  String? initialValue,
+  TextInputAction? textInputAction,
+  bool? readOnly,
+  Widget? suffixIcon,
+}) {
   return TextFormField(
     controller: controller,
     focusNode: focusNode,
@@ -400,7 +378,6 @@ Widget _buildTextField(
         borderRadius: BorderRadius.circular(12.r),
         borderSide: BorderSide(color: Colors.redAccent, width: 1.w),
       ),
-
     ),
     validator: validator,
   );

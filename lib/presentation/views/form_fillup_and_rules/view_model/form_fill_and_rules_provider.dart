@@ -112,7 +112,7 @@ class AcceptRulesRegulationsProvider
   AcceptRulesRegulationsProvider({required this.dioClient})
     : super(AsyncValue.data(ResponseModel(success: false, message: '')));
 
-  Future<void> acceptRulesRegulations({
+  Future<ResponseModel> acceptRulesRegulations({
     required bool accepted,
     required String fullName,
     required String digitalSignature,
@@ -133,16 +133,12 @@ class AcceptRulesRegulationsProvider
       );
 
       if (res['success'] == true) {
-        state = AsyncValue.data(
-          ResponseModel(success: true, message: res['message']),
-        );
+      return  ResponseModel(success: true, message: res['message']);
       } else {
-        state = AsyncValue.data(
-          ResponseModel(success: false, message: res['message']),
-        );
+      return  ResponseModel(success: false, message: res['message']);
       }
-    } catch (e, stackTrace) {
-      state = AsyncValue.error(e.toString(), stackTrace);
+    } catch (e) {
+     return ResponseModel(success: false, message: '$e');
     }
   }
 }
@@ -173,6 +169,8 @@ class AcceptContractTermsProvider extends StateNotifier<ResponseModel> {
       'digital_signature': digitalSignature,
       'digital_signature_date': digitalSignatureDate,
     };
+
+    debugPrint("THe body data for this api ${body}");
     try {
       final res = await dioClient.postHttp(
         ApiEndpoints.acceptContractTerms(enrollmentId),
@@ -184,6 +182,7 @@ class AcceptContractTermsProvider extends StateNotifier<ResponseModel> {
         return ResponseModel(success: false, message: res['message']);
       }
     } catch (e) {
+      debugPrint("The error message is ------ ${body} ${e}");
       return ResponseModel(success: false, message: "$e");
     }
   }
