@@ -1,3 +1,4 @@
+import 'package:abbas/cors/routes/route_names.dart';
 import 'package:abbas/presentation/views/form_fillup_and_rules/view_model/form_fill_and_rules_provider.dart';
 import 'package:abbas/presentation/widgets/validator.dart';
 import 'package:abbas/utils/app_utils.dart';
@@ -26,10 +27,9 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
   @override
   void initState() {
     super.initState();
-    // Pre-fill today's date
     final now = DateTime.now();
     _dateController.text =
-        "${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}";
+        "${now.year.toString().padLeft(2, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day}";
   }
 
   @override
@@ -44,20 +44,26 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
   Future<void> _selectedDate() async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
-      firstDate: DateTime(2000),
+      firstDate: DateTime(1900),
       lastDate: DateTime.now(),
+      initialDate: DateTime.now(),
     );
 
     if (pickedDate != null) {
       final formattedDate =
-          "${pickedDate.day.toString().padLeft(2, '0')}/${pickedDate.month.toString().padLeft(2, '0')}/${pickedDate.year}";
+          "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
       _dateController.text = formattedDate;
     }
   }
 
+  /// --------------------- Convert to ISO -------------------------------------
+  String convertToIso(String date) {
+    final parseDate = DateTime.parse(date);
+    return parseDate.toUtc().toIso8601String();
+  }
+
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -158,7 +164,7 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
                     ref.read(acknowledgeProvider.notifier).state =
                         value ?? false;
                   },
-                  activeColor: const Color(0xFFE9201D),
+                  activeColor: Colors.black,
                   checkColor: Colors.white,
                 ),
                 Expanded(
@@ -232,11 +238,19 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
                   PrimaryButton(
                     onTap: () async {
                       if (_formKey.currentState!.validate()) {
+                        if (!ref.watch(acknowledgeProvider)) {
+                          Utils.showToast(
+                            msg: "Please accept rules and regulations",
+                            backgroundColor: Colors.red,
+                            textColor: Colors.white,
+                          );
+                          return;
+                        }
+                        final isoDate = convertToIso(_dateController.text);
                         logger.d(
                           "Submitting with enrollmentId: ${widget.enrollmentId}",
                         );
 
-                        print();
                         final result = await ref
                             .read(acceptRulesRegulationsProvider.notifier)
                             .acceptRulesRegulations(
@@ -244,13 +258,26 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
                               fullName: _fullNameController.text.trim(),
                               digitalSignature: _digitalSignatureController.text
                                   .trim(),
-                              digitalSignatureDate: _dateController.text.trim(),
+                              digitalSignatureDate: isoDate,
                               enrollmentId: widget.enrollmentId,
                             );
+
                         if (result.success) {
                           Utils.showToast(
                             msg: result.message,
                             backgroundColor: Colors.green,
+                            textColor: Colors.white,
+                          );
+                          if (context.mounted) {
+                            Navigator.pushNamed(
+                              context,
+                              RouteNames.digitalContractSigning,
+                            );
+                          }
+                        } else {
+                          Utils.showToast(
+                            msg: result.message,
+                            backgroundColor: Colors.red,
                             textColor: Colors.white,
                           );
                         }

@@ -39,8 +39,8 @@ class _PaymentState extends State<Payment> {
             Text(
               'Complete Your Payment',
               style: TextStyle(
-                fontSize: 28.sp,
-                fontWeight: FontWeight.bold,
+                fontSize: 24.sp,
+                fontWeight: FontWeight.w500,
                 color: Colors.white,
               ),
             ),
@@ -58,7 +58,7 @@ class _PaymentState extends State<Payment> {
               'Payment Type',
               style: TextStyle(
                 fontSize: 18.sp,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w500,
                 color: Colors.white,
               ),
             ),

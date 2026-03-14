@@ -178,19 +178,17 @@ class _CourseModuleScreenState extends ConsumerState<CourseModuleScreen> {
 
                     SizedBox(height: 12.h),
                     ...valueClasses.map((value) {
-                      return Column(
-                        spacing: 12.h,
-                        children: [
-                          _buildClassContainer(
-                            title: value.classTitle ?? 'N/A',
-                            subtitle: value.className ?? 'N/A',
-                            onTap: () => Navigator.pushNamed(
-                              context,
-                              RouteNames.myClassScreen,
-                              arguments: value.id ?? 'N/A',
-                            ),
+                      return Padding(
+                        padding: EdgeInsets.only(bottom: 16.h),
+                        child: _buildClassContainer(
+                          title: value.classTitle ?? 'N/A',
+                          subtitle: value.className ?? 'N/A',
+                          onTap: () => Navigator.pushNamed(
+                            context,
+                            RouteNames.myClassScreen,
+                            arguments: value.id ?? 'N/A',
                           ),
-                        ],
+                        ),
                       );
                     }),
                   ],

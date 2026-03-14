@@ -48,15 +48,19 @@ class DioClient {
   }
 
   /// -------------------------- Post Http -------------------------------------
-  Future<dynamic> postHttp(String path, Map<String, dynamic>? data) async {
+  Future<dynamic> postHttp(
+    String path,
+    Object? data,
+  ) async {
     final token = await _tokenStorage.getToken();
     try {
       final response = await _dio.post(
         path,
         data: data,
+    
         options: Options(
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json' ,
             'Authorization': 'Bearer $token',
           },
         ),

@@ -86,6 +86,7 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
           // Only navigate if we're NOT on the current screen
           // If step is FORM_FILLING, stay on this screen (don't navigate)
           if (currentStep == 'RULES_SIGNING') {
+
             Navigator.pushReplacementNamed(
                 context,
                 RouteNames.rulesRegulations,
@@ -98,6 +99,7 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
                 arguments: enrollmentId
             );
           } else if (currentStep == 'PAYMENT') {
+            CircularProgressIndicator(color: Colors.white,);
             Navigator.pushReplacementNamed(
                 context,
                 RouteNames.payment,
@@ -106,7 +108,6 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
           } else if (currentStep == 'COMPLETED') {
             Navigator.pushReplacementNamed(context, RouteNames.parentScreen);
           }
-          // If currentStep == 'FORM_FILLING', do nothing - stay on this page
         }
       });
     } catch (e) {
