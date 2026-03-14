@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
+import '../../../../../../cors/constants/api_endpoints.dart';
+import '../../../../../../cors/network/api_error_handle.dart';
+import '../../../../../../cors/network/api_response_model.dart';
+import '../../../../../../cors/services/api_client.dart';
 import '../../../domain/community/community_entity.dart';
 import '../../../domain/community/community_usecase.dart';
 
@@ -30,5 +35,50 @@ class CommunityScreenProvider extends ChangeNotifier {
 
     _isLoading = false;
     notifyListeners();
+  }
+
+  final ApiClient _apiClient = ApiClient();
+  final Logger logger = Logger();
+
+  String? _errorMessage;
+
+  String? get errorMessage => _errorMessage;
+
+  Future<void> createPost() async {
+    logger.i("========== PROFILE API START ==========");
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final ApiResponseModel response = await _apiClient.get(
+        ApiEndpoints.createPost,
+      );
+
+      logger.i("API Success Status: ${response.success}");
+      logger.i("API Message: ${response.message}");
+      logger.d("Raw API Data: ${response.data}");
+
+      if (response.success) {
+        logger.i("Profile Parsed Successfully");
+        logger.d("User ID: ");
+        logger.d("User Email:");
+      } else {
+        _errorMessage = response.message;
+        logger.e("API Returned Error: $_errorMessage");
+      }
+    } catch (e, stackTrace) {
+      _errorMessage = e.toString();
+
+      logger.e("Exception Occurred");
+      logger.e(e);
+      logger.e(stackTrace);
+    }
+
+    _isLoading = false;
+    notifyListeners();
+
+    logger.i("========== PROFILE API END ==========");
   }
 }

@@ -1,11 +1,13 @@
 import 'package:abbas/presentation/viewmodels/parent/parent_screen_provider.dart';
 import 'package:abbas/presentation/viewmodels/profile/profile_info_provider/profile_info.dart';
+import 'package:abbas/presentation/views/community/presentaion/provider/post/create_post_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
 import '../../cors/di/injection.dart';
 import '../views/auth/login/presentaion/provider/LoginScreenProvider.dart';
 import '../views/community/presentaion/provider/community/community_screen_provider.dart';
+import '../views/profile/view_model/profil_screen_provider.dart';
 import 'auth/forgot_password/forgot_password_viewmodel.dart';
 import 'auth/otp_verify/otp_verify_viewmodel.dart';
 import 'auth/profile/edit_personal_info_viewmodel.dart';
@@ -42,5 +44,7 @@ class AppProviders {
     ChangeNotifierProvider(create: (_) => getIt<ButtonProvider>()..load()),
     ChangeNotifierProvider(create: (_) => getIt<PersonalInfoProvider>()),
     ChangeNotifierProvider(create: (_) => getIt<CommunityScreenProvider>()),
+    ChangeNotifierProvider(create: (_) => getIt<ProfileScreenProvider>()),
+    ChangeNotifierProvider(create: (_) => getIt<CreatePostProvider>()),
   ];
 }
