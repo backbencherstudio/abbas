@@ -1,22 +1,52 @@
-
+import 'package:abbas/presentation/views/form_fillup_and_rules/view_model/form_fill_and_rules_provider.dart';
+import 'package:abbas/presentation/widgets/validator.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
+import '../../../../../cors/network/api_error_handle.dart';
 import '../../../../../cors/routes/route_names.dart';
+import '../../../../../utils/app_utils.dart';
 import '../../../../widgets/primary_button.dart';
 
-class DigitalContractSigning extends StatefulWidget {
-  const DigitalContractSigning({super.key});
+class DigitalContractSigning extends ConsumerStatefulWidget {
+  final String enrollmentId;
+
+  const DigitalContractSigning({super.key, required this.enrollmentId});
 
   @override
-  _DigitalContractSigningState createState() => _DigitalContractSigningState();
+  ConsumerState<DigitalContractSigning> createState() =>
+      _DigitalContractSigningState();
 }
 
-class _DigitalContractSigningState extends State<DigitalContractSigning> {
-  bool _isAcknowledged = false;
+class _DigitalContractSigningState
+    extends ConsumerState<DigitalContractSigning> {
   final TextEditingController _fullNameController = TextEditingController();
-  final TextEditingController _digitalSignatureController = TextEditingController();
+  final TextEditingController _digitalSignatureController =
+      TextEditingController();
   final TextEditingController _dateController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  /// ---------------------- Selected Date -------------------------------------
+  Future<void> _selectedDate() async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+      initialDate: DateTime.now(),
+    );
+
+    if (pickedDate != null) {
+      final formattedDate =
+          "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
+      _dateController.text = formattedDate;
+    }
+  }
+
+  /// ------------------------ Convert to ISO ----------------------------------
+  String convertToIso(String date) {
+    final parseDate = DateTime.parse(date);
+    return parseDate.toUtc().toIso8601String();
+  }
 
   @override
   void dispose() {
@@ -48,7 +78,8 @@ class _DigitalContractSigningState extends State<DigitalContractSigning> {
               'Digital Contract Signing',
               style: TextStyle(
                 fontSize: 24.sp,
-                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
               ),
             ),
             SizedBox(height: 8.h),
@@ -124,18 +155,22 @@ class _DigitalContractSigningState extends State<DigitalContractSigning> {
             Row(
               children: [
                 Checkbox(
-                  value: _isAcknowledged,
+                  value: ref.watch(acknowledgeProvider),
                   onChanged: (bool? value) {
-                    setState(() {
-                      _isAcknowledged = value ?? false;
-                    });
+                    ref.read(acknowledgeProvider.notifier).state =
+                        value ?? false;
                   },
                   activeColor: Colors.black,
+                  checkColor: Colors.white,
                 ),
                 Expanded(
                   child: Text(
                     'I have read, understood, and agree to all terms and conditions .',
-                    style: TextStyle(fontSize: 16.sp),
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
                 ),
               ],
@@ -146,27 +181,113 @@ class _DigitalContractSigningState extends State<DigitalContractSigning> {
             Text(
               'Digital Signature',
               style: TextStyle(
-                fontSize: 18.sp,
-                fontWeight: FontWeight.bold,
+                fontSize: 16.sp,
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
               ),
             ),
             SizedBox(height: 10.h),
-            _buildFormSection('Full Name', _buildTextField('Enter your full name')),
-            SizedBox(height: 10.h),
-            _buildFormSection('Digital Signature', _buildTextField('Type your full name as signature')),
-            SizedBox(height: 10.h),
-            _buildFormSection('Date', _buildTextField('Type Date')),
+            Form(
+              key: _formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: Column(
+                children: [
+                  _buildFormSection(
+                    'Full Name',
+                    _buildTextField(
+                      'Enter your full name',
+                      controller: _fullNameController,
+                      validator: nameValidator,
+                    ),
+                  ),
+                  SizedBox(height: 10.h),
+                  _buildFormSection(
+                    'Digital Signature',
+                    _buildTextField(
+                      'Type your full name as signature',
+                      controller: _digitalSignatureController,
+                      validator: digitalSignatureValidator,
+                    ),
+                  ),
+                  SizedBox(height: 10.h),
+                  _buildFormSection(
+                    'Date',
+                    _buildTextField(
+                      'Select Date',
+                      controller: _dateController,
+                      validator: dateValidator,
+                      suffixIcon: GestureDetector(
+                        onTap: _selectedDate,
+                        child: Icon(Icons.calendar_month, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             SizedBox(height: 16.h),
             SizedBox(
               width: double.infinity,
               child: PrimaryButton(
-                onTap: () {
-                  Navigator.pushNamed(context, RouteNames.payment);
+                onTap: () async {
+                  if (_formKey.currentState!.validate()) {
+                    if (!ref.watch(acknowledgeProvider)) {
+                      Utils.showToast(
+                        msg: "Please accept rules and regulations",
+                        backgroundColor: Colors.red,
+                        textColor: Colors.white,
+                      );
+                      return;
+                    }
+                    final isoDate = convertToIso(_dateController.text);
+                    logger.d(
+                      "Submitting with enrollmentId: ${widget.enrollmentId}",
+                    );
+
+                    final result = await ref
+                        .read(acceptContractTermsProvider.notifier)
+                        .acceptContractTerms(
+                          accepted: true,
+                          fullName: _fullNameController.text.trim(),
+                          digitalSignature: _digitalSignatureController.text
+                              .trim(),
+                          digitalSignatureDate: isoDate,
+                          enrollmentId: widget.enrollmentId,
+                        );
+
+                    if (result.success) {
+                      Utils.showToast(
+                        msg: result.message,
+                        backgroundColor: Colors.green,
+                        textColor: Colors.white,
+                      );
+                      if (context.mounted) {
+                        Navigator.pushNamed(
+                          context,
+                          RouteNames.payment,
+                          arguments: widget.enrollmentId
+                        );
+                      }
+                    } else {
+                      Utils.showToast(
+                        msg: result.message,
+                        backgroundColor: Colors.red,
+                        textColor: Colors.white,
+                      );
+                    }
+                  }
                 },
                 color: const Color(0xFFE9201D),
                 textColor: Colors.white,
                 icon: '',
-                child: Text("Submit"),
+                child: Text(
+                  "Submit",
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
             ),
             SizedBox(height: 32.h),
@@ -200,22 +321,33 @@ class _RulePoint extends StatelessWidget {
   final String title;
   final String description;
 
-  const _RulePoint(this.title, this.description, {Key? key}) : super(key: key);
+  const _RulePoint(this.title, this.description, {super.key});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('•    ', style: TextStyle(fontSize: 16.sp, color: Colors.white)),
+        Text(
+          '•    ',
+          style: TextStyle(fontSize: 16.sp, color: Colors.white),
+        ),
         Expanded(
           child: RichText(
             text: TextSpan(
-              style: TextStyle(fontSize: 15.sp, color: Colors.white, fontWeight: FontWeight.w400),
+              style: TextStyle(
+                fontSize: 15.sp,
+                color: Colors.white,
+                fontWeight: FontWeight.w400,
+              ),
               children: [
                 TextSpan(
                   text: title,
-                  style: TextStyle(fontSize: 15.sp, color: Colors.white, fontWeight: FontWeight.w400),
+                  style: TextStyle(
+                    fontSize: 15.sp,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
                 TextSpan(text: ' $description'),
               ],
@@ -227,11 +359,15 @@ class _RulePoint extends StatelessWidget {
   }
 }
 
-Widget _buildTextField(String hintText,
-    {int? maxLines,
-      TextInputType? keyboardType,
-      TextEditingController? controller,
-      FocusNode? focusNode}) {
+Widget _buildTextField(
+  String hintText, {
+  int? maxLines,
+  TextInputType? keyboardType,
+  TextEditingController? controller,
+  FocusNode? focusNode,
+  Widget? suffixIcon,
+  String? Function(String?)? validator,
+}) {
   return TextFormField(
     controller: controller,
     focusNode: focusNode,
@@ -239,6 +375,7 @@ Widget _buildTextField(String hintText,
     maxLines: maxLines,
     decoration: InputDecoration(
       hintText: hintText,
+      suffixIcon: suffixIcon,
       contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 15.h),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.r),
@@ -253,5 +390,6 @@ Widget _buildTextField(String hintText,
         borderSide: BorderSide(color: const Color(0xFF3D4566), width: 1.w),
       ),
     ),
+    validator: validator,
   );
 }

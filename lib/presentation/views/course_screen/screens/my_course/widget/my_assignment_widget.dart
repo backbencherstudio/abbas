@@ -108,10 +108,14 @@ class _MyAssignmentWidgetState extends ConsumerState<MyAssignmentWidget> {
                                   onPressed: () {
                                     Navigator.pushNamed(
                                       context,
-                                      RouteNames.myAssignmentScreen,
+                                      RouteNames.dueAssignmentScreen,
+                                      arguments: value.id
                                     );
                                   },
-                                  icon: Icon(Icons.arrow_forward_ios, color: Colors.white,),
+                                  icon: Icon(
+                                    Icons.arrow_forward_ios,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ],
                             ),

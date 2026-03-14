@@ -21,8 +21,6 @@ import '../../presentation/views/course_screen/screens/my_course/my_assignment/d
 import '../../presentation/views/course_screen/screens/my_course/my_assignment/submitted_assignment_screen.dart';
 import '../../presentation/views/course_screen/screens/my_course/my_course_screen.dart';
 import '../../presentation/views/course_screen/screens/other_corses/other_course_screen.dart';
-import '../../presentation/views/course_screen/screens/video_player/video_player_screen.dart'
-    hide VideoPlayerScreen;
 import '../../presentation/views/form_fillup_and_rules/screens/course_module/screen/course_module.dart';
 import '../../presentation/views/form_fillup_and_rules/screens/digital_contract/digital_contract_signing.dart';
 import '../../presentation/views/form_fillup_and_rules/screens/fill_enrollment_form/screen/fill_enrollment_form.dart';
@@ -98,7 +96,11 @@ class AppRoutes {
       final classId = args is String ? args : '';
       return MyClassScreen(classId: classId);
     },
-    RouteNames.myAssignmentScreen: (context) => const DueAssignmentScreen(),
+    RouteNames.dueAssignmentScreen: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments;
+      final assignmentId = args is String ? args : '';
+      return DueAssignmentScreen(assignmentId: assignmentId);
+    },
     RouteNames.submittedAssignmentScreen: (context) =>
         const SubmittedAssignmentScreen(),
     RouteNames.assetsScreen: (context) => const AssetsScreen(),
@@ -118,8 +120,12 @@ class AppRoutes {
 
       return RulesRegulations(enrollmentId: enrollmentId);
     },
-    RouteNames.digitalContractSigning: (context) =>
-        const DigitalContractSigning(),
+    RouteNames.digitalContractSigning: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final enrollmentId = args is String ? args : '';
+      return DigitalContractSigning(enrollmentId: enrollmentId);
+    },
+
     RouteNames.payment: (context) => const Payment(),
     RouteNames.profileSetup: (context) => const ProfileSetup(),
     RouteNames.subscriptions: (context) => const Subscriptions(),

@@ -1,4 +1,5 @@
 import 'package:abbas/cors/constants/api_endpoints.dart';
+import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:abbas/cors/services/dio_client.dart';
 import 'package:abbas/data/models/response_model.dart';
 import 'package:abbas/presentation/views/form_fillup_and_rules/model/current_step_model.dart';
@@ -131,14 +132,13 @@ class AcceptRulesRegulationsProvider
         ApiEndpoints.acceptRulesRegulations(enrollmentId),
         body,
       );
-
       if (res['success'] == true) {
-      return  ResponseModel(success: true, message: res['message']);
+        return ResponseModel(success: true, message: res['message']);
       } else {
-      return  ResponseModel(success: false, message: res['message']);
+        return ResponseModel(success: false, message: res['message']);
       }
     } catch (e) {
-     return ResponseModel(success: false, message: '$e');
+      return ResponseModel(success: false, message: '$e');
     }
   }
 }
