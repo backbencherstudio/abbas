@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:abbas/cors/constants/api_endpoints.dart';
 import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:abbas/cors/services/dio_client.dart';
+import 'package:abbas/cors/services/token_storage.dart';
 import 'package:abbas/data/models/response_model.dart';
 import 'package:abbas/presentation/views/auth/model/auth_model.dart';
 import 'package:flutter_riverpod/legacy.dart';
@@ -26,9 +27,12 @@ class AuthProvider extends StateNotifier<AuthModel> {
   }
 
   /// -------------------- Toggle Confirm Password Visibility ------------------
-  void toggleConfirmPasswordVisibility(){
-    state = state.copyWith(isConfirmPasswordVisible: !state.isConfirmPasswordVisible);
+  void toggleConfirmPasswordVisibility() {
+    state = state.copyWith(
+      isConfirmPasswordVisible: !state.isConfirmPasswordVisible,
+    );
   }
+
   /// --------------------- Check Is Loading -----------------------------------
   Future<void> checkIsLoading() async {
     state = state.copyWith(isLoading: !state.isLoading);
@@ -39,6 +43,8 @@ class AuthProvider extends StateNotifier<AuthModel> {
   void setIsPageLoading() {
     state = state.copyWith(isPageLoading: !state.isPageLoading);
   }
+
+  final _tokenStorage = TokenStorage();
 
   /// -------------------------- Register --------------------------------------
   Future<ResponseModel> register({
@@ -70,6 +76,12 @@ class AuthProvider extends StateNotifier<AuthModel> {
     try {
       final res = await dioClient.postHttp(ApiEndpoints.login, body);
       if (res['success']) {
+        final token = res['authorization']['access_token'];
+        if (token != null) {
+          await _tokenStorage.saveToken(token);
+        }
+
+        logger.d("Login Token Save $token");
         return ResponseModel(success: true, message: res['message']);
       } else {
         return ResponseModel(success: false, message: res['message']);
