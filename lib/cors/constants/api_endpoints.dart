@@ -17,6 +17,7 @@ class ApiEndpoints {
       '$baseUrl/api/auth/request-email-change';
   static const String updateProfile = '$baseUrl/api/auth/update';
   static const String getProfile = '$baseUrl/api/auth/me';
+  static  String getOtherProfile(String userId) => '$baseUrl/api/community/profile/$userId';
   static const String editProfile = '$baseUrl/api/auth/update';
 
   //profile

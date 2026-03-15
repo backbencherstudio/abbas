@@ -81,16 +81,16 @@ class CustomBottomSheet extends StatelessWidget {
           Text(description, textAlign: TextAlign.center),
           SizedBox(height: 16.h),
           const Spacer(),
-          // CustomButton(
-          //   title: Text(buttonTitle),
-          //   hasIcon: true,
-          //   iconWidget: SvgPicture.asset(
-          //     buttonIconPath,
-          //     height: 20.h,
-          //     width: 20.w,
-          //   ),
-          //   onTap: onTap ?? () => _logout(context),
-          // ),
+          CustomButton(
+            title:buttonTitle,
+            hasIcon: true,
+            iconWidget: SvgPicture.asset(
+              buttonIconPath,
+              height: 20.h,
+              width: 20.w,
+            ),
+            onTap: onTap ?? () => _logout(context),
+          ),
           SizedBox(height: 8.h),
           CustomOutlineButton(
             title: 'Cancel',

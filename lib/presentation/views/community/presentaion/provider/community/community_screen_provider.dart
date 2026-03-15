@@ -1,7 +1,8 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import '../../../../../../cors/constants/api_endpoints.dart';
-import '../../../../../../cors/network/api_error_handle.dart';
 import '../../../../../../cors/network/api_response_model.dart';
 import '../../../../../../cors/services/api_client.dart';
 import '../../../domain/community/community_entity.dart';
@@ -81,4 +82,31 @@ class CommunityScreenProvider extends ChangeNotifier {
 
     logger.i("========== PROFILE API END ==========");
   }
+
+
+  Future<void> getOtherProfile(String userId)async{
+    _errorMessage =null;
+    _isLoading=true;
+    notifyListeners();
+    try{
+      ApiResponseModel response = await _apiClient.get(ApiEndpoints.getOtherProfile(userId));
+      logger.i("API Success Status: ${response.success}");
+      logger.i("API Message: ${response.message}");
+      logger.d("Raw API Data: ${response.data}");
+      if(response.success){
+
+      }
+    }catch(e, stackTrace){
+      _errorMessage = e.toString();
+
+      logger.e("Exception Occurred");
+      logger.e(e);
+      logger.e(stackTrace);
+
+    }
+
+
+
+  }
+
 }
