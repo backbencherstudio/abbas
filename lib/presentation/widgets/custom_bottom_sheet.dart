@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
@@ -37,7 +36,7 @@ class CustomBottomSheet extends StatelessWidget {
     Navigator.pushNamedAndRemoveUntil(
       context,
       RouteNames.loginAndSignUpScreen,
-          (route) => false,
+      (route) => false,
     );
   }
 
@@ -83,7 +82,7 @@ class CustomBottomSheet extends StatelessWidget {
           SizedBox(height: 16.h),
           const Spacer(),
           CustomButton(
-            title: buttonTitle,
+            title: Text(buttonTitle),
             hasIcon: true,
             iconWidget: SvgPicture.asset(
               buttonIconPath,
@@ -96,11 +95,7 @@ class CustomBottomSheet extends StatelessWidget {
           CustomOutlineButton(
             title: 'Cancel',
             hasIcon: true,
-            iconWidget: Icon(
-              Icons.close,
-              color: Colors.white,
-              size: 20.w,
-            ),
+            iconWidget: Icon(Icons.close, color: Colors.white, size: 20.w),
             onTap: () => Navigator.pop(context),
           ),
         ],

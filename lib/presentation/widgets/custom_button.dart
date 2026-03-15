@@ -6,7 +6,7 @@ import '../../cors/theme/app_colors.dart';
 class CustomButton extends StatelessWidget {
   const CustomButton({super.key, required this.title, this.onTap, this.color, this.textColor, this.hasIcon = false, this.iconWidget});
 
-  final String title;
+  final Widget title;
   final Widget? iconWidget;
   final VoidCallback? onTap;
   final Color? color;
@@ -27,17 +27,8 @@ class CustomButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (hasIcon ?? false)
-              iconWidget!,
-            SizedBox(width: 8.w,),
-            Text(
-              title,
-              style: TextStyle(
-                color: textColor ?? Color(0xffffffff),
-                fontWeight: FontWeight.w500,
-                fontSize: 18.sp,
-              ),
-            ),
+
+            title,
           ],
         ),
       ),

@@ -63,7 +63,7 @@ class LoginScreen extends StatelessWidget {
               SizedBox(height: 15.h),
 
               /// Social Button
-              const CustomButton(title: 'Sign In With Facebook'),
+              const CustomButton(title: Text('Sign In With Facebook'),),
 
               SizedBox(height: 30.h),
 
