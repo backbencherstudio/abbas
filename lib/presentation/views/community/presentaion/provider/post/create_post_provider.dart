@@ -7,6 +7,7 @@ import '../../../../../../cors/services/api_client.dart';
 import '../../../../../../cors/services/token_storage.dart';
 
 class CreatePostProvider extends ChangeNotifier {
+
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 

@@ -55,15 +55,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       SizedBox(height: 24.h),
 
-                      Container(
-                        decoration: const BoxDecoration(shape: BoxShape.circle),
-                        child: Image.asset(
-                          "assets/images/profile.png",
-                          height: 100.h,
-                          width: 100.w,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
+                      profile?.avatar != null
+                          ? CircleAvatar(
+                              radius: 30, // 30 px radius
+                              backgroundImage: NetworkImage(profile!.avatar!),
+                            )
+                          : CircleAvatar(
+                              radius: 30,
+                              backgroundColor: Colors.grey[200],
+                              child: const Icon(
+                                Icons.image,
+                                color: Colors.grey,
+                                size: 30,
+                              ),
+                            ),
 
                       SizedBox(height: 16.h),
 

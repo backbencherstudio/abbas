@@ -1,4 +1,5 @@
 class ApiEndpoints {
+
   ApiEndpoints._();
 
   static const String baseUrl = 'http://192.168.7.12:4000';
@@ -16,6 +17,7 @@ class ApiEndpoints {
       '$baseUrl/api/auth/request-email-change';
   static const String updateProfile = '$baseUrl/api/auth/update';
   static const String getProfile = '$baseUrl/api/auth/me';
+  static const String editProfile = '$baseUrl/api/auth/update';
 
   //profile
   static const String profileInfo = '/api/auth/me';
