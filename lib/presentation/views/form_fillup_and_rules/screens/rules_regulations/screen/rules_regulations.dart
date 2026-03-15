@@ -1,10 +1,11 @@
+import 'package:abbas/cors/routes/route_names.dart';
 import 'package:abbas/presentation/views/form_fillup_and_rules/view_model/form_fill_and_rules_provider.dart';
 import 'package:abbas/presentation/widgets/validator.dart';
 import 'package:abbas/utils/app_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../../../cors/routes/route_names.dart';
+import '../../../../../../cors/network/api_error_handle.dart';
 import '../../../../../widgets/primary_button.dart';
 
 class RulesRegulations extends ConsumerStatefulWidget {
@@ -24,11 +25,41 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
   final _formKey = GlobalKey<FormState>();
 
   @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _dateController.text =
+        "${now.year.toString().padLeft(2, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day}";
+  }
+
+  @override
   void dispose() {
     _fullNameController.dispose();
     _digitalSignatureController.dispose();
     _dateController.dispose();
     super.dispose();
+  }
+
+  /// ------------------------- Select Date Method ---------------------------
+  Future<void> _selectedDate() async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+      initialDate: DateTime.now(),
+    );
+
+    if (pickedDate != null) {
+      final formattedDate =
+          "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
+      _dateController.text = formattedDate;
+    }
+  }
+
+  /// --------------------- Convert to ISO -------------------------------------
+  String convertToIso(String date) {
+    final parseDate = DateTime.parse(date);
+    return parseDate.toUtc().toIso8601String();
   }
 
   @override
@@ -39,9 +70,7 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios, color: Colors.white, size: 18.sp),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: SingleChildScrollView(
@@ -51,7 +80,11 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
           children: [
             Text(
               'Rules & Regulations Signing',
-              style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 24.sp,
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+              ),
             ),
             SizedBox(height: 8.h),
             Text(
@@ -127,17 +160,21 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
               children: [
                 Checkbox(
                   value: ref.watch(acknowledgeProvider),
-
                   onChanged: (value) {
                     ref.read(acknowledgeProvider.notifier).state =
                         value ?? false;
                   },
                   activeColor: Colors.black,
+                  checkColor: Colors.white,
                 ),
                 Expanded(
                   child: Text(
                     'I acknowledge and agree to the school rules and regulations.',
-                    style: TextStyle(fontSize: 16.sp),
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w400,
+                    ),
                   ),
                 ),
               ],
@@ -149,11 +186,13 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
               key: _formKey,
               autovalidateMode: AutovalidateMode.onUserInteraction,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Digital Signature',
                     style: TextStyle(
-                      fontSize: 18.sp,
+                      fontSize: 16.sp,
+                      color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -179,57 +218,81 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
                   _buildFormSection(
                     'Date',
                     _buildTextField(
-                      'Type Date',
+                      'Select Date',
                       controller: _dateController,
-                      validator: dateOfBirthValidator,
+                      readOnly: true,
+                      validator: dateValidator,
+                      suffixIcon: GestureDetector(
+                        onTap: _selectedDate,
+                        child: Icon(
+                          Icons.calendar_month,
+                          color: Colors.white,
+                          size: 20.sp,
+                        ),
+                      ),
                     ),
                   ),
-                  SizedBox(height: 16.h),
+                  SizedBox(height: 24.h),
 
                   /// ------------------- Submit Button ------------------------
-                  SizedBox(
-                    width: double.infinity,
-                    child: PrimaryButton(
-                      onTap: () async {
-                        if (_formKey.currentState!.validate()) {
-                          print("========== Enrollment Id ${widget.enrollmentId}");
-                          final result = await ref
-                              .read(acceptRulesRegulationsProvider.notifier)
-                              .acceptRulesRegulations(
-                                accepted: true,
-                                fullName: _fullNameController.text.trim(),
-                                digitalSignature: _digitalSignatureController
-                                    .text
-                                    .trim(),
-                                digitalSignatureDate: _dateController.text
-                                    .trim(),
-                                enrollmentId: widget.enrollmentId,
-                              );
-                          if (result.success) {
-                            Utils.showToast(
-                              msg: result.message,
-                              backgroundColor: Colors.green,
-                              textColor: Colors.white,
+                  PrimaryButton(
+                    onTap: () async {
+                      if (_formKey.currentState!.validate()) {
+                        if (!ref.watch(acknowledgeProvider)) {
+                          Utils.showToast(
+                            msg: "Please accept rules and regulations",
+                            backgroundColor: Colors.red,
+                            textColor: Colors.white,
+                          );
+                          return;
+                        }
+                        final isoDate = convertToIso(_dateController.text);
+                        logger.d(
+                          "Submitting with enrollmentId: ${widget.enrollmentId}",
+                        );
+
+                        final result = await ref
+                            .read(acceptRulesRegulationsProvider.notifier)
+                            .acceptRulesRegulations(
+                              accepted: true,
+                              fullName: _fullNameController.text.trim(),
+                              digitalSignature: _digitalSignatureController.text
+                                  .trim(),
+                              digitalSignatureDate: isoDate,
+                              enrollmentId: widget.enrollmentId,
                             );
-                            if (context.mounted) {
-                              Navigator.pushNamed(
-                                context,
-                                RouteNames.digitalContractSigning,
-                              );
-                            }
-                          } else {
-                            Utils.showToast(
-                              msg: result.message,
-                              backgroundColor: Colors.red,
-                              textColor: Colors.white,
+
+                        if (result.success) {
+                          Utils.showToast(
+                            msg: result.message,
+                            backgroundColor: Colors.green,
+                            textColor: Colors.white,
+                          );
+                          if (context.mounted) {
+                            Navigator.pushNamed(
+                              context,
+                              RouteNames.digitalContractSigning,
                             );
                           }
+                        } else {
+                          Utils.showToast(
+                            msg: result.message,
+                            backgroundColor: Colors.red,
+                            textColor: Colors.white,
+                          );
                         }
-                      },
-                      title: 'Submit Acknowledgment',
-                      color: const Color(0xFFE9201D),
-                      textColor: Colors.white,
-                      icon: '',
+                      }
+                    },
+                    color: const Color(0xFFE9201D),
+                    textColor: Colors.white,
+                    icon: '',
+                    child: Text(
+                      "Submit Acknowledge",
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ],
@@ -247,7 +310,7 @@ Widget _buildFormSection(String label, Widget child) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      SizedBox(height: 16.h),
+      SizedBox(height: 8.h),
       Text(
         label,
         style: TextStyle(
@@ -266,7 +329,7 @@ class _RulePoint extends StatelessWidget {
   final String title;
   final String description;
 
-  const _RulePoint(this.title, this.description, {Key? key}) : super(key: key);
+  const _RulePoint(this.title, this.description);
 
   @override
   Widget build(BuildContext context) {
@@ -288,11 +351,7 @@ class _RulePoint extends StatelessWidget {
               children: [
                 TextSpan(
                   text: title,
-                  style: TextStyle(
-                    fontSize: 15.sp,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w400,
-                  ),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 TextSpan(text: ' $description'),
               ],
@@ -324,8 +383,10 @@ Widget _buildTextField(
     textInputAction: textInputAction,
     initialValue: initialValue,
     readOnly: readOnly ?? false,
+    style: const TextStyle(color: Colors.white),
     decoration: InputDecoration(
       hintText: hintText,
+      hintStyle: TextStyle(color: Colors.grey[600]),
       suffixIcon: suffixIcon,
       contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 15.h),
       border: OutlineInputBorder(
@@ -338,7 +399,7 @@ Widget _buildTextField(
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.r),
-        borderSide: BorderSide(color: const Color(0xFF3D4566), width: 1.w),
+        borderSide: BorderSide(color: const Color(0xFFE9201D), width: 1.5.w),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.r),
@@ -348,3 +409,5 @@ Widget _buildTextField(
     validator: validator,
   );
 }
+
+// Add this validator

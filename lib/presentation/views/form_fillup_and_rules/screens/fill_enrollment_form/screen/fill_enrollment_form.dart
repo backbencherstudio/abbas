@@ -1,3 +1,4 @@
+import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:abbas/presentation/views/form_fillup_and_rules/model/enroll_personal_info_model.dart';
 import 'package:abbas/presentation/views/form_fillup_and_rules/view_model/form_fill_and_rules_provider.dart';
 import 'package:abbas/presentation/widgets/validator.dart';
@@ -27,7 +28,8 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
   final TextEditingController _goalsController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
-  final bool _isLoading = false;
+  bool _isLoading = false;
+  bool _isCheckingStep = false; // Add this flag
   bool _isTextFieldFocused = false;
 
   /// GlobalKey for the experience field to get its position
@@ -43,15 +45,18 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
   final FocusNode _goalsFocus = FocusNode();
 
   /// ----------------- Enroll Personal Info Model -----------------------------
-  Enrollment? enrollment;
+  Data? data;
 
   @override
   void initState() {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await ref.read(getAllCoursesProvider.notifier).getAllCourses();
-    });
-
     super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      setState(() => _isCheckingStep = true);
+      await ref.read(getAllCoursesProvider.notifier).getAllCourses();
+      await _checkCurrentStep();
+      setState(() => _isCheckingStep = false);
+    });
 
     _selectCourseFocus.addListener(focusListener);
     _fullNameFocus.addListener(focusListener);
@@ -62,16 +67,64 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
     _goalsFocus.addListener(focusListener);
   }
 
+  /// -------- Check current step for the selected course ----------------------
+  Future<void> _checkCurrentStep() async {
+    try {
+      await ref
+          .read(currentStepProvider.notifier)
+          .currentStep(courseId: widget.courseId);
+
+      final currentStepState = ref.read(currentStepProvider);
+
+      currentStepState.whenData((stepModel) {
+        if (stepModel != null && mounted) {
+          final currentStep = stepModel.data?.step;
+          final enrollmentId = stepModel.data?.enrollmentId;
+
+          logger.d("Current step for course ${widget.courseId} : $currentStep");
+
+          // Only navigate if we're NOT on the current screen
+          // If step is FORM_FILLING, stay on this screen (don't navigate)
+          if (currentStep == 'RULES_SIGNING') {
+
+            Navigator.pushReplacementNamed(
+                context,
+                RouteNames.rulesRegulations,
+                arguments: enrollmentId
+            );
+          } else if (currentStep == 'CONTRACT_SIGNING') {
+            Navigator.pushReplacementNamed(
+                context,
+                RouteNames.digitalContractSigning,
+                arguments: enrollmentId
+            );
+          } else if (currentStep == 'PAYMENT') {
+            CircularProgressIndicator(color: Colors.white,);
+            Navigator.pushReplacementNamed(
+                context,
+                RouteNames.payment,
+                arguments: enrollmentId
+            );
+          } else if (currentStep == 'COMPLETED') {
+            Navigator.pushReplacementNamed(context, RouteNames.parentScreen);
+          }
+        }
+      });
+    } catch (e) {
+      logger.e("Error checking current step : $e");
+    }
+  }
+
   void focusListener() {
     setState(() {
       _isTextFieldFocused =
           _selectCourseFocus.hasFocus ||
-          _fullNameFocus.hasFocus ||
-          _emailFocus.hasFocus ||
-          _phoneFocus.hasFocus ||
-          _addressFocus.hasFocus ||
-          _dobFocus.hasFocus ||
-          _goalsFocus.hasFocus;
+              _fullNameFocus.hasFocus ||
+              _emailFocus.hasFocus ||
+              _phoneFocus.hasFocus ||
+              _addressFocus.hasFocus ||
+              _dobFocus.hasFocus ||
+              _goalsFocus.hasFocus;
     });
   }
 
@@ -104,7 +157,7 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
     if (pickedDate != null) {
       ref.read(selectedDateProvider.notifier).state = pickedDate;
       final formattedDate =
-          "${pickedDate.day}/${pickedDate.month}/${pickedDate.year}";
+          "${pickedDate.day.toString().padLeft(2, '0')}/${pickedDate.month.toString().padLeft(2, '0')}/${pickedDate.year}";
       final dobController = ref.read(dobControllerProvider.notifier);
       dobController.state.text = formattedDate;
     }
@@ -113,23 +166,23 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
   /// ------------------------- Show Experience Level Popup --------------------
   void _showExperienceLevelPopup() {
     final RenderBox? renderBox =
-        _experienceFieldKey.currentContext?.findRenderObject() as RenderBox?;
+    _experienceFieldKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
 
     showMenu<String>(
       context: context,
       position:
-          RelativeRect.fromLTRB(
-            renderBox.size.width - 200.w,
-            renderBox.size.height + 5.h,
-            0,
-            0,
-          ).shift(
-            Offset(
-              renderBox.localToGlobal(Offset.zero).dx,
-              renderBox.localToGlobal(Offset.zero).dy,
-            ),
-          ),
+      RelativeRect.fromLTRB(
+        renderBox.size.width - 200.w,
+        renderBox.size.height + 5.h,
+        0,
+        0,
+      ).shift(
+        Offset(
+          renderBox.localToGlobal(Offset.zero).dx,
+          renderBox.localToGlobal(Offset.zero).dy,
+        ),
+      ),
       elevation: 8,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
       items: [
@@ -171,19 +224,28 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
     final getAllCourse = ref.watch(getAllCoursesProvider);
     final experienceController = ref.watch(experienceControllerProvider);
 
+    // Show loading while checking step
+    if (_isCheckingStep) {
+      return Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back_ios, color: Colors.white, size: 18.sp),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Fill Enrollment Form',
-          style: TextStyle(fontSize: 18.sp, color: Colors.white),
-        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios, color: Colors.white, size: 18.sp),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
       ),
 
@@ -198,6 +260,12 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
           }
 
           final courses = course.data;
+
+          // Check if courses is empty
+          if (courses == null || courses.isEmpty) {
+            return const Center(child: Text("No courses available"));
+          }
+
           return SingleChildScrollView(
             child: Padding(
               padding: EdgeInsets.all(16.w),
@@ -210,8 +278,8 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
                     Text(
                       'Fill Enrollment Form',
                       style: TextStyle(
-                        fontSize: 28.sp,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 24.sp,
+                        fontWeight: FontWeight.w500,
                         color: Colors.white,
                       ),
                     ),
@@ -235,13 +303,13 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
                       ),
                     ),
                     SizedBox(height: 8.h),
-                    if (courses!.isNotEmpty)
-                      ...courses.map(
-                        (value) => _buildTextField(
-                          'selected course',
-                          initialValue: value.title ?? 'N/A',
-                        ),
+                    ...courses.map(
+                          (value) => _buildTextField(
+                        'selected course',
+                        initialValue: value.title ?? 'N/A',
+                        readOnly: true,
                       ),
+                    ).toList(),
 
                     /// ------------------ Full Name ---------------------------
                     _buildFormSection(
@@ -326,7 +394,6 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
                       ),
                     ),
                     SizedBox(height: 8.h),
-                    // Add key to this container to get its position
                     Container(
                       key: _experienceFieldKey,
                       child: _buildTextField(
@@ -363,66 +430,77 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
                       width: double.infinity,
                       height: 60.h,
                       child: ElevatedButton(
-                        onPressed: () async {
+                        onPressed: _isLoading ? null : () async {
                           if (_formKey.currentState!.validate()) {
-                            // Get the selected date from provider
-                            final selectedDate = ref.read(selectedDateProvider);
-                            final formattedDate = selectedDate != null
-                                ? "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}"
-                                : '';
+                            setState(() => _isLoading = true);
 
-                            // Get the selected course title
-                            String courseTitle = '';
-                            if (courses.isNotEmpty) {
-                              // If there are multiple courses, you might need a selection mechanism
-                              // For now, using the first course as per your original code
-                              courseTitle = courses.first.title ?? '';
-                            }
-                            print({
-                              "course_type": courseTitle,
-                              "full_name": _fullNameController.text,
-                              "email": _emailController.text,
-                              "phone": _phoneController.text,
-                              "address": _addressController.text,
-                              "date_of_birth": formattedDate,
-                              "experience_level": experienceController.text,
-                              "acting_goals": _goalsController.text,
-                              "course_id": widget.courseId,
-                            });
+                            try {
+                              // Get the selected date from provider
+                              final selectedDate = ref.read(selectedDateProvider);
+                              final formattedDate = selectedDate != null
+                                  ? "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}"
+                                  : '';
 
-                            final result = await ref
-                                .read(enrollPersonalInfoProvider.notifier)
-                                .postEnrollPersonalInfo(
-                                  courseType: courseTitle,
-                                  fullName: _fullNameController.text.trim(),
-                                  email: _emailController.text.trim(),
-                                  phone: _phoneController.text.trim(),
-                                  address: _addressController.text.trim(),
-                                  dateOfBirth: formattedDate,
-                                  experienceLevel: experienceController.text,
-                                  actingGoals: _goalsController.text.trim(),
-                                  enrollmentId: widget.courseId,
+                              // Get the selected course title
+                              final courseTitle = courses.first.title ?? '';
+
+                              logger.d("Submitting enrollment data: ${{
+                                "course_type": courseTitle,
+                                "full_name": _fullNameController.text,
+                                "email": _emailController.text,
+                                "phone": _phoneController.text,
+                                "address": _addressController.text,
+                                "date_of_birth": formattedDate,
+                                "experience_level": experienceController.text,
+                                "acting_goals": _goalsController.text,
+                                "course_id": widget.courseId,
+                              }}");
+
+                              final result = await ref
+                                  .read(enrollPersonalInfoProvider.notifier)
+                                  .postEnrollPersonalInfo(
+                                courseType: courseTitle,
+                                fullName: _fullNameController.text.trim(),
+                                email: _emailController.text.trim(),
+                                phone: _phoneController.text.trim(),
+                                address: _addressController.text.trim(),
+                                dateOfBirth: formattedDate,
+                                experienceLevel: experienceController.text,
+                                actingGoals: _goalsController.text.trim(),
+                                enrollmentId: widget.courseId,
+                              );
+
+                              logger.d("Enrollment result: ${result.data?.id}");
+
+                              if (result.success == true) {
+                                Utils.showToast(
+                                  msg: result.message ?? "Form submitted successfully!",
+                                  backgroundColor: Colors.green,
+                                  textColor: Colors.white,
                                 );
 
-                            if (result.success!) {
-                              Utils.showToast(
-                                msg: result.message!,
-                                backgroundColor: Colors.green,
-                                textColor: Colors.white,
-                              );
-                              if (context.mounted) {
-                                Navigator.pushNamed(
-                                  context,
-                                  RouteNames.rulesRegulations,
-                                  arguments: result.enrollment?.id
+                                if (context.mounted) {
+                                  // After successful submission, check current step again
+                                  await _checkCurrentStep();
+                                }
+                              } else {
+                                Utils.showToast(
+                                  msg: result.message ?? "Failed to submit form",
+                                  backgroundColor: Colors.red,
+                                  textColor: Colors.white,
                                 );
                               }
-                            } else {
+                            } catch (e) {
+                              logger.e("Error submitting form: $e");
                               Utils.showToast(
-                                msg: result.message!,
+                                msg: "Error: ${e.toString()}",
                                 backgroundColor: Colors.red,
                                 textColor: Colors.white,
                               );
+                            } finally {
+                              if (mounted) {
+                                setState(() => _isLoading = false);
+                              }
                             }
                           }
                         },
@@ -430,31 +508,31 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
                           foregroundColor: _isTextFieldFocused
                               ? Colors.white
                               : (_isLoading
-                                    ? Colors.white
-                                    : const Color(0xFF3D4566)),
+                              ? Colors.white
+                              : const Color(0xFF3D4566)),
                           backgroundColor: _isTextFieldFocused
                               ? const Color(0xFFE9201D)
                               : (_isLoading
-                                    ? const Color(0xFFE9201D)
-                                    : const Color(0xFF0A1A29)),
+                              ? const Color(0xFFE9201D)
+                              : const Color(0xFF0A1A29)),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16.r),
                           ),
                         ),
                         child: _isLoading
-                            ? CircularProgressIndicator()
+                            ? const CircularProgressIndicator(color: Colors.white)
                             : Text(
-                                'Save & Continue',
-                                style: TextStyle(
-                                  fontSize: 16.sp,
-                                  color: _isTextFieldFocused
-                                      ? Colors.white
-                                      : (_isLoading
-                                            ? Colors.white
-                                            : const Color(0xFF3D4566)),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
+                          'Save & Continue',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            color: _isTextFieldFocused
+                                ? Colors.white
+                                : (_isLoading
+                                ? Colors.white
+                                : const Color(0xFF3D4566)),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       ),
                     ),
                     SizedBox(height: 20.h),
@@ -488,17 +566,17 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
   }
 
   Widget _buildTextField(
-    String hintText, {
-    int? maxLines,
-    TextInputType? keyboardType,
-    TextEditingController? controller,
-    FocusNode? focusNode,
-    String? Function(String?)? validator,
-    String? initialValue,
-    TextInputAction? textInputAction,
-    bool? readOnly,
-    Widget? suffixIcon,
-  }) {
+      String hintText, {
+        int? maxLines,
+        TextInputType? keyboardType,
+        TextEditingController? controller,
+        FocusNode? focusNode,
+        String? Function(String?)? validator,
+        String? initialValue,
+        TextInputAction? textInputAction,
+        bool? readOnly,
+        Widget? suffixIcon,
+      }) {
     return TextFormField(
       controller: controller,
       focusNode: focusNode,

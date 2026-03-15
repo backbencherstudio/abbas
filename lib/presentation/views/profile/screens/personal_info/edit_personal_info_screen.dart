@@ -131,33 +131,33 @@ class _EditPersonalInfoScreenState extends State<EditPersonalInfoScreen> {
 
               const SizedBox(height: 20),
 
-              CustomButton(
-                title: profileProvider.isLoading
-                    ? const Text("Loading...")
-                    : const Text("Update Profile"),
-                onTap: () async {
-                  bool success = await profileProvider.editProfile(
-                    name: nameController.text,
-                    phone: phoneController.text,
-                    dob: dobController.text,
-                    goal: goalController.text,
-                    imagePath: selectedImage?.path,
-                  );
-
-                  if (success) {
-                    profileProvider.getProfile();
-                    Navigator.pop(context);
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          profileProvider.errorMessage ?? "Update failed",
-                        ),
-                      ),
-                    );
-                  }
-                },
-              ),
+              // CustomButton(
+              //   title: profileProvider.isLoading
+              //       ? const Text("Loading...")
+              //       : const Text("Update Profile"),
+              //   onTap: () async {
+              //     bool success = await profileProvider.editProfile(
+              //       name: nameController.text,
+              //       phone: phoneController.text,
+              //       dob: dobController.text,
+              //       goal: goalController.text,
+              //       imagePath: selectedImage?.path,
+              //     );
+              //
+              //     if (success) {
+              //       profileProvider.getProfile();
+              //       Navigator.pop(context);
+              //     } else {
+              //       ScaffoldMessenger.of(context).showSnackBar(
+              //         SnackBar(
+              //           content: Text(
+              //             profileProvider.errorMessage ?? "Update failed",
+              //           ),
+              //         ),
+              //       );
+              //     }
+              //   },
+              // ),
             ],
           ),
         ),

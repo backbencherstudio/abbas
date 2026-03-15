@@ -1,11 +1,40 @@
 import 'package:abbas/cors/constants/api_endpoints.dart';
+import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:abbas/cors/services/dio_client.dart';
 import 'package:abbas/data/models/response_model.dart';
+import 'package:abbas/presentation/views/form_fillup_and_rules/model/current_step_model.dart';
 import 'package:abbas/presentation/views/form_fillup_and_rules/model/enroll_personal_info_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
+/// ---------------------- Current Step ----------------------------------------
 
+final currentStepProvider =
+    StateNotifierProvider<CurrentStepProvider, AsyncValue<CurrentStepModel?>>(
+      (ref) => CurrentStepProvider(dioClient: DioClient()),
+    );
+
+class CurrentStepProvider extends StateNotifier<AsyncValue<CurrentStepModel?>> {
+  DioClient dioClient;
+
+  CurrentStepProvider({required this.dioClient}) : super(AsyncValue.data(null));
+
+  Future<void> currentStep({required String courseId}) async {
+    state = AsyncValue.loading();
+    try {
+      final res = await dioClient.getHttp(ApiEndpoints.currentStep(courseId));
+      if (res['success']) {
+        final model = CurrentStepModel.fromJson(res);
+        state = AsyncValue.data(model);
+      } else {
+        state = AsyncValue.error("Error Load Current Step", StackTrace.current);
+      }
+    } catch (e, stackTrace) {
+      state = AsyncValue.error('$e', stackTrace);
+    }
+  }
+}
 
 /// ------------------------ Enroll Personal Info Provider ---------------------
 
@@ -72,15 +101,17 @@ class EnrollPersonalInfoProvider
 
 final acknowledgeProvider = StateProvider<bool>((ref) => false);
 final acceptRulesRegulationsProvider =
-    StateNotifierProvider<AcceptRulesRegulationsProvider, ResponseModel>(
-      (ref) => AcceptRulesRegulationsProvider(dioClient: DioClient()),
-    );
+    StateNotifierProvider<
+      AcceptRulesRegulationsProvider,
+      AsyncValue<ResponseModel>
+    >((ref) => AcceptRulesRegulationsProvider(dioClient: DioClient()));
 
-class AcceptRulesRegulationsProvider extends StateNotifier<ResponseModel> {
+class AcceptRulesRegulationsProvider
+    extends StateNotifier<AsyncValue<ResponseModel>> {
   DioClient dioClient;
 
   AcceptRulesRegulationsProvider({required this.dioClient})
-    : super(ResponseModel(success: false, message: ''));
+    : super(AsyncValue.data(ResponseModel(success: false, message: '')));
 
   Future<ResponseModel> acceptRulesRegulations({
     required bool accepted,
@@ -101,14 +132,13 @@ class AcceptRulesRegulationsProvider extends StateNotifier<ResponseModel> {
         ApiEndpoints.acceptRulesRegulations(enrollmentId),
         body,
       );
-
-      if (res['success']) {
+      if (res['success'] == true) {
         return ResponseModel(success: true, message: res['message']);
       } else {
         return ResponseModel(success: false, message: res['message']);
       }
     } catch (e) {
-      return ResponseModel(success: false, message: "$e");
+      return ResponseModel(success: false, message: '$e');
     }
   }
 }
@@ -139,6 +169,8 @@ class AcceptContractTermsProvider extends StateNotifier<ResponseModel> {
       'digital_signature': digitalSignature,
       'digital_signature_date': digitalSignatureDate,
     };
+
+    debugPrint("THe body data for this api ${body}");
     try {
       final res = await dioClient.postHttp(
         ApiEndpoints.acceptContractTerms(enrollmentId),
@@ -150,6 +182,7 @@ class AcceptContractTermsProvider extends StateNotifier<ResponseModel> {
         return ResponseModel(success: false, message: res['message']);
       }
     } catch (e) {
+      debugPrint("The error message is ------ ${body} ${e}");
       return ResponseModel(success: false, message: "$e");
     }
   }

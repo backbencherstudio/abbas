@@ -30,7 +30,7 @@ class RouteNames {
   static const String editPersonalInfoScreen = '/editPersonalInfoScreen';
 
   static const String myClassScreen = '/myClassScreen';
-  static const String myAssignmentScreen = '/myAssignmentScreen';
+  static const String dueAssignmentScreen = '/dueAssignmentScreen';
   static const String submittedAssignmentScreen = '/submittedAssignmentScreen';
   static const String assetsScreen = '/assetsScreen';
   static const String fillEnrollmentForm = '/fillEnrollmentForm';

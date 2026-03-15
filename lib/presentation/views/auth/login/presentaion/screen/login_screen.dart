@@ -1,34 +1,77 @@
 import 'package:abbas/presentation/views/auth/login/presentaion/widgets/custom_textfield.dart';
+import 'package:abbas/presentation/views/auth/view_model/signup_screen_provider.dart';
 import 'package:abbas/presentation/widgets/custom_button.dart';
+import 'package:abbas/presentation/widgets/social_button.dart';
 import 'package:abbas/presentation/widgets/validator.dart';
+import 'package:abbas/utils/app_utils.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:provider/provider.dart';
-
 import '../../../../../../cors/routes/route_names.dart';
 import '../../../../../../cors/theme/app_colors.dart';
 import '../../../../../../cors/theme/app_text_styles.dart';
 import '../../../../../widgets/primary_button.dart';
-import '../provider/LoginScreenProvider.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final provider = Provider.of<LoginScreenProvider>(context);
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+}
 
+class _LoginScreenState extends ConsumerState<LoginScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submitLogin() async {
+    final res = await ref
+        .read(authProvider.notifier)
+        .login(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
+    if (res.success) {
+      Utils.showToast(
+        msg: res.message,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+      );
+      if (context.mounted) {
+        Navigator.pushNamed(context, RouteNames.startEnrollment);
+      }
+    } else {
+      Utils.showToast(
+        msg: res.message,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+      ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 24.h),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 60.h),
-
               Text(
                 'Hey! Welcome',
                 style: AppTextStyles.textTheme.bodyMedium?.copyWith(
@@ -47,181 +90,171 @@ class LoginScreen extends StatelessWidget {
 
               SizedBox(height: 30.h),
 
-              /// Password Field
-              _buildFormField(provider, context),
-
-              SizedBox(height: 16.h),
-
-              /// Login Button
-              _buildLoginButton(context),
-
-              SizedBox(height: 25.h),
-
-              /// Divider
-              _buildOrJoinWithDivider(),
-
-              SizedBox(height: 15.h),
-
-              /// Social Button
-              const CustomButton(title: Text('Sign In With Facebook'),),
-
-              SizedBox(height: 30.h),
-
-              /// Signup Link
-              _buildSignUpLink(context),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Password Field
-  Widget _buildFormField(LoginScreenProvider provider, BuildContext context) {
-    return Consumer<LoginScreenProvider>(
-      builder: (context, viewModel, child) {
-        return Form(
-          key: viewModel.formKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Email',
-                style: AppTextStyles.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.lightGreyTextColor,
-                ),
-              ),
-              SizedBox(height: 6.h),
-              AppTextField(
-                controller: provider.emailController,
-                hintText: 'Enter your email',
-                isRequired: true,
-                validator: emailValidator
-              ),
-              SizedBox(height: 16.h),
-              Text(
-                'Password',
-                style: AppTextStyles.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.lightGreyTextColor,
-                ),
-              ),
-              SizedBox(height: 6.h),
-              AppTextField(
-                controller: provider.passwordController,
-                hintText: 'Enter your password',
-                isPassword: viewModel.isPasswordVisible,
-                suffixIcon: GestureDetector(
-                  onTap: viewModel.setIsPasswordVisible,
-                  child: viewModel.isPasswordVisible
-                      ? Icon(Icons.visibility_off_outlined)
-                      : Icon(Icons.visibility_outlined),
-                ),
-               validator: passwordValidator,
-              ),
-              SizedBox(height: 6.h),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+              /// --------------------- Form Field -----------------------------
+              Column(
                 children: [
-                  InkWell(
-                    onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        RouteNames.forgotPasswordScreen,
-                      );
-                    },
-                    child: Text(
-                      'Forgot Password?',
-                      style: AppTextStyles.textTheme.bodyMedium?.copyWith(
-                        color: AppColors.white,
-                      ),
+                  Form(
+                    key: _formKey,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Email',
+                          style: AppTextStyles.textTheme.bodyMedium?.copyWith(
+                            color: AppColors.lightGreyTextColor,
+                          ),
+                        ),
+                        SizedBox(height: 6.h),
+                        AppTextField(
+                          controller: _emailController,
+                          hintText: 'Enter your email',
+                          validator: emailValidator,
+                        ),
+                        SizedBox(height: 16.h),
+                        Text(
+                          'Password',
+                          style: AppTextStyles.textTheme.bodyMedium?.copyWith(
+                            color: AppColors.lightGreyTextColor,
+                          ),
+                        ),
+                        SizedBox(height: 6.h),
+                        AppTextField(
+                          controller: _passwordController,
+                          hintText: 'Enter your password',
+                          isPassword: !ref
+                              .watch(authProvider)
+                              .isPasswordVisible,
+                          suffixIcon: GestureDetector(
+                            onTap: ref
+                                .read(authProvider.notifier)
+                                .togglePasswordVisibility,
+                            child: ref.watch(authProvider).isPasswordVisible
+                                ? Icon(Icons.visibility_outlined)
+                                : Icon(Icons.visibility_off_outlined),
+                          ),
+                          validator: passwordValidator,
+                        ),
+                        SizedBox(height: 10.h),
+
+                        /// ------------ Forgot Password -----------------------
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            InkWell(
+                              onTap: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  RouteNames.forgotPasswordScreen,
+                                );
+                              },
+                              child: Text(
+                                'Forgot Password?',
+                                style: AppTextStyles.textTheme.bodyMedium
+                                    ?.copyWith(color: AppColors.white),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 16.h),
+
+                        /// --------------- Primary Button --------------------
+                        PrimaryButton(
+                          color: AppColors.activeButtonColor,
+
+                          textColor: AppColors.white,
+                          onTap: ref.watch(authProvider).isLoading
+                              ? null
+                              : _submitLogin,
+                          child: ref.watch(authProvider).isLoading
+                              ? CircularProgressIndicator(color: Colors.white)
+                              : Text(
+                                  'Login',
+                                  style: TextStyle(
+                                    fontSize: 16.sp,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                        ),
+
+                        SizedBox(height: 16.h),
+
+                        /// -------------------- Divider -----------------------
+                        Row(
+                          children: [
+                            const Expanded(
+                              child: Divider(
+                                color: AppColors.cardBackground,
+                                thickness: 1,
+                              ),
+                            ),
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 10.w),
+                              child: Text(
+                                'Or Join With',
+                                style: AppTextStyles.textTheme.bodyMedium
+                                    ?.copyWith(color: AppColors.greyTextColor),
+                              ),
+                            ),
+                            const Expanded(
+                              child: Divider(
+                                color: AppColors.cardBackground,
+                                thickness: 1,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        SizedBox(height: 16.h),
+
+                        ///----------------- Social Button ---------------------
+                        SocialButton(
+                          imageText: "assets/icons/apple.png",
+                          text: "Sign in with Apple",
+                        ),
+                        SizedBox(height: 16.h),
+                        SocialButton(
+                          imageText: 'assets/icons/google_icon.png',
+                          text: 'Sign in with Google',
+                        ),
+                        SizedBox(height: 24.h),
+
+                        /// --------------- Don't have an account --------------
+                        Center(
+                          child: RichText(
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: "Don't have an account? ",
+                                  style: AppTextStyles.textTheme.bodyMedium
+                                      ?.copyWith(color: AppColors.white),
+                                ),
+                                TextSpan(
+                                  text: 'Sign Up',
+                                  style: AppTextStyles.textTheme.bodyMedium
+                                      ?.copyWith(
+                                        color: AppColors.radishTextColor,
+                                      ),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () {
+                                      Navigator.pushNamed(
+                                        context,
+                                        RouteNames.registerScreen,
+                                      );
+                                    },
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
             ],
           ),
-        );
-      },
-    );
-  }
-
-  /// Login Button
-  Widget _buildLoginButton(BuildContext context) {
-    return Consumer<LoginScreenProvider>(
-      builder: (context, viewModel, child) {
-        if (viewModel.isLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        return PrimaryButton(
-          title: 'Login',
-          color: viewModel.isButtonEnabled
-              ? AppColors.activeButtonColor
-              : AppColors.inactiveButtonColor,
-          textColor: AppColors.white,
-          onTap: () async {
-            await viewModel.login();
-
-            if (viewModel.user != null) {
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                RouteNames.parentScreen,
-                (route) => false,
-              );
-            }
-          },
-        );
-      },
-    );
-  }
-
-  /// Divider
-  Widget _buildOrJoinWithDivider() {
-    return Row(
-      children: [
-        const Expanded(
-          child: Divider(color: AppColors.cardBackground, thickness: 1),
-        ),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 10.w),
-          child: Text(
-            'Or Join With',
-            style: AppTextStyles.textTheme.bodyMedium?.copyWith(
-              color: AppColors.greyTextColor,
-            ),
-          ),
-        ),
-        const Expanded(
-          child: Divider(color: AppColors.cardBackground, thickness: 1),
-        ),
-      ],
-    );
-  }
-
-  /// SignUp Link
-  Widget _buildSignUpLink(BuildContext context) {
-    return Center(
-      child: RichText(
-        text: TextSpan(
-          children: [
-            TextSpan(
-              text: "Don't have an account? ",
-              style: AppTextStyles.textTheme.bodyMedium?.copyWith(
-                color: AppColors.white,
-              ),
-            ),
-            TextSpan(
-              text: 'Sign Up',
-              style: AppTextStyles.textTheme.bodyMedium?.copyWith(
-                color: AppColors.radishTextColor,
-              ),
-              recognizer: TapGestureRecognizer()
-                ..onTap = () {
-                  Navigator.pushNamed(context, RouteNames.registerScreen);
-                },
-            ),
-          ],
         ),
       ),
     );

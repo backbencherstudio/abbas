@@ -227,10 +227,11 @@ class _CreatePoolState extends State<CreatePool> {
                             debugPrint("Privacy: $_selectedPrivacy");
                             debugPrint("Options: $finalOptions");
                           },
-                          title: 'Post',
+
                           color: _postButtonColor,
                           textColor: _postTextColor,
                           icon: '',
+                          child: Text("Post"),
                         ),
                       ],
                     ),

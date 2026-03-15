@@ -83,3 +83,24 @@ String? digitalSignatureValidator(String? value) {
   }
   return null;
 }
+
+String? dateValidator(String? value) {
+  if (value == null || value.isEmpty) {
+    return 'Please select a date';
+  }
+  return null;
+}
+
+String? assignmentTitleValidator(String? value) {
+  if (value == null || value.isEmpty) {
+    return 'Please enter title name';
+  }
+  return null;
+}
+
+String? assignmentDescriptionValidator(String? value) {
+  if (value == null || value.isEmpty) {
+    return 'Please enter description';
+  }
+  return null;
+}

@@ -15,27 +15,32 @@ class StartEnrollment extends StatelessWidget {
       vertical: isPortrait ? 48.h : 32.h,
     );
 
-    return ScreenUtilInit(
-      designSize: const Size(375, 812),
-      minTextAdapt: true,
-      splitScreenMode: true,
-      builder: (_, __) => Scaffold(
-        body: Stack(
-          children: [
-            Image.asset(
-              'assets/images/background_img.png',
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: double.infinity,
-            ),
-            Padding(
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+       
+      ),
+      extendBodyBehindAppBar: true,
+      body: Stack(
+        children: [
+          Image.asset(
+            'assets/images/background_img.png',
+            fit: BoxFit.cover,
+            width: double.infinity,
+            height: double.infinity,
+          ),
+          Positioned(
+            top: 270.h,
+            left: 16.w,
+            right: 16.w,
+            child: Padding(
               padding: contentPadding,
-              child: Center(
+              child: SingleChildScrollView(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    SizedBox(height: 270.h),
                     Text(
                       'Start with Digital Signature',
                       textAlign: TextAlign.center,
@@ -109,8 +114,8 @@ class StartEnrollment extends StatelessWidget {
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

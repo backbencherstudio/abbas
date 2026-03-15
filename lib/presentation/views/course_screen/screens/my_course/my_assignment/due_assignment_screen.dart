@@ -1,162 +1,386 @@
-
+import 'package:abbas/cors/services/api_client.dart';
+import 'package:abbas/presentation/views/course_screen/view_model/get_all_courses_provider.dart';
+import 'package:abbas/presentation/widgets/validator.dart';
+import 'package:abbas/utils/app_utils.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
-
+import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import '../../../../../../cors/routes/route_names.dart';
 import '../../../../../widgets/custom_text_field.dart';
 import '../../../../../widgets/primary_button.dart';
 import '../../../../../widgets/secondary_appber.dart';
 
-class DueAssignmentScreen extends StatelessWidget {
-  const DueAssignmentScreen({super.key});
+class DueAssignmentScreen extends ConsumerStatefulWidget {
+  final String assignmentId;
+
+  const DueAssignmentScreen({super.key, required this.assignmentId});
+
+  @override
+  ConsumerState<DueAssignmentScreen> createState() =>
+      _DueAssignmentScreenState();
+}
+
+class _DueAssignmentScreenState extends ConsumerState<DueAssignmentScreen> {
+  final _titleController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref
+          .read(getAssignmentDetailsProvider.notifier)
+          .getAssignmentDetails(assignmentId: widget.assignmentId);
+    });
+    super.initState();
+  }
+
+  /// -------------------- Formatted Date --------------------------------------
+  String formattedDate(String? date) {
+    if (date == null || date.isEmpty) return 'N/A';
+
+    try {
+      final DateTime parsedDate = DateTime.parse(date);
+      return DateFormat('dd').format(parsedDate);
+    } catch (e) {
+      return date;
+    }
+  }
+
+  /// -------------------- Process Media Files --------------------------------------
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> pickMedia() async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+      );
+      if (pickedFile != null) {
+        ref.read(selectedFileProvider.notifier).state = pickedFile;
+      }
+    } catch (e) {
+      // Handle any errors that occur during file picking
+      print('Error picking file: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xff030D15),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SecondaryAppBar(title: "Assignment 6"),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: 15.h),
-                  Text(
-                    "Class 3 : Scene Analysis Report",
-                    style: TextStyle(
-                      color: Color(0xffFFFFFF),
-                      fontWeight: FontWeight.w500,
-                      fontSize: 18.sp,
-                    ),
-                  ),
-                  SizedBox(height: 6.h),
-                  Text(
-                    "Module 1: Personal Development",
-                    style: TextStyle(
-                      color: Color(0xff8C9196),
-                      fontWeight: FontWeight.w400,
-                      fontSize: 14.sp,
-                    ),
-                  ),
-                  SizedBox(height: 12.h),
-
-                  Row(
+    final assignmentWatchValues = ref.watch(getAssignmentDetailsProvider);
+    return assignmentWatchValues.when(
+      loading: () => CircularProgressIndicator(color: Colors.white),
+      error: (err, stackTrace) => Center(child: Text("Error : $err")),
+      data: (data) {
+        final assignment = data;
+        return Scaffold(
+          backgroundColor: Color(0xff030D15),
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            automaticallyImplyLeading: false,
+          ),
+          extendBodyBehindAppBar: true,
+          body: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SecondaryAppBar(title: assignment?.data?.title ?? 'N/A'),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.access_time, color: Colors.red),
-                      SizedBox(width: 6.w),
+                      SizedBox(height: 15.h),
+
                       Text(
-                        "Due : 2 days",
-                        style: TextStyle(color: Colors.white),
+                        "${assignment?.data?.moduleClass?.classTitle ?? 'N/A'} : ${assignment?.data?.moduleClass?.className ?? 'N/A'}",
+                        style: TextStyle(
+                          color: Color(0xffFFFFFF),
+                          fontWeight: FontWeight.w500,
+                          fontSize: 18.sp,
+                        ),
                       ),
+                      SizedBox(height: 6.h),
+                      Text(
+                        "${assignment?.data?.moduleClass?.module?.moduleTitle}: ${assignment?.data?.moduleClass?.module?.moduleName ?? 'N/A'}",
+                        style: TextStyle(
+                          color: Color(0xff8C9196),
+                          fontWeight: FontWeight.w400,
+                          fontSize: 14.sp,
+                        ),
+                      ),
+                      SizedBox(height: 12.h),
+
+                      Row(
+                        children: [
+                          Icon(Icons.access_time, color: Colors.red),
+                          SizedBox(width: 6.w),
+                          Text(
+                            "Due : ${formattedDate(assignment?.data?.dueDate ?? 'N/A')} days",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 10.h),
+                      Divider(thickness: 0.7, color: Color(0xff8C9196)),
+
+                      Text(
+                        assignment?.data?.title ?? 'N/A',
+                        style: TextStyle(color: Color(0xffFFFFFF)),
+                      ),
+
+                      SizedBox(height: 12.h),
+                      Text(
+                        assignment?.data?.description ?? 'N/A',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      SizedBox(height: 10.h),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 16.w,
+                          vertical: 10.h,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Color(0xffF9C80E)),
+                          borderRadius: BorderRadius.circular(16.r),
+                          color: Color(0xff0A1A2A),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Submit Assignment",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14.sp,
+                              ),
+                            ),
+                            Divider(thickness: 0.7, color: Color(0xff3D4566)),
+                            Form(
+                              key: _formKey,
+                              autovalidateMode:
+                                  AutovalidateMode.onUserInteraction,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Assignment Title",
+                                    style: TextStyle(
+                                      fontSize: 12.sp,
+                                      color: Color(0xffB2B5B8),
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                  SizedBox(height: 10.h),
+                                  CustomTextField(
+                                    controller: _titleController,
+                                    hintText: "Enter assignment title",
+                                    validator: assignmentTitleValidator,
+                                  ),
+
+                                  SizedBox(height: 16.h),
+                                  Text(
+                                    "Description",
+                                    style: TextStyle(
+                                      fontSize: 12.sp,
+                                      color: Color(0xffB2B5B8),
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                  SizedBox(height: 10.h),
+                                  CustomTextField(
+                                    controller: _descriptionController,
+                                    hintText: "Enter description",
+                                    maxLines: 5,
+                                    validator: assignmentDescriptionValidator,
+                                  ),
+                                  SizedBox(height: 20),
+                                  DottedBorder(
+                                    borderType: BorderType.RRect,
+                                    radius: Radius.circular(16.r),
+                                    color: Color(0xFF3D4566),
+                                    strokeWidth: 1.5,
+                                    dashPattern: [6, 5],
+                                    child: Container(
+                                      width: double.infinity,
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 16
+                                            .w, // reduced horizontal padding to fit longer names
+                                        vertical: 30.h,
+                                      ),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          GestureDetector(
+                                            onTap: () async {
+                                              await pickMedia();
+                                            },
+                                            child: SvgPicture.asset(
+                                              "assets/icons/upload.svg",
+                                              // ignore: deprecated_member_use
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          SizedBox(height: 10.h),
+
+                                          // ── This is the dynamic part ────────────────────────────────
+                                          Consumer(
+                                            builder: (context, ref, child) {
+                                              final selectedFile = ref.watch(
+                                                selectedFileProvider,
+                                              );
+
+                                              if (selectedFile == null) {
+                                                return Column(
+                                                  children: [
+                                                    Text(
+                                                      "Files upload here",
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 16.sp,
+                                                      ),
+                                                    ),
+                                                    SizedBox(height: 8.h),
+                                                    Text(
+                                                      "or drag & drop",
+                                                      style: TextStyle(
+                                                        color: Color(
+                                                          0xff8C9196,
+                                                        ),
+                                                        fontSize: 12.sp,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                );
+                                              } else {
+                                                return Column(
+                                                  children: [
+                                                    SizedBox(height: 8.h),
+                                                    Text(
+                                                      selectedFile
+                                                          .name, 
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 15.sp,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      maxLines: 2,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
+                                                    SizedBox(height: 4.h),
+                                                  ],
+                                                );
+                                              }
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 14.h),
+
+                            PrimaryButton(
+                              onTap: () async {
+                                if (_formKey.currentState!.validate()) {
+                                  logger.d(
+                                    "Title : ${_titleController.text.trim()}",
+                                  );
+                                  logger.d(
+                                    "Description : ${_descriptionController.text.trim()}",
+                                  );
+                                  logger.d(
+                                    "Media : ${ref.read(selectedFileProvider)?.path ?? ''}",
+                                  );
+
+                                  final result = await ref
+                                      .read(submitAssignmentProvider.notifier)
+                                      .submitAssignment(
+                                        title: _titleController.text.trim(),
+                                        description: _descriptionController.text
+                                            .trim(),
+                                        media:
+                                            ref
+                                                .read(selectedFileProvider)
+                                                ?.path ??
+                                            '',
+                                        assignmentId: widget.assignmentId,
+                                      );
+
+                                  logger.d(
+                                    "Submit Assignment Result : $result",
+                                  );
+                                  if (result.success) {
+                                    Utils.showToast(
+                                      msg: result.message,
+                                      backgroundColor: Colors.green,
+                                      textColor: Colors.white,
+                                    );
+                                    if (context.mounted) {
+                                      Navigator.pushNamed(
+                                        context,
+                                        RouteNames.submittedAssignmentScreen,
+                                      );
+                                    }
+                                  } else {
+                                    Utils.showToast(
+                                      msg: result.message,
+                                      backgroundColor: Colors.red,
+                                      textColor: Colors.white,
+                                    );
+                                  }
+                                }
+                              },
+                              color: Color(0xFFE9201D),
+                              textColor: Colors.white,
+                              icon: '',
+                              child: Text(
+                                "Submit",
+                                style: TextStyle(
+                                  fontSize: 16.sp,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 14.h),
                     ],
                   ),
-                  SizedBox(height: 10),
-                  Divider(thickness: 0.7, color: Color(0xff8C9196)),
-
-                  Text(
-                    "Assignment",
-                    style: TextStyle(color: Color(0xffFFFFFF)),
-                  ),
-
-                  SizedBox(height: 12),
-                  Text(
-                    "Write a 2-page analysis of your assigned scene focusing on character objectives, obstacles, and tactics. Include your personal approach to the character.",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                  SizedBox(height: 10.h),
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 16.w,
-                      vertical: 10.h,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Color(0xffF9C80E)),
-                      borderRadius: BorderRadius.circular(16),
-                      color: Color(0xff0A1A2A),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Submit Assignment",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14.sp,
-                          ),
-                        ),
-                        Divider(thickness: 0.7, color: Color(0xff3D4566)),
-                        Text(
-                          "Assignment Title",
-                          style: TextStyle(color: Color(0xffB2B5B8)),
-                        ),
-                        SizedBox(height: 10),
-                        CustomTextField(hintText: "Enter assignment title"),
-
-                        SizedBox(height: 10.h),
-                        Text(
-                          "Description",
-                          style: TextStyle(color: Color(0xffB2B5B8)),
-                        ),
-                        SizedBox(height: 10),
-                        CustomTextField(
-                          hintText: "Enter description",
-                          maxLines: 5,
-                        ),
-                        SizedBox(height: 20),
-                        DottedBorder(
-                          borderType: BorderType.RRect,
-                          radius: Radius.circular(16.r),
-                          color: Color(0xFF3D4566),
-                          strokeWidth: 1.5,
-                          dashPattern: [6, 5],
-                          child: Container(
-                            width: double.infinity,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 80,
-                              vertical: 30,
-                            ),
-                            child: Column(
-                              children: [
-                                SvgPicture.asset("assets/icons/upload.svg"),
-                                SizedBox(height: 10),
-                                Text(
-                                  "Drag & drop files here",
-                                  style: TextStyle(color: Colors.white, fontSize: 16),
-                                ),
-                                SizedBox(height: 12),
-                                Text(
-                                  "Drag & drop files here",
-                                  style: TextStyle(color: Color(0xff8C9196), fontSize: 12),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 14.h),
-                        PrimaryButton(title: "Submit", onTap: () {
-                          Navigator.pushNamed(context, RouteNames.submittedAssignmentScreen);
-                        },color: Color(0xFFE9201D),textColor: Colors.white, icon: '',),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 14.h),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
