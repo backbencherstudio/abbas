@@ -1,5 +1,6 @@
 import 'package:abbas/presentation/views/auth/view_model/signup_screen_provider.dart';
 import 'package:abbas/presentation/widgets/custom_text_field.dart';
+import 'package:abbas/presentation/widgets/primary_button.dart';
 import 'package:abbas/presentation/widgets/validator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,6 +21,7 @@ class SetNewPasswordScreen extends ConsumerStatefulWidget {
 class _SetNewPasswordScreenState extends ConsumerState<SetNewPasswordScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
@@ -42,46 +44,79 @@ class _SetNewPasswordScreenState extends ConsumerState<SetNewPasswordScreen> {
       ),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 24.h),
-        child: Column(
-          children: [
-            Text(
-              'Set New Password',
-              style: AppTextStyles.textTheme.headlineMedium?.copyWith(
-                color: AppColors.white,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Set New Password',
+                style: AppTextStyles.textTheme.headlineMedium?.copyWith(
+                  color: AppColors.white,
+                ),
               ),
-            ),
-            SizedBox(height: 24.h),
-            Text(
-              "Password",
-              style: TextStyle(
-                fontSize: 12.sp,
-                color: Color(0xFFB2B5B8),
-                fontWeight: FontWeight.w500,
+              SizedBox(height: 24.h),
+              Form(
+                key: _formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Password",
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: Color(0xFFB2B5B8),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(height: 7.h),
+                    CustomTextField(
+                      controller: _passwordController,
+                      hintText: 'Enter a new password',
+                      obscureText: !ref.watch(authProvider).isPasswordVisible,
+                      suffixIcon: GestureDetector(
+                        onTap: ref
+                            .read(authProvider.notifier)
+                            .togglePasswordVisibility,
+                        child: ref.watch(authProvider).isPasswordVisible
+                            ? Icon(Icons.visibility_outlined)
+                            : Icon(Icons.visibility_off_outlined),
+                      ),
+                      validator: passwordValidator,
+                    ),
+                    SizedBox(height: 16.h),
+                    Text(
+                      "Confirm Password",
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: Color(0xFFB2B5B8),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(height: 7.h),
+                    CustomTextField(
+                      controller: _confirmPasswordController,
+                      hintText: 'Enter a confirm password',
+                      obscureText: !ref
+                          .watch(authProvider)
+                          .isConfirmPasswordVisible,
+                      suffixIcon: GestureDetector(
+                        onTap: ref
+                            .read(authProvider.notifier)
+                            .toggleConfirmPasswordVisibility,
+                        child: ref.watch(authProvider).isConfirmPasswordVisible
+                            ? Icon(Icons.visibility_outlined)
+                            : Icon(Icons.visibility_off_outlined),
+                      ),
+                      validator: (value) => confirmPasswordValidator(value, _passwordController.text),
+                    ),
+                    SizedBox(height: 32.h,),
+                    PrimaryButton(onTap: (){}, color: AppColors.activeButtonColor)
+                  ],
+                ),
               ),
-            ),
-            SizedBox(height: 7.h),
-            CustomTextField(
-              controller: _confirmPasswordController,
-              hintText: 'Enter a new password',
-              obscureText: ref.watch(authProvider).isPasswordVisible,
-              suffixIcon: GestureDetector(
-                onTap: ref.read(authProvider.notifier).togglePasswordVisibility,
-                child: ref.watch(authProvider).isPasswordVisible
-                    ? Icon(Icons.visibility_outlined)
-                    : Icon(Icons.visibility_off_outlined),
-              ),
-              validator: passwordValidator,
-            ),
-            SizedBox(height: 16.h),
-            Text(
-              "Confirm Password",
-              style: TextStyle(
-                fontSize: 12.sp,
-                color: Color(0xFFB2B5B8),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

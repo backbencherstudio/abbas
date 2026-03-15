@@ -32,7 +32,7 @@ class CustomTextField extends StatelessWidget {
       obscureText: obscureText,
       keyboardType: keyboardType,
       validator: validator,
-      maxLines: maxLines,
+      maxLines: 1,
       decoration: InputDecoration(
 
         hintText: hintText,
