@@ -1,4 +1,5 @@
 import 'package:abbas/presentation/views/course_screen/view_model/get_all_courses_provider.dart';
+import 'package:abbas/presentation/widgets/shimmer_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -28,26 +29,19 @@ class _CourseModuleScreenState extends ConsumerState<CourseModuleScreen> {
   @override
   Widget build(BuildContext context) {
     final modules = ref.watch(getModuleDetailsProvider);
-    return modules.when(
-      loading: () => const CircularProgressIndicator(color: Colors.white),
-      error: (err, stackTrace) => Center(
-        child: Text(
-          "Error : $err",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
-        ),
-      ),
-      data: (data) {
-        final module = data;
-        final valueModules = module?.data;
-        final valueClasses = module?.data?.classes ?? [];
-        return Scaffold(
-          backgroundColor: Color(0xff030D15),
-          body: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SecondaryAppBar(title: valueModules?.moduleTitle ?? 'N/A'),
-              Padding(
-                padding: EdgeInsets.all(12.r),
+    final module = modules.value;
+    final valueModules = module?.data;
+    final valueClasses = module?.data?.classes ?? [];
+    return Scaffold(
+      backgroundColor: Color(0xff030D15),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SecondaryAppBar(title: valueModules?.moduleTitle ?? 'N/A'),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 24.h),
+              child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -55,8 +49,8 @@ class _CourseModuleScreenState extends ConsumerState<CourseModuleScreen> {
                       "Module: ${valueModules?.moduleName ?? 'N/A'}",
                       style: TextStyle(
                         color: Color(0xffFFFFFF),
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                     Divider(color: Color(0xff3D4566), thickness: 0.7),
@@ -64,7 +58,7 @@ class _CourseModuleScreenState extends ConsumerState<CourseModuleScreen> {
                       "Module OverView",
                       style: TextStyle(
                         color: Color(0xffFFFFFF),
-                        fontSize: 16,
+                        fontSize: 16.sp,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -74,7 +68,7 @@ class _CourseModuleScreenState extends ConsumerState<CourseModuleScreen> {
                       valueModules?.moduleOverview ?? 'N/A',
                       style: TextStyle(
                         color: Color(0xffFFFFFF),
-                        fontSize: 14,
+                        fontSize: 14.sp,
                         fontWeight: FontWeight.w400,
                       ),
                     ),
@@ -83,7 +77,7 @@ class _CourseModuleScreenState extends ConsumerState<CourseModuleScreen> {
                       "Key Learning Outcomes",
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 14,
+                        fontSize: 14.sp,
                         fontWeight: FontWeight.w400,
                       ),
                     ),
@@ -93,7 +87,7 @@ class _CourseModuleScreenState extends ConsumerState<CourseModuleScreen> {
                         Icon(
                           Icons.star_rate_outlined,
                           color: Colors.red,
-                          size: 14,
+                          size: 14.sp,
                         ),
                         SizedBox(width: 7.w),
                         Text(
@@ -177,27 +171,55 @@ class _CourseModuleScreenState extends ConsumerState<CourseModuleScreen> {
                     ),
 
                     SizedBox(height: 12.h),
-                    ...valueClasses.map((value) {
-                      return Padding(
-                        padding: EdgeInsets.only(bottom: 16.h),
-                        child: _buildClassContainer(
-                          title: value.classTitle ?? 'N/A',
-                          subtitle: value.className ?? 'N/A',
-                          onTap: () => Navigator.pushNamed(
-                            context,
-                            RouteNames.myClassScreen,
-                            arguments: value.id ?? 'N/A',
-                          ),
+                    if (modules.isLoading) ...[
+                      shimmerWidget(),
+                      SizedBox(height: 12.h),
+                      shimmerWidget(),
+                      SizedBox(height: 12.h),
+                      shimmerWidget(),
+                      SizedBox(height: 12.h),
+                      shimmerWidget(),
+                      SizedBox(height: 12.h),
+                    ] else if (modules.hasError) ...[
+                      Center(
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 24.sp,
+                              color: Colors.white,
+                            ),
+                            SizedBox(height: 4.h),
+                            Text(
+                              "Network error : Connection refused",
+                              style: TextStyle(fontSize: 16.sp, color: Colors.white, fontWeight: FontWeight.w500),
+                            ),
+                          ],
                         ),
-                      );
-                    }),
+                      ),
+                    ] else ...[
+                      ...valueClasses.map((value) {
+                        return Padding(
+                          padding: EdgeInsets.only(bottom: 16.h),
+                          child: _buildClassContainer(
+                            title: value.classTitle ?? 'N/A',
+                            subtitle: value.className ?? 'N/A',
+                            onTap: () => Navigator.pushNamed(
+                              context,
+                              RouteNames.myClassScreen,
+                              arguments: value.id ?? 'N/A',
+                            ),
+                          ),
+                        );
+                      }),
+                    ],
                   ],
                 ),
               ),
-            ],
+            ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 

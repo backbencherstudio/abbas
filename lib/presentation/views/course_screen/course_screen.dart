@@ -56,14 +56,33 @@ class _CourseScreenState extends ConsumerState<CourseScreen> {
                 /// ------------------- My Courses Progress Bar ----------------
                 if (myCourses.isLoading) ...[
                   shimmerWidget(),
+                ] else if (myCourses.hasError) ...[
+                  Column(
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 24.sp,
+                        color: Colors.white,
+                      ),
+                      SizedBox(height: 4.h),
+                      Text(
+                        'Network error : Connection refused',
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                 ] else ...[
                   ...(myCourses.value?.data?.myCourses ?? []).map(
                     (course) => Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16.w),
                       child: Container(
                         padding: EdgeInsets.symmetric(
-                          horizontal: 19,
-                          vertical: 14,
+                          horizontal: 19.w,
+                          vertical: 14.h,
                         ),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(10.r),
@@ -80,6 +99,7 @@ class _CourseScreenState extends ConsumerState<CourseScreen> {
                           ],
                         ),
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Image.asset('assets/images/face.png'),
                             SizedBox(width: 12.w),

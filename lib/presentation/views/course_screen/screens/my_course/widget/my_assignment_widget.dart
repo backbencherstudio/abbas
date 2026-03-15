@@ -1,4 +1,5 @@
 import 'package:abbas/presentation/views/course_screen/view_model/get_all_courses_provider.dart';
+import 'package:abbas/presentation/widgets/shimmer_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -17,219 +18,246 @@ class MyAssignmentWidget extends ConsumerStatefulWidget {
 class _MyAssignmentWidgetState extends ConsumerState<MyAssignmentWidget> {
   @override
   void initState() {
+    super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref
           .read(getMyAssignmentsProvider.notifier)
           .getMyAssignments(courseId: widget.courseId);
     });
-    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     final assignmentsProvider = ref.watch(getMyAssignmentsProvider);
-    return assignmentsProvider.when(
-      loading: () => const CircularProgressIndicator(color: Colors.white),
-      error: (err, stackTrace) => Center(child: Text("Error : $err")),
-      data: (data) {
-        final assignmentsData = data;
-        final modules = assignmentsData?.data;
+    final assignmentsData = assignmentsProvider.value;
+    final modules = assignmentsData?.data ?? [];
 
-        return Center(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                ...modules!.map((value) {
-                  return Text(
-                    "${value.moduleTitle} : ${value.moduleName}",
-                    style: TextStyle(
-                      color: Color(0xff8C9196),
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  );
-                }),
+    /// -------- Loading --------
+    if (assignmentsProvider.isLoading) {
+      return Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
+        child: Column(
+          children: [
+            shimmerWidget(),
+            SizedBox(height: 12.h),
+            shimmerWidget(),
+          ],
+        ),
+      );
+    }
 
-                SizedBox(height: 10),
-                ...modules.map((assign) {
-                  return Expanded(
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: assign.assignments?.length,
-                      itemBuilder: (context, index) {
-                        final value = assign.assignments![index];
-                        return Padding(
-                          padding: EdgeInsets.symmetric(vertical: 7),
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 15,
-                              vertical: 20,
-                            ),
-                            decoration: BoxDecoration(
-                              border: Border(
-                                left: BorderSide(color: Colors.red, width: 3),
-                              ),
-                              color: Color(0xff061220),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Row(
-                              children: [
-                                Text(
-                                  value.title ?? 'N/A',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                SizedBox(width: 10),
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 3,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20),
-                                    color: Color(0xffF9C80E),
-                                  ),
-                                  child: Text(
-                                    value.dueLabel ?? 'N/A',
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                                Spacer(),
-                                IconButton(
-                                  onPressed: () {
-                                    Navigator.pushNamed(
-                                      context,
-                                      RouteNames.dueAssignmentScreen,
-                                      arguments: value.id
-                                    );
-                                  },
-                                  icon: Icon(
-                                    Icons.arrow_forward_ios,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                }),
+    /// -------- Error --------
+    if (assignmentsProvider.hasError) {
+      return Center(
+        child: Text(
+          "Failed to load assignments",
+          style: TextStyle(color: Colors.white, fontSize: 16.sp),
+        ),
+      );
+    }
 
-                Text(
-                  "Module 1 : Personal Development",
-                  style: TextStyle(color: Color(0xff8C9196)),
+    /// -------- Data UI --------
+    return ListView(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
+      children: [
+        ...modules.map((module) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              /// Module Title
+              Text(
+                "${module.moduleTitle ?? ''} : ${module.moduleName ?? ''}",
+                style: TextStyle(
+                  color: Color(0xff8C9196),
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w500,
                 ),
+              ),
 
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: 2,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: EdgeInsets.symmetric(vertical: 7),
-                        child: GestureDetector(
-                          onTap: () => Navigator.pushNamed(
-                            context,
-                            RouteNames.submittedAssignmentScreen,
-                          ),
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 15,
-                              vertical: 20,
-                            ),
-                            decoration: BoxDecoration(
-                              border: Border(
-                                left: BorderSide(color: Colors.red, width: 3),
-                              ),
-                              color: Color(0xff061220),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Row(
-                              children: [
-                                Text(
-                                  "Assignment ${index + 4}",
-                                  // Dynamically showing the assignment number
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                SizedBox(width: 10),
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 3,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20),
-                                    color: Color(0xff1E273D),
-                                  ),
-                                  child: Text(
-                                    "Submitted",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(width: 10),
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 3,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20),
-                                    color: Color(0xff1E273D),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Text(
-                                        "Grade: ",
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                      Text(
-                                        "A+",
-                                        style: TextStyle(
-                                          color: AppColors.radishTextColor,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Spacer(),
-                                Icon(
-                                  Icons.arrow_forward_ios,
-                                  color: Colors.white,
-                                  size: 16,
-                                ),
-                              ],
+              SizedBox(height: 10.h),
+
+              /// Assignments List
+              ...?module.assignments?.map((value) {
+                return Padding(
+                  padding: EdgeInsets.symmetric(vertical: 7.h),
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 15.w,
+                      vertical: 20.h,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        left: BorderSide(color: Colors.red, width: 3.w),
+                      ),
+                      color: Color(0xff061220),
+                      borderRadius: BorderRadius.circular(6.r),
+                    ),
+                    child: Row(
+                      children: [
+                        /// Assignment Title
+                        Expanded(
+                          child: Text(
+                            value.title ?? 'N/A',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16.sp,
                             ),
                           ),
                         ),
-                      );
-                    },
+
+                        /// Due Label
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 10.w,
+                            vertical: 3.h,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20.r),
+                            color: Color(0xffF9C80E),
+                          ),
+                          child: Text(
+                            value.dueLabel ?? 'N/A',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 12.sp,
+                            ),
+                          ),
+                        ),
+
+                        SizedBox(width: 10.w),
+
+                        /// Navigate Button
+                        IconButton(
+                          onPressed: () {
+                            Navigator.pushNamed(
+                              context,
+                              RouteNames.dueAssignmentScreen,
+                              arguments: value.id,
+                            );
+                          },
+                          icon: Icon(
+                            Icons.arrow_forward_ios,
+                            color: Colors.white,
+                            size: 16.sp,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
+                );
+              }),
+            ],
+          );
+        }),
+
+        SizedBox(height: 20.h),
+
+        /// -------- Submitted Assignments Example --------
+        Text(
+          "Module 1 : Personal Development",
+          style: TextStyle(
+            color: Color(0xff8C9196),
+            fontSize: 14.sp,
           ),
-        );
-      },
+        ),
+
+        SizedBox(height: 10.h),
+
+        ...List.generate(2, (index) {
+          return Padding(
+            padding: EdgeInsets.symmetric(vertical: 7.h),
+            child: GestureDetector(
+              onTap: () => Navigator.pushNamed(
+                context,
+                RouteNames.submittedAssignmentScreen,
+              ),
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 15.w,
+                  vertical: 20.h,
+                ),
+                decoration: BoxDecoration(
+                  border: Border(
+                    left: BorderSide(color: Colors.red, width: 3.w),
+                  ),
+                  color: Color(0xff061220),
+                  borderRadius: BorderRadius.circular(6.r),
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      "Assignment ${index + 4}",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16.sp,
+                      ),
+                    ),
+
+                    SizedBox(width: 10.w),
+
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10.w,
+                        vertical: 3.h,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20.r),
+                        color: Color(0xff1E273D),
+                      ),
+                      child: Text(
+                        "Submitted",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12.sp,
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(width: 10.w),
+
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10.w,
+                        vertical: 3.h,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20.r),
+                        color: Color(0xff1E273D),
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            "Grade: ",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12.sp,
+                            ),
+                          ),
+                          Text(
+                            "A+",
+                            style: TextStyle(
+                              color: AppColors.radishTextColor,
+                              fontSize: 12.sp,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    Spacer(),
+
+                    Icon(
+                      Icons.arrow_forward_ios,
+                      color: Colors.white,
+                      size: 16.sp,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }),
+      ],
     );
   }
 }
