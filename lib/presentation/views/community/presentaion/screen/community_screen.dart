@@ -1,3 +1,5 @@
+import 'package:abbas/cors/routes/route_names.dart';
+import 'package:abbas/presentation/views/profile/view_model/profil_screen_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -25,6 +27,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final profileProvider = Provider.of<ProfileScreenProvider>(context);
     return Scaffold(
       body: Column(
         children: [
@@ -71,9 +74,27 @@ class _CommunityScreenState extends State<CommunityScreen> {
                             children: [
                               Row(
                                 children: [
-                                  CircleAvatar(
-                                    backgroundImage: NetworkImage(
-                                      feed.author?.name ?? "",
+                                  GestureDetector(
+                                    onTap: () async {
+                                      final authorId = feed.authorId;
+
+                                      if (authorId != null && authorId.isNotEmpty) {
+                                        await profileProvider.getOtherProfile(authorId);
+
+                                        Navigator.pushNamed(context, RouteNames.othersProfile);
+
+                                        debugPrint("AuthorID: $authorId");
+                                        debugPrint("PostID: ${feed.id}");
+                                      }
+                                    },
+                                    child: CircleAvatar(
+                                      backgroundImage: (feed.author?.avatar != null &&
+                                          feed.author!.avatar!.isNotEmpty)
+                                          ? NetworkImage(feed.author!.avatar!)
+                                          : null,
+                                      child: (feed.author?.avatar == null || feed.author!.avatar!.isEmpty)
+                                          ? Icon(Icons.person)
+                                          : null,
                                     ),
                                   ),
                                   SizedBox(width: 10),
@@ -86,6 +107,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                         feed.author?.name ?? "N/A",
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
+                                          color: Colors.white,
                                         ),
                                       ),
                                       SizedBox(height: 5),
@@ -93,6 +115,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                         feed.createdAt ?? "",
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
+                                          color: Colors.white,
                                         ),
                                       ),
                                     ],
@@ -102,14 +125,20 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
                               SizedBox(height: 10),
 
-                              Text(feed.content ?? ""),
+                              Text(
+                                feed.content ?? "N/A",
+                                style: TextStyle(color: Colors.white),
+                              ),
 
                               SizedBox(height: 10),
 
                               feed.mediaUrl != null && feed.mediaUrl!.isNotEmpty
-                                  ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Image.network(feed.mediaUrl!),
+                                  ? GestureDetector(
+                                      onTap: () {},
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.network(feed.mediaUrl!),
+                                      ),
                                     )
                                   : Container(
                                       height: 200,

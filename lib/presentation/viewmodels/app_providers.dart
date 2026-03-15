@@ -7,6 +7,7 @@ import 'package:provider/single_child_widget.dart';
 import '../../cors/di/injection.dart';
 import '../views/auth/login/presentaion/provider/LoginScreenProvider.dart';
 import '../views/community/presentaion/provider/community/community_screen_provider.dart';
+import '../views/message/provider/create_chat_provider.dart';
 import '../views/profile/view_model/profil_screen_provider.dart';
 import 'auth/forgot_password/forgot_password_viewmodel.dart';
 import 'auth/otp_verify/otp_verify_viewmodel.dart';
@@ -21,7 +22,6 @@ import 'form_fillup_rules/fillup_enrollment/fillup_viewmodel.dart';
 import 'home/home_viewmodel.dart';
 import 'onboardibng/onboarding_viewmodel.dart';
 
-
 class AppProviders {
   static final List<SingleChildWidget> providers = [
     ChangeNotifierProvider(create: (_) => getIt<HomeViewModel>()),
@@ -31,20 +31,22 @@ class AppProviders {
     ChangeNotifierProvider(create: (_) => getIt<OnboardingViewModel>()),
     ChangeNotifierProvider(create: (_) => getIt<RegisterViewModel>()),
 
-    ChangeNotifierProvider(create: (_) => getIt<ForgotPasswordViewModel >()),
-    ChangeNotifierProvider(create: (_) => getIt<OtpVerifyViewmodel >()),
-    ChangeNotifierProvider(create: (_) => getIt<SetNewPasswordViewModel >()),
+    ChangeNotifierProvider(create: (_) => getIt<ForgotPasswordViewModel>()),
+    ChangeNotifierProvider(create: (_) => getIt<OtpVerifyViewmodel>()),
+    ChangeNotifierProvider(create: (_) => getIt<SetNewPasswordViewModel>()),
     ChangeNotifierProvider(create: (_) => getIt<PersonalInfoViewModel>()),
-    ChangeNotifierProvider(create: (context) => getIt<EditPersonalInfoViewModel>()),
+    ChangeNotifierProvider(
+      create: (context) => getIt<EditPersonalInfoViewModel>(),
+    ),
     ChangeNotifierProvider(create: (context) => getIt<RefreshTokenViewModel>()),
 
     //hangeNotifierProvider(create: (_) => getIt<PostViewModel>()..load()),
-
     ChangeNotifierProvider(create: (_) => getIt<FeedViewModel>()..load()),
     ChangeNotifierProvider(create: (_) => getIt<ButtonProvider>()..load()),
     ChangeNotifierProvider(create: (_) => getIt<PersonalInfoProvider>()),
     ChangeNotifierProvider(create: (_) => getIt<CommunityScreenProvider>()),
     ChangeNotifierProvider(create: (_) => getIt<ProfileScreenProvider>()),
     ChangeNotifierProvider(create: (_) => getIt<CreatePostProvider>()),
+    ChangeNotifierProvider(create: (_) => getIt<CreateChatProvider>()),
   ];
 }
