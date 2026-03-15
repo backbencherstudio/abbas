@@ -73,6 +73,7 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
   }
 
+
   Future<void> _fetchAccessToken() async {
     await _refreshTokenViewModel.fetchNewAccessToken();
     if (_refreshTokenViewModel.errorMessage != null) {
