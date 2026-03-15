@@ -1,3 +1,4 @@
+import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:abbas/cors/routes/route_names.dart';
 import 'package:flutter/material.dart';
 import '../../presentation/views/auth/forgot_password/screen/forgot_password_screen.dart';
@@ -77,12 +78,16 @@ class AppRoutes {
     RouteNames.otpVerifyScreen: (context) {
       final args = ModalRoute.of(context)?.settings.arguments;
       final email = args is String ? args : '';
+
       return OtpVerifyScreen(email: email);
     },
     RouteNames.setNewPasswordScreen: (context) {
-      final args = ModalRoute.of(context)!.settings.arguments;
-      final email = args is String ? args : '';
-      return SetNewPasswordScreen(email: email);
+      final args = ModalRoute.of(context)!.settings.arguments as Map;
+      final email = args['email'];
+      final otp = args['otp'];
+      logger.d("App Route Email $email");
+      logger.d("App Route Otp : $otp");
+      return SetNewPasswordScreen(email: email, otp: otp);
     },
     RouteNames.parentScreen: (context) => const ParentScreen(),
     RouteNames.scanner: (context) => const Scanner(),

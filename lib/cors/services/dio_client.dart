@@ -57,7 +57,6 @@ class DioClient {
       final response = await _dio.post(
         path,
         data: data,
-    
         options: Options(
           headers: {
             'Content-Type': 'application/json' ,

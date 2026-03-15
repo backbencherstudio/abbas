@@ -1,3 +1,4 @@
+import 'package:abbas/cors/services/token_storage.dart';
 import 'package:abbas/presentation/views/profile/view_model/profil_screen_provider.dart';
 import 'package:abbas/presentation/views/profile/widgets/option_card.dart';
 import 'package:flutter/material.dart';
@@ -29,7 +30,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-
+    final TokenStorage _tokenStorage = TokenStorage();
     return Scaffold(
       body: Consumer<ProfileScreenProvider>(
         builder: (context, provider, child) {
@@ -151,9 +152,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               iconPath: "assets/icons/logout.svg",
                               isLast: true,
                               bottomSheet: CustomBottomSheet(
+                                onTap: () async {
+                                  await _tokenStorage.clearToken();
+
+                                  final token = await _tokenStorage.getToken();
+
+                                  if (token == null) {
+                                    Navigator.pushNamedAndRemoveUntil(
+                                      context,
+                                      RouteNames.loginScreen,
+                                          (route) => false,
+                                    );
+                                  }
+                                },
                                 title: "Confirm Logout",
-                                description:
-                                    "Are you sure you want to log out?",
+                                description: "Are you sure you want to log out?",
                                 iconPath: "assets/icons/logout.svg",
                                 buttonTitle: "Yes, Logout",
                                 buttonIconPath: "assets/icons/logout_white.svg",
