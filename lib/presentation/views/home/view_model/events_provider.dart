@@ -7,23 +7,23 @@ import 'package:flutter_riverpod/legacy.dart';
 
 /// ------------------------- Get All Events -----------------------------------
 final getAllEventsProvider =
-    StateNotifierProvider<GetAllEventsProvider, AsyncValue<GetAllEventsModel?>>(
-      (ref) => GetAllEventsProvider(dioClient: DioClient()),
-    );
+    StateNotifierProvider<
+      GetAllEventsProvider,
+      AsyncValue<List<GetAllEventsModel?>>
+    >((ref) => GetAllEventsProvider(dioClient: DioClient()));
 
 class GetAllEventsProvider
-    extends StateNotifier<AsyncValue<GetAllEventsModel?>> {
+    extends StateNotifier<AsyncValue<List<GetAllEventsModel?>>> {
   DioClient dioClient;
 
-  GetAllEventsProvider({required this.dioClient})
-    : super(AsyncValue.data(null));
+  GetAllEventsProvider({required this.dioClient}) : super(AsyncValue.loading());
 
   Future<void> getAllEvents() async {
-    state = const AsyncValue.loading();
     try {
       final res = await dioClient.getHttp(ApiEndpoints.getAllEvents);
-      final model = GetAllEventsModel.fromJson(res);
-      state = AsyncValue.data(model);
+      List data = res;
+      final events = data.map((e) => GetAllEventsModel.fromJson(e)).toList();
+      state = AsyncValue.data(events);
     } catch (e) {
       state = AsyncValue.error(e, StackTrace.current);
     }
