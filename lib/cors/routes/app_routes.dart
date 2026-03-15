@@ -51,6 +51,7 @@ import '../../presentation/views/profile/screens/certificate/certificate.dart';
 import '../../presentation/views/profile/screens/contract_documents/contract_document_screen.dart';
 import '../../presentation/views/profile/screens/feedback/feedback_and_certificates_screen.dart';
 import '../../presentation/views/profile/screens/feedback/feedback_screen.dart';
+import '../../presentation/views/profile/screens/personal_info/edit_personal_info_screen.dart';
 import '../../presentation/views/profile/screens/personal_info/personal_info_screen.dart';
 import '../../presentation/views/profile/screens/push_notifications/screen/push_notifications.dart';
 import '../../presentation/views/profile/screens/subscription_and_payment/change_password.dart';
@@ -173,6 +174,7 @@ class AppRoutes {
     RouteNames.courseModules: (context) => CourseModules(),
     RouteNames.parentScreenTwo: (context) => ParentScreenTwo(),
     RouteNames.allEvents: (context) => AllEvents(),
+    RouteNames.editPersonalInfoScreen: (context) => EditPersonalInfoScreen(),
     RouteNames.videoPlayerScreen: (context) =>
         VideoPlayerScreen(url: '', title: ''),
     RouteNames.pdfWidget: (context) => PdfWidget(),

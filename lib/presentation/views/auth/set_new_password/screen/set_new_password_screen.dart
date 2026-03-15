@@ -72,6 +72,15 @@ class _SetNewPasswordScreenState extends ConsumerState<SetNewPasswordScreen> {
               ),
               validator: passwordValidator,
             ),
+            SizedBox(height: 16.h),
+            Text(
+              "Confirm Password",
+              style: TextStyle(
+                fontSize: 12.sp,
+                color: Color(0xFFB2B5B8),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ],
         ),
       ),

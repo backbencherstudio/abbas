@@ -58,20 +58,17 @@ class ApiClient {
     }
   }
 
-  // multipart
-// multipart
   Future<ApiResponseModel> postMultipart(
-      String endpoint, {
-        required Map<String, String> fields,
-        required String fileField,
-        required String filePath,
-        Map<String, String>? additionalHeaders,
-      }) async {
+    String endpoint, {
+    required Map<String, String> fields,
+    required String fileField,
+    required String filePath,
+    Map<String, String>? additionalHeaders,
+  }) async {
     try {
       var uri = Uri.parse(endpoint);
-      var request = http.MultipartRequest('POST', uri);
+      var request = http.MultipartRequest('PATCH', uri);
 
-      // Build headers including authorization token
       final builtHeaders = await _buildHeaders(additionalHeaders);
       request.headers.addAll(builtHeaders);
 
@@ -110,13 +107,10 @@ class ApiClient {
     } catch (e) {
       final message = ApiErrorHandle.handleError(e);
       logger.e('Multipart request error: $message');
-      return ApiResponseModel(
-        success: false,
-        message: message,
-        data: null,
-      );
+      return ApiResponseModel(success: false, message: message, data: null);
     }
   }
+
   String _getMimeType(String filePath) {
     String extension = filePath.split('.').last.toLowerCase();
     switch (extension) {
