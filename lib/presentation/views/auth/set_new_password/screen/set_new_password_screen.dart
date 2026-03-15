@@ -1,7 +1,10 @@
+import 'package:abbas/cors/network/api_error_handle.dart';
+import 'package:abbas/cors/routes/route_names.dart';
 import 'package:abbas/presentation/views/auth/view_model/signup_screen_provider.dart';
 import 'package:abbas/presentation/widgets/custom_text_field.dart';
 import 'package:abbas/presentation/widgets/primary_button.dart';
 import 'package:abbas/presentation/widgets/validator.dart';
+import 'package:abbas/utils/app_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -10,8 +13,13 @@ import '../../../../../cors/theme/app_text_styles.dart';
 
 class SetNewPasswordScreen extends ConsumerStatefulWidget {
   final String email;
+  final String otp;
 
-  const SetNewPasswordScreen({super.key, required this.email});
+  const SetNewPasswordScreen({
+    super.key,
+    required this.email,
+    required this.otp,
+  });
 
   @override
   ConsumerState<SetNewPasswordScreen> createState() =>
@@ -22,6 +30,15 @@ class _SetNewPasswordScreenState extends ConsumerState<SetNewPasswordScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+
+   String _email = '';
+   String _otp = '';
+   @override
+  void initState() {
+   _email = widget.email;
+   _otp = widget.otp;
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -108,10 +125,56 @@ class _SetNewPasswordScreenState extends ConsumerState<SetNewPasswordScreen> {
                             ? Icon(Icons.visibility_outlined)
                             : Icon(Icons.visibility_off_outlined),
                       ),
-                      validator: (value) => confirmPasswordValidator(value, _passwordController.text),
+                      validator: (value) => confirmPasswordValidator(
+                        value,
+                        _passwordController.text,
+                      ),
                     ),
-                    SizedBox(height: 32.h,),
-                    PrimaryButton(onTap: (){}, color: AppColors.activeButtonColor)
+                    SizedBox(height: 32.h),
+                    PrimaryButton(
+                      onTap: () async {
+                        if (_passwordController.text ==
+                            _confirmPasswordController.text) {
+                          logger.d("Email : $_email");
+                          logger.d("Otp : $_otp");
+                          logger.d(
+                            "New Password : ${_passwordController.text}",
+                          );
+                          final res = await ref
+                              .read(authProvider.notifier)
+                              .resetPassword(
+                                email: _email,
+                                otp: _otp,
+                                newPassword: _passwordController.text,
+                              );
+                          if (res.success) {
+                            Utils.showToast(
+                              msg: res.message,
+                              backgroundColor: Colors.green,
+                              textColor: Colors.white,
+                            );
+                            if(context.mounted){
+                              Navigator.pushNamed(context, RouteNames.loginScreen);
+                            }
+                          } else {
+                            Utils.showToast(
+                              msg: res.message,
+                              backgroundColor: Colors.red,
+                              textColor: Colors.white,
+                            );
+                          }
+                        }
+                      },
+                      color: AppColors.activeButtonColor,
+                      child: Text(
+                        "Update Password",
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
