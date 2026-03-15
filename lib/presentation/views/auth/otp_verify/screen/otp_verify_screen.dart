@@ -1,28 +1,44 @@
+import 'package:abbas/presentation/views/auth/view_model/signup_screen_provider.dart';
+import 'package:abbas/utils/app_utils.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:provider/provider.dart';
 import '../../../../../../cors/routes/route_names.dart';
 import '../../../../../../cors/theme/app_colors.dart';
 import '../../../../../../cors/theme/app_text_styles.dart';
-import '../../../../viewmodels/auth/otp_verify/otp_verify_viewmodel.dart';
 import '../../../../widgets/primary_button.dart';
 import '../widgets/pinput_widget.dart';
-import '../widgets/resend_otp_section_widget.dart';
 
-class OtpVerifyScreen extends StatefulWidget {
-  const OtpVerifyScreen({super.key});
+class OtpVerifyScreen extends ConsumerStatefulWidget {
+  final String email;
+
+  const OtpVerifyScreen({super.key, required this.email});
 
   @override
-  State<OtpVerifyScreen> createState() => _OtpVerifyScreenState();
+  ConsumerState<OtpVerifyScreen> createState() => _OtpVerifyScreenState();
 }
 
-class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
+class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
   final TextEditingController _pinController = TextEditingController();
+
+  String _email = '';
+
+  @override
+  void initState() {
+    _email = widget.email;
+    ref.read(timeProvider.notifier).restart();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _pinController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final email = ModalRoute.of(context)?.settings.arguments as String? ?? '';
-
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -38,78 +54,135 @@ class _OtpVerifyScreenState extends State<OtpVerifyScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: 20.h),
-            _buildHeader(),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Enter OTP Code',
+                  style: AppTextStyles.textTheme.headlineMedium?.copyWith(
+                    color: AppColors.white,
+                  ),
+                ),
+                SizedBox(height: 5.h),
+                Text(
+                  'Code sent to your email $_email',
+                  style: AppTextStyles.textTheme.bodyMedium?.copyWith(
+                    color: AppColors.lightGreyTextColor,
+                  ),
+                ),
+              ],
+            ),
             SizedBox(height: 32.h),
-            PinputWidget(context: context, pinController: _pinController),
-            SizedBox(height: 60.h),
-            ResendOtpSectionWidget(email: email),
-          ],
-        ),
-      ),
-    );
-  }
+            PinPutWidget(context: context, pinController: _pinController),
+            SizedBox(height: 32.h),
 
-  Widget _buildHeader() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Enter OTP Code',
-          style: AppTextStyles.textTheme.headlineMedium?.copyWith(
-            color: AppColors.white,
-          ),
-        ),
-        SizedBox(height: 5.h),
-        Text(
-          'Code sent to your email',
-          style: AppTextStyles.textTheme.bodyMedium?.copyWith(
-            color: AppColors.lightGreyTextColor,
-          ),
-        ),
-      ],
-    );
-  }
+            /// -------------------------------------- Verify Button ----------
+            PrimaryButton(
+              onTap: () async {
+                if (_pinController.text.length == 4) {
+                  final result = await ref
+                      .read(authProvider.notifier)
+                      .verifyOtp(email: _email, otp: _pinController.text);
 
-  Widget _buildVerifyButton(BuildContext context, String email) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 22.w, vertical: 10.h),
-      child: Consumer<OtpVerifyViewmodel>(
-        builder: (context, viewModel, child) {
-          return PrimaryButton(
-            onTap: viewModel.isButtonEnable
-                ? () async {
-                    await viewModel.verifyOTP(email, viewModel.otp);
-                    if (viewModel.otpVerified) {
+                  if (result.success) {
+                    Utils.showToast(
+                      msg: result.message,
+                      backgroundColor: Colors.green,
+                      textColor: Colors.white,
+                    );
+                    if (context.mounted) {
                       Navigator.pushNamed(
                         context,
                         RouteNames.setNewPasswordScreen,
-                        arguments: {'email': email, 'otp': viewModel.otp},
+                        arguments: _email,
                       );
                     }
+                  } else {
+                    Utils.showToast(
+                      msg: result.message,
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white,
+                    );
                   }
-                : () {},
-            color: viewModel.isButtonEnable
-                ? AppColors.activeButtonColor
-                : AppColors.inactiveButtonColor,
-            textColor: AppColors.white,
-          );
-        },
-      ),
-    );
-  }
+                } else {
+                  Utils.showToast(
+                    msg: "Please enter a valid 4-digit OTP",
+                    backgroundColor: Colors.red,
+                    textColor: Colors.white,
+                  );
+                }
+              },
+              color: AppColors.activeButtonColor,
+              child: Text(
+                "Verify OTP",
+                style: TextStyle(color: AppColors.white),
+              ),
+            ),
 
-  Widget _buildLoadingIndicator() {
-    return Consumer<OtpVerifyViewmodel>(
-      builder: (context, viewModel, child) {
-        return viewModel.isLoading
-            ? Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                ),
-              )
-            : const SizedBox();
-      },
+            /// ----------------- Resend OTP section ---------------------------
+            SizedBox(height: 16.h),
+            Center(
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Didn't get the OTP?  ",
+                        style: AppTextStyles.textTheme.bodyMedium?.copyWith(
+                          color: AppColors.white,
+                        ),
+                      ),
+                      SizedBox(width: 10.w),
+                      GestureDetector(
+                        onTap: ref.watch(timeProvider) == 0
+                            ? () async {
+                                var res = await ref
+                                    .read(authProvider.notifier)
+                                    .resendVerification(email: _email);
+                                if (res.success) {
+                                  Utils.showToast(
+                                    msg: res.message,
+                                    backgroundColor: Colors.green,
+                                    textColor: Colors.white,
+                                  );
+                                } else {
+                                  Utils.showToast(
+                                    msg: res.message,
+                                    backgroundColor: Colors.red,
+                                    textColor: Colors.white,
+                                  );
+                                }
+                                ref.read(timeProvider.notifier).restart();
+                              }
+                            : null,
+                        child: Text(
+                          ref.watch(timeProvider) == 0
+                              ? 'Resend Code'
+                              : ref
+                                    .read(timeProvider.notifier)
+                                    .formatTime(ref.watch(timeProvider)),
+                          style: AppTextStyles.textTheme.bodyMedium?.copyWith(
+                            color: AppColors.splashRed,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 10.h),
+                  Text(
+                    "You can resend code now",
+                    style: AppTextStyles.textTheme.bodyMedium?.copyWith(
+                      color: AppColors.white,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

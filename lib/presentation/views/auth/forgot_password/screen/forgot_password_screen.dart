@@ -1,6 +1,7 @@
 import 'package:abbas/cors/routes/route_names.dart';
 import 'package:abbas/presentation/views/auth/login/presentaion/widgets/custom_textfield.dart';
 import 'package:abbas/presentation/views/auth/view_model/signup_screen_provider.dart';
+import 'package:abbas/presentation/widgets/animated_loading.dart';
 import 'package:abbas/presentation/widgets/primary_button.dart';
 import 'package:abbas/presentation/widgets/validator.dart';
 import 'package:abbas/utils/app_utils.dart';
@@ -42,7 +43,11 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           textColor: Colors.white,
         );
         if (context.mounted) {
-          Navigator.pushNamed(context, RouteNames.otpVerifyScreen);
+          Navigator.pushNamed(
+            context,
+            RouteNames.otpVerifyScreen,
+            arguments: _emailController.text.trim(),
+          );
         }
       } else {
         Utils.showToast(
@@ -72,8 +77,6 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: 20.h),
-
             Text(
               'Forgot Password?',
               style: AppTextStyles.textTheme.headlineMedium?.copyWith(
@@ -101,7 +104,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 validator: emailValidator,
               ),
             ),
-            SizedBox(height: 24.h),
+            SizedBox(height: 32.h),
             PrimaryButton(
               onTap: ref.watch(authProvider).isLoading
                   ? null

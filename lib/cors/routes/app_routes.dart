@@ -74,8 +74,16 @@ class AppRoutes {
     RouteNames.loginScreen: (context) => const LoginScreen(),
     RouteNames.registerScreen: (context) => const RegisterScreen(),
     RouteNames.forgotPasswordScreen: (context) => const ForgotPasswordScreen(),
-    RouteNames.otpVerifyScreen: (context) => OtpVerifyScreen(),
-    RouteNames.setNewPasswordScreen: (context) => SetNewPasswordScreen(),
+    RouteNames.otpVerifyScreen: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final email = args is String ? args : '';
+      return OtpVerifyScreen(email: email);
+    },
+    RouteNames.setNewPasswordScreen: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments;
+      final email = args is String ? args : '';
+      return SetNewPasswordScreen(email: email);
+    },
     RouteNames.parentScreen: (context) => const ParentScreen(),
     RouteNames.scanner: (context) => const Scanner(),
     RouteNames.otherCourseScreen: (context) => const OtherCourseScreen(),

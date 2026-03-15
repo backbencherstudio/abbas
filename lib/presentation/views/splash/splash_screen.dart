@@ -1,10 +1,6 @@
-import 'dart:developer';
-
 import 'package:abbas/cors/services/api_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../../cors/di/injection.dart';
 import '../../../cors/routes/route_names.dart';
 import '../../../cors/services/refresh_token_storage.dart';
@@ -68,7 +64,7 @@ class _SplashScreenState extends State<SplashScreen>
       logger.d("========== Splash Screen $token ===========");
       if (token != null) {
         Future.delayed(const Duration(milliseconds: 1500), () async {
-          Navigator.pushReplacementNamed(context, RouteNames.startEnrollment);
+          Navigator.pushReplacementNamed(context, RouteNames.loginScreen);
         });
       } else {
         Navigator.pushReplacementNamed(context, RouteNames.onBoardingScreen);

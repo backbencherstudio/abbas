@@ -63,23 +63,18 @@ class SubmitAssignmentProvider extends StateNotifier<ResponseModel> {
       }
 
       // Make request
-      final response =
-          await Dio(
-            BaseOptions(
-              baseUrl: ApiEndpoints.baseUrl,
-              connectTimeout: const Duration(seconds: 30),
-              receiveTimeout: const Duration(seconds: 30),
-              sendTimeout: const Duration(seconds: 30),
-              headers: {
-                'Content-Type': 'multipart/form-data',
-                'Authorization': 'Bearer $token',
-              },
-            ),
-          ).post(
-            ApiEndpoints.submitAssignment(assignmentId),
-            data: formData,
-          
-          );
+      final response = await Dio(
+        BaseOptions(
+          baseUrl: ApiEndpoints.baseUrl,
+          connectTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 30),
+          sendTimeout: const Duration(seconds: 30),
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      ).post(ApiEndpoints.submitAssignment(assignmentId), data: formData);
 
       debugPrint("Response:------------- ${response.data}");
       // Return response

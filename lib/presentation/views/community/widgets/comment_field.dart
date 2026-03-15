@@ -24,7 +24,7 @@ class _CommentFieldState extends State<CommentField> {
               controller: TextEditingController(),
               hintText: 'Comment Here...',
               maxLines: 1,
-              suffixIcon: Icons.emoji_emotions_outlined,
+              suffixIcon: Icon(Icons.emoji_emotions_outlined,)
             ),
           ),
           const SizedBox(width: 8),

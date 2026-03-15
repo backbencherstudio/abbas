@@ -20,12 +20,15 @@ String? passwordValidator(String? value) {
   return null;
 }
 
-String? confirmPasswordValidator(String? value) {
+String? confirmPasswordValidator(String? value, String password) {
   if (value == null || value.isEmpty) {
     return 'Please confirm your password';
   }
   if (value.length < 8) {
     return 'Password must be at least 8 characters long';
+  }
+  if (value != password) {
+    return "Password do not match";
   }
   return null;
 }
@@ -64,6 +67,7 @@ String? dateOfBirthValidator(String? value) {
   }
   return null;
 }
+
 String? experienceLevelValidator(String? value) {
   if (value == null || value.isEmpty) {
     return 'Please select experience level';
@@ -77,6 +81,7 @@ String? actingGoalsValidator(String? value) {
   }
   return null;
 }
+
 String? digitalSignatureValidator(String? value) {
   if (value == null || value.isEmpty) {
     return 'Please enter a signature';
