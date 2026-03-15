@@ -85,11 +85,7 @@ class _DueAssignmentScreenState extends ConsumerState<DueAssignmentScreen> {
         final assignment = data;
         return Scaffold(
           backgroundColor: Color(0xff030D15),
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            automaticallyImplyLeading: false,
-          ),
+
           extendBodyBehindAppBar: true,
           body: SingleChildScrollView(
             child: Column(
@@ -278,7 +274,7 @@ class _DueAssignmentScreenState extends ConsumerState<DueAssignmentScreen> {
                                                     SizedBox(height: 8.h),
                                                     Text(
                                                       selectedFile
-                                                          .name, 
+                                                          .name, // ← shows "N_logo .png" or whatever the real name is
                                                       style: TextStyle(
                                                         color: Colors.white,
                                                         fontSize: 15.sp,

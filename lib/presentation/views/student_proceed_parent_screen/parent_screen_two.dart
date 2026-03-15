@@ -7,7 +7,6 @@ import '../../../cors/theme/app_colors.dart';
 import '../../viewmodels/parent/parent_screen_provider.dart';
 import '../community/presentaion/screen/community_screen.dart';
 import '../course_screen/course_screen.dart' show CourseScreen;
-import '../home/screen/home_screen.dart';
 import '../home/screen/screens/home_for_prospective_students/pros_home.dart';
 import '../message/screen/message_screens.dart';
 import '../profile/profile_screen.dart';
@@ -43,7 +42,6 @@ class _BottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     const bg = Color(0xFF131C24);
     const active = Color(0xFFE33632);
-    const inactive = Color(0xFF8A96A3);
 
     final vm = context.watch<ParentViewModel>();
 

@@ -1,6 +1,5 @@
 import 'package:abbas/presentation/views/auth/login/presentaion/widgets/custom_textfield.dart';
 import 'package:abbas/presentation/views/auth/view_model/signup_screen_provider.dart';
-import 'package:abbas/presentation/widgets/custom_button.dart';
 import 'package:abbas/presentation/widgets/social_button.dart';
 import 'package:abbas/presentation/widgets/validator.dart';
 import 'package:abbas/utils/app_utils.dart';

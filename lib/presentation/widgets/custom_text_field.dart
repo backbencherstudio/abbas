@@ -6,7 +6,7 @@ import '../../cors/theme/app_colors.dart';
 class CustomTextField extends StatelessWidget {
   final String hintText;
   final IconData? prefixIcon;
-  final IconData? suffixIcon;
+  final Widget? suffixIcon;
   final TextInputType keyboardType;
   final int? maxLines;
   final bool obscureText;
@@ -40,9 +40,7 @@ class CustomTextField extends StatelessWidget {
         prefixIcon: prefixIcon != null
             ? Icon(prefixIcon, color: AppColors.borderColor)
             : null,
-        suffixIcon: suffixIcon != null
-            ? Icon(suffixIcon, color: AppColors.borderColor)
-            : null,
+        suffixIcon: suffixIcon,
         border: OutlineInputBorder(
           borderSide: BorderSide(color: AppColors.borderColor),
           borderRadius: BorderRadius.circular(16.r),

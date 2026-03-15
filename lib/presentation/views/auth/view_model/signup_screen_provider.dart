@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:abbas/cors/constants/api_endpoints.dart';
 import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:abbas/cors/services/dio_client.dart';
@@ -8,6 +10,9 @@ import 'package:flutter_riverpod/legacy.dart';
 final authProvider = StateNotifierProvider<AuthProvider, AuthModel>(
   (ref) => AuthProvider(dioClient: DioClient()),
 );
+
+/// -------------------- Otp Text Provider -------------------------------------
+final otpTextProvider = StateProvider<String>((ref) => '');
 
 class AuthProvider extends StateNotifier<AuthModel> {
   DioClient dioClient;
@@ -20,10 +25,19 @@ class AuthProvider extends StateNotifier<AuthModel> {
     logger.d("Toggle Password Visibility : ${state.isPasswordVisible}");
   }
 
+  /// -------------------- Toggle Confirm Password Visibility ------------------
+  void toggleConfirmPasswordVisibility(){
+    state = state.copyWith(isConfirmPasswordVisible: !state.isConfirmPasswordVisible);
+  }
   /// --------------------- Check Is Loading -----------------------------------
   Future<void> checkIsLoading() async {
     state = state.copyWith(isLoading: !state.isLoading);
     logger.d("Loading : ${state.isLoading}");
+  }
+
+  /// ----------------------- Page Loading -------------------------------------
+  void setIsPageLoading() {
+    state = state.copyWith(isPageLoading: !state.isPageLoading);
   }
 
   /// -------------------------- Register --------------------------------------
@@ -192,5 +206,47 @@ class AuthProvider extends StateNotifier<AuthModel> {
     } catch (e) {
       return ResponseModel(success: false, message: '$e');
     }
+  }
+}
+
+/// ------------------------- Time Provider ------------------------------------
+final timeProvider = StateNotifierProvider<TimeNotifier, int>(
+  (ref) => TimeNotifier(),
+);
+
+class TimeNotifier extends StateNotifier<int> {
+  TimeNotifier() : super(20);
+  Timer? _timer;
+
+  /// Start the timer
+  void _startTimer() {
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (state > 0) {
+        state = state - 1;
+      } else {
+        timer.cancel();
+      }
+    });
+  }
+
+  /// Restart Timer
+  void restart() {
+    state = 20;
+    _startTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  String formatTime(int seconds) {
+    // Convert seconds to minutes and seconds
+    final minutes = seconds ~/ 60;
+    final remainingSeconds = seconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}'
+        '${remainingSeconds.toString().padLeft(2, '0')}';
   }
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
 import '../../cors/theme/app_colors.dart';
 
 class ChatAppBer extends StatelessWidget implements PreferredSizeWidget {
