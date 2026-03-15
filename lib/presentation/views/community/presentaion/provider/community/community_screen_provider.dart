@@ -53,7 +53,7 @@ class CommunityScreenProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final ApiResponseModel response = await _apiClient.get(
+      final ApiResponseModel response = await _apiClient.post(
         ApiEndpoints.createPost,
       );
 
@@ -84,29 +84,5 @@ class CommunityScreenProvider extends ChangeNotifier {
   }
 
 
-  Future<void> getOtherProfile(String userId)async{
-    _errorMessage =null;
-    _isLoading=true;
-    notifyListeners();
-    try{
-      ApiResponseModel response = await _apiClient.get(ApiEndpoints.getOtherProfile(userId));
-      logger.i("API Success Status: ${response.success}");
-      logger.i("API Message: ${response.message}");
-      logger.d("Raw API Data: ${response.data}");
-      if(response.success){
-
-      }
-    }catch(e, stackTrace){
-      _errorMessage = e.toString();
-
-      logger.e("Exception Occurred");
-      logger.e(e);
-      logger.e(stackTrace);
-
-    }
-
-
-
-  }
 
 }

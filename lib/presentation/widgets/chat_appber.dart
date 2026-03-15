@@ -46,7 +46,21 @@ class ChatAppBer extends StatelessWidget implements PreferredSizeWidget {
                 ),
               ),
               SizedBox(width: 12.w),
-              ClipOval(child: Image.asset(image!)),
+              CircleAvatar(
+                radius: 24, // optional
+                backgroundColor: Colors.grey[800],
+                child: image != null && image!.isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(50),
+                        child: Image.network(
+                          image!,
+                          fit: BoxFit.cover,
+                          width: 48,
+                          height: 48,
+                        ),
+                      )
+                    : Icon(Icons.person, color: Colors.white),
+              ),
               SizedBox(width: 8.w),
 
               Text(

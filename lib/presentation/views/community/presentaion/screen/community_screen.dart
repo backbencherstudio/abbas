@@ -1,3 +1,4 @@
+import 'package:abbas/cors/routes/route_names.dart';
 import 'package:abbas/presentation/views/profile/view_model/profil_screen_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -26,7 +27,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<ProfileScreenProvider>(context);
+    final profileProvider = Provider.of<ProfileScreenProvider>(context);
     return Scaffold(
       body: Column(
         children: [
@@ -75,15 +76,25 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                 children: [
                                   GestureDetector(
                                     onTap: () async {
-                                      debugPrint(
-                                        "THe id autherID ${feed.authorId}",
-                                      );
-                                      debugPrint("THe id ID ${feed.id}");
+                                      final authorId = feed.authorId;
+
+                                      if (authorId != null && authorId.isNotEmpty) {
+                                        await profileProvider.getOtherProfile(authorId);
+
+                                        Navigator.pushNamed(context, RouteNames.othersProfile);
+
+                                        debugPrint("AuthorID: $authorId");
+                                        debugPrint("PostID: ${feed.id}");
+                                      }
                                     },
                                     child: CircleAvatar(
-                                      backgroundImage: NetworkImage(
-                                        feed.author?.avatar ?? "",
-                                      ),
+                                      backgroundImage: (feed.author?.avatar != null &&
+                                          feed.author!.avatar!.isNotEmpty)
+                                          ? NetworkImage(feed.author!.avatar!)
+                                          : null,
+                                      child: (feed.author?.avatar == null || feed.author!.avatar!.isEmpty)
+                                          ? Icon(Icons.person)
+                                          : null,
                                     ),
                                   ),
                                   SizedBox(width: 10),

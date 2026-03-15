@@ -1,75 +1,23 @@
+import 'package:abbas/presentation/views/message/provider/create_chat_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 import '../../../widgets/chat_appber.dart';
 
 class OneTwoOneChatScreen extends StatelessWidget {
   const OneTwoOneChatScreen({super.key});
   @override
   Widget build(BuildContext context) {
+    final createChatProvider = context.watch<CreateChatProvider>();
+    final receiverName =
+        createChatProvider.createConversationModel?.receiverTitle ?? "N/A";
+    final receiverAvatar =
+        createChatProvider.createConversationModel?.avatarUrl ?? "N/A";
     return Scaffold(
       backgroundColor: const Color(0xff030D15),
       body: Column(
         children: [
-          ChatAppBer(title: "Cameron", image: "assets/images/profile.png"),
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
-              children: [
-                _buildMessage(
-                  text: "Hello, Doe",
-                  time: "08:00 am",
-                  isSentByMe: false,
-                ),
-                _buildMessage(
-                  text: "why does my back hurt so much?",
-                  time: "08:00 am",
-                  isSentByMe: false,
-                ),
-                _buildMessage(
-                  text: "Too long. Try drinking lots of water",
-                  time: "08:01 am",
-                  isSentByMe: true,
-                ),
-                _buildMessage(
-                  text:
-                      "Oh like that.\nok doc. I will drink lots of water and\nexercise.",
-                  time: "08:50 am",
-                  isSentByMe: false,
-                ),
-                _buildMessage(
-                  text: "Thanks a lot doc 😊",
-                  time: "08:52 am",
-                  isSentByMe: false,
-                ),
-                _buildMessage(
-                  text: "Don't mention it biby 👍",
-                  time: "08:52 am",
-                  isSentByMe: true,
-                ),
-                _buildMessage(
-                  text: "Too long. Try drinking lots of water",
-                  time: "08:01 am",
-                  isSentByMe: true,
-                ),
-                _buildMessage(
-                  text:
-                      "Oh like that.\nok doc. I will drink lots of water and\nexercise.",
-                  time: "08:50 am",
-                  isSentByMe: false,
-                ),
-                _buildMessage(
-                  text: "Thanks a lot doc 😊",
-                  time: "08:52 am",
-                  isSentByMe: false,
-                ),
-                _buildMessage(
-                  text: "Don't mention it biby 👍",
-                  time: "08:52 am",
-                  isSentByMe: true,
-                ),
-              ],
-            ),
-          ),
+          ChatAppBer(title: receiverName, image: receiverAvatar),
           Padding(
             padding: EdgeInsets.all(16.w),
             child: Row(

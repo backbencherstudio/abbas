@@ -64,6 +64,7 @@ import '../../presentation/views/auth/register/data/SignUpRepositoryImpl.dart';
 import '../../presentation/views/auth/register/domain/signUpRepository.dart';
 import '../../presentation/views/auth/register/domain/signUpUseCase.dart';
 import '../../presentation/views/community/data/community/community_remote_datasource.dart';
+import '../../presentation/views/message/provider/create_chat_provider.dart';
 import '../../presentation/views/profile/view_model/profil_screen_provider.dart';
 import '../services/api_client.dart';
 import '../services/api_services.dart';
@@ -320,4 +321,5 @@ Future<void> configureDependencies() async {
   getIt.registerFactory<ProfileScreenProvider>(() => ProfileScreenProvider());
 
   getIt.registerFactory<CreatePostProvider>(() => CreatePostProvider());
+  getIt.registerFactory<CreateChatProvider>(() => CreateChatProvider());
 }

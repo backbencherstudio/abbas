@@ -1,6 +1,9 @@
+import 'package:abbas/presentation/views/message/provider/create_chat_provider.dart';
+import 'package:abbas/presentation/views/profile/view_model/profil_screen_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 import '../../../../../cors/routes/route_names.dart';
 import '../../../../widgets/custom_bottom_sheet.dart';
 import '../../../../widgets/secondary_appber.dart';
@@ -44,12 +47,22 @@ class OthersProfile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final profileProvider = Provider.of<ProfileScreenProvider>(context);
+    final createChatProvider = Provider.of<CreateChatProvider>(context);
+
+    final data = profileProvider.otherProfileModel?.data;
+    final name = data?.name ?? "N/A";
+    final userName = data?.name ?? "N/A";
+    final email = data?.email ?? "N/A";
+    final about = data?.about ?? "N/A";
+    final userId = data?.id ?? "N/A";
+    final avater = data?.avatar ?? "N/A";
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
           children: [
             SecondaryAppBar(
-              title: 'My Profile',
+              title: 'Other Profile',
               hasButton: true,
               isSearch: true,
             ),
@@ -57,14 +70,18 @@ class OthersProfile extends StatelessWidget {
               padding: EdgeInsets.all(8.w),
               child: Column(
                 children: [
-                  _buildProfileHeader(context),
+                  _buildProfileHeader(context, avater),
                   SizedBox(height: 60.h),
                   Text(
-                    'Jenny Wilson',
-                    style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600),
+                    name,
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
                   ),
                   Text(
-                    '@jenny_wilson',
+                    userName,
                     style: TextStyle(
                       fontSize: 12.sp,
                       fontWeight: FontWeight.w400,
@@ -72,20 +89,17 @@ class OthersProfile extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 15.h),
-                  _buildAboutSection(),
+                  _buildAboutSection(userName, about),
                   SizedBox(height: 16.h),
                   Row(
                     children: [
-                      _buildChatButton(),
+                      _buildChatButton(userId, context, createChatProvider),
                       SizedBox(width: 8.w),
                       GestureDetector(
                         onTap: () {
                           Navigator.pushNamed(context, RouteNames.editProfile);
                         },
-                        child: Image.asset(
-                          'assets/icons/dots.png',
-                          scale: 3.5,
-                        ),
+                        child: Image.asset('assets/icons/dots.png', scale: 3.5),
                       ),
                     ],
                   ),
@@ -100,7 +114,8 @@ class OthersProfile extends StatelessWidget {
       ),
     );
   }
-  Widget _buildProfileHeader(BuildContext context) {
+
+  Widget _buildProfileHeader(BuildContext context, String avater) {
     return Stack(
       alignment: Alignment.bottomCenter,
       children: [
@@ -122,9 +137,7 @@ class OthersProfile extends StatelessWidget {
             ),
             child: CircleAvatar(
               radius: 50.r,
-              backgroundImage: AssetImage(
-                'assets/images/jenny_profile.png',
-              ),
+              backgroundImage: NetworkImage(avater),
             ),
           ),
         ),
@@ -132,8 +145,9 @@ class OthersProfile extends StatelessWidget {
     );
   }
 
-  Widget _buildAboutSection() {
+  Widget _buildAboutSection(String userName, String about) {
     return Container(
+      width: double.infinity,
       margin: EdgeInsets.symmetric(horizontal: 0.w),
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -145,7 +159,7 @@ class OthersProfile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'About Brooklyn',
+            'About $userName',
             style: TextStyle(
               fontSize: 18.sp,
               fontWeight: FontWeight.bold,
@@ -154,7 +168,7 @@ class OthersProfile extends StatelessWidget {
           ),
           SizedBox(height: 8.h),
           Text(
-            'Aspiring actor passionate about stage, screen, and voice performance. Currently training at CINACT to grow my performance skills and creative confidence.',
+            about,
             style: TextStyle(fontSize: 16.sp, color: Color(0xFFD2D2D5)),
           ),
         ],
@@ -162,12 +176,21 @@ class OthersProfile extends StatelessWidget {
     );
   }
 
-  Widget _buildChatButton() {
+  Widget _buildChatButton(
+    String userId,
+    BuildContext context,
+    CreateChatProvider provider,
+  ) {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 4.w),
       width: 280.w,
       child: ElevatedButton.icon(
-        onPressed: () {},
+        onPressed: () async {
+          if (userId != null && userId.isNotEmpty) {
+            await provider.createConversation(userId);
+          } else {}
+          Navigator.pushNamed(context, RouteNames.oneTwoOneChatScreen);
+        },
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF3D4566),
           padding: EdgeInsets.symmetric(vertical: 16.h),
@@ -183,7 +206,11 @@ class OthersProfile extends StatelessWidget {
         ),
         label: Text(
           'Chat',
-          style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500, color: Colors.white),
+          style: TextStyle(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+          ),
         ),
       ),
     );
@@ -299,14 +326,22 @@ class OthersProfile extends StatelessWidget {
                     ),
                   ];
                 },
-                child: Icon(Icons.more_horiz_outlined, color: Colors.white, size: 24.sp),
+                child: Icon(
+                  Icons.more_horiz_outlined,
+                  color: Colors.white,
+                  size: 24.sp,
+                ),
               ),
             ],
           ),
           SizedBox(height: 12.h),
           Text(
             'Behind the scenes of our latest project! The team has been working incredibly hard.',
-            style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w400, color: Colors.white),
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w400,
+              color: Colors.white,
+            ),
           ),
           SizedBox(height: 12.h),
           Container(

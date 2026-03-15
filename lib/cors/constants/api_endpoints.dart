@@ -76,4 +76,9 @@ class ApiEndpoints {
 
   static const String getFeed = '$baseUrl/api/community/feed';
   static const String createPost = '$baseUrl/api/community/post';
+
+
+  // chat
+
+static const String createConversation = '$baseUrl/api/conversations/dm';
 }
