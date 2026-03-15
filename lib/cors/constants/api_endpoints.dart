@@ -81,4 +81,5 @@ class ApiEndpoints {
   // chat
 
 static const String createConversation = '$baseUrl/api/conversations/dm';
+static const String allConversationList = '$baseUrl/api/conversations';
 }
