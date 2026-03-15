@@ -1,6 +1,6 @@
+import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:abbas/presentation/views/auth/view_model/signup_screen_provider.dart';
 import 'package:abbas/utils/app_utils.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -82,7 +82,10 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
                 if (_pinController.text.length == 4) {
                   final result = await ref
                       .read(authProvider.notifier)
-                      .verifyOtp(email: _email, otp: _pinController.text);
+                      .verifyOtp(
+                        email: _email,
+                        otp: _pinController.text.trim(),
+                      );
 
                   if (result.success) {
                     Utils.showToast(
@@ -91,10 +94,15 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
                       textColor: Colors.white,
                     );
                     if (context.mounted) {
+                      logger.d("Otp Email $_email");
+                      logger.d("Otp code ${_pinController.text.trim()}");
                       Navigator.pushNamed(
                         context,
                         RouteNames.setNewPasswordScreen,
-                        arguments: _email,
+                        arguments: {
+                          'email': _email,
+                          'otp': _pinController.text.trim(),
+                        },
                       );
                     }
                   } else {

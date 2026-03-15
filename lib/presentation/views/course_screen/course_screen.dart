@@ -1,4 +1,6 @@
+import 'package:abbas/cors/theme/app_colors.dart';
 import 'package:abbas/presentation/views/course_screen/view_model/get_all_courses_provider.dart';
+import 'package:abbas/presentation/widgets/shimmer_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -26,7 +28,7 @@ class _CourseScreenState extends ConsumerState<CourseScreen> {
     final myCourses = ref.watch(myCourseProvider);
 
     return Scaffold(
-      backgroundColor: Color(0xff030D15),
+      backgroundColor: AppColors.background,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -39,12 +41,12 @@ class _CourseScreenState extends ConsumerState<CourseScreen> {
             child: ListView(
               children: [
                 Padding(
-                  padding: EdgeInsets.only(left: 27),
+                  padding: EdgeInsets.only(left: 16.w),
                   child: Text(
                     "My Courses",
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 16,
+                      fontSize: 16.sp,
                       fontWeight: FontWeight.w400,
                     ),
                   ),
@@ -52,134 +54,102 @@ class _CourseScreenState extends ConsumerState<CourseScreen> {
                 SizedBox(height: 12.h),
 
                 /// ------------------- My Courses Progress Bar ----------------
-                myCourses.when(
-                  loading: () => const Center(
-                    child: CircularProgressIndicator(color: Colors.white),
-                  ),
-
-                  error: (err, stack) => Center(
-                    child: Text(
-                      "Error: $err",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24.sp,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-
-                  data: (data) {
-                    final courses = data?.data?.myCourses ?? [];
-
-                    return Column(
-                      children: [
-                        ...(courses).map(
-                          (course) => Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 27),
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 19,
-                                vertical: 14,
-                              ),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10.r),
-                                gradient: LinearGradient(
-                                  begin: Alignment.topRight,
-                                  end: Alignment.bottomLeft,
-                                  colors: [
-                                    Color(0xff9A1E21),
-                                    Color(0xff0A192A),
-                                  ],
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    offset: Offset(-1, 1),
-                                    color: Color(0xffE9201D),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
+                if (myCourses.isLoading) ...[
+                  shimmerWidget(),
+                ] else ...[
+                  ...(myCourses.value?.data?.myCourses ?? []).map(
+                    (course) => Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.w),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 19,
+                          vertical: 14,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10.r),
+                          gradient: LinearGradient(
+                            begin: Alignment.topRight,
+                            end: Alignment.bottomLeft,
+                            colors: [Color(0xff9A1E21), Color(0xff0A192A)],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              offset: Offset(-1, 1),
+                              color: Color(0xffE9201D),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Image.asset('assets/images/face.png'),
+                            SizedBox(width: 12.w),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Image.asset('assets/images/face.png'),
-                                  SizedBox(width: 12.w),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Text(
-                                              course.title ?? "N/A",
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w500,
-                                                fontSize: 18.sp,
-                                              ),
-                                            ),
-                                            Spacer(),
-                                            IconButton(
-                                              onPressed: () =>
-                                                  Navigator.pushNamed(
-                                                    context,
-                                                    RouteNames.myCourseScreen,
-                                                    arguments: course.id,
-                                                  ),
-                                              icon: Icon(
-                                                Icons.arrow_forward_ios,
-                                              ),
-                                              color: Colors.white,
-                                            ),
-                                          ],
+                                  Row(
+                                    children: [
+                                      Text(
+                                        course.title ?? "N/A",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 18.sp,
                                         ),
-                                        SizedBox(height: 10.h),
-                                        Text(
-                                          course.infoLine ?? "N/A",
-                                          style: TextStyle(
-                                            color: Color(0xffD2D2D5),
-                                            fontSize: 12.sp,
-                                            fontWeight: FontWeight.w400,
-                                          ),
+                                      ),
+                                      Spacer(),
+                                      IconButton(
+                                        onPressed: () => Navigator.pushNamed(
+                                          context,
+                                          RouteNames.myCourseScreen,
+                                          arguments: course.id,
                                         ),
-                                        SizedBox(height: 10.h),
-                                        Text(
-                                          course.progressLabel ?? 'N/A',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                        SizedBox(height: 6.h),
-                                        LinearProgressIndicator(
-                                          value: course.progressPercent
-                                              ?.toDouble(),
-                                          minHeight: 10,
-                                          backgroundColor: Color(0xff212D44),
-                                          color: Color(0xffE9201D),
-                                          borderRadius:
-                                              BorderRadiusDirectional.circular(
-                                                10.r,
-                                              ),
-                                        ),
-                                      ],
+                                        icon: Icon(Icons.arrow_forward_ios),
+                                        color: Colors.white,
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 10.h),
+                                  Text(
+                                    course.infoLine ?? "N/A",
+                                    style: TextStyle(
+                                      color: Color(0xffD2D2D5),
+                                      fontSize: 12.sp,
+                                      fontWeight: FontWeight.w400,
                                     ),
+                                  ),
+                                  SizedBox(height: 10.h),
+                                  Text(
+                                    course.progressLabel ?? 'N/A',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  SizedBox(height: 6.h),
+                                  LinearProgressIndicator(
+                                    value: course.progressPercent?.toDouble(),
+                                    minHeight: 10,
+                                    backgroundColor: Color(0xff212D44),
+                                    color: Color(0xffE9201D),
+                                    borderRadius: BorderRadius.circular(10.r),
                                   ),
                                 ],
                               ),
                             ),
-                          ),
+                          ],
                         ),
-                      ],
-                    );
-                  },
-                ),
+                      ),
+                    ),
+                  ),
+                ],
 
                 SizedBox(height: 12.h),
 
                 /// ---------------------- All Courses -------------------------
                 Padding(
-                  padding: EdgeInsets.only(left: 27),
+                  padding: EdgeInsets.symmetric(horizontal: 16.w),
                   child: Text(
                     textAlign: TextAlign.left,
                     "All Courses",
@@ -214,7 +184,7 @@ class _CourseScreenState extends ConsumerState<CourseScreen> {
 
                 /// ---------------------- Other Courses -----------------------
                 Padding(
-                  padding: EdgeInsets.only(left: 27),
+                  padding: EdgeInsets.symmetric(horizontal: 16.w),
                   child: Text(
                     textAlign: TextAlign.left,
                     "Other Courses",
