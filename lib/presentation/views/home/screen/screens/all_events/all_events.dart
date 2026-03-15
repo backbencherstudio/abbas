@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:intl/intl.dart';
 import '../../../../../../cors/routes/route_names.dart';
 import '../../../../../../cors/theme/app_colors.dart';
 import '../../../../../widgets/secondary_appber.dart';
@@ -22,6 +23,20 @@ class _AllEventsState extends ConsumerState<AllEvents> {
       ref.read(getAllEventsProvider.notifier).getAllEvents();
     });
     super.initState();
+  }
+
+  /// ------------------- Format Created At ------------------------------------
+  String formatCreatedAt(String? createdAt) {
+    if (createdAt == null) return 'N/A';
+    final dateTime = DateTime.parse(createdAt);
+    final formatted = DateFormat('dd-MM-yyyy').format(dateTime);
+    return formatted;
+  }
+
+  /// ------------------------ Convert to ISO ----------------------------------
+  String convertToIso(String date) {
+    final parseDate = DateTime.parse(date);
+    return parseDate.toUtc().toIso8601String();
   }
 
   @override
@@ -43,9 +58,9 @@ class _AllEventsState extends ConsumerState<AllEvents> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SecondaryAppBar(title: 'Upcoming Events'),
-          SizedBox(height: 24.h,),
+          SizedBox(height: 24.h),
           Padding(
-            padding:  EdgeInsets.only(left: 16.w),
+            padding: EdgeInsets.only(left: 16.w),
             child: Text(
               "All Events",
               style: TextStyle(
@@ -57,9 +72,9 @@ class _AllEventsState extends ConsumerState<AllEvents> {
           ),
           Expanded(
             child: Padding(
-              padding:  EdgeInsets.symmetric(horizontal: 16.w),
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: ListView.builder(
-                itemCount: 1,
+                itemCount: allEvents.length,
                 itemBuilder: (context, index) {
                   final event = allEvents[index];
                   return Column(
@@ -75,9 +90,9 @@ class _AllEventsState extends ConsumerState<AllEvents> {
                               AppColors.cardBackground,
                             ],
                           ),
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(14.r),
                         ),
-                        padding: const EdgeInsets.all(16),
+                        padding: EdgeInsets.all(16.r),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -97,19 +112,22 @@ class _AllEventsState extends ConsumerState<AllEvents> {
                                   size: 16.sp,
                                   color: Colors.white,
                                 ),
-                                const SizedBox(width: 6),
+                                SizedBox(width: 6.w),
                                 Text(
-                                  '',
+                                  formatCreatedAt(event?.createdAt),
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 12.sp,
                                   ),
                                 ),
-                                const SizedBox(width: 7),
-                                const Text(' • '),
-                                const SizedBox(width: 7),
+                                SizedBox(width: 7.w),
                                 Text(
-                                  '',
+                                  ' • ',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                SizedBox(width: 7.w),
+                                Text(
+                                  event?.time ?? 'N/A',
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 12.sp,
@@ -117,7 +135,7 @@ class _AllEventsState extends ConsumerState<AllEvents> {
                                 ),
                               ],
                             ),
-                             SizedBox(height: 4.h),
+                            SizedBox(height: 4.h),
                             Row(
                               children: [
                                 Icon(
@@ -125,7 +143,7 @@ class _AllEventsState extends ConsumerState<AllEvents> {
                                   size: 20.sp,
                                   color: Colors.white,
                                 ),
-                                SizedBox(width: 6.h),
+                                SizedBox(width: 6.w),
                                 Text(
                                   event?.location ?? 'N/A',
                                   style: TextStyle(
@@ -135,26 +153,26 @@ class _AllEventsState extends ConsumerState<AllEvents> {
                                 ),
                               ],
                             ),
-                             SizedBox(height: 8.h),
+                            SizedBox(height: 8.h),
                             Text(
                               event?.description ?? 'N/A',
-                              style:  TextStyle(
+                              style: TextStyle(
                                 color: Color(0xFFE5E7EB),
                                 fontSize: 12.sp,
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: 16.h),
                             Row(
                               children: [
                                 Expanded(
                                   child: OutlinedButton(
                                     onPressed: () {},
                                     style: OutlinedButton.styleFrom(
-                                      fixedSize: const Size.fromHeight(56),
+                                      fixedSize: Size.fromHeight(56.h),
                                       foregroundColor: Colors.white,
-                                      side: const BorderSide(
+                                      side: BorderSide(
                                         color: Color(0xFF3D4466),
-                                        width: 2,
+                                        width: 2.w,
                                       ),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(
@@ -171,17 +189,18 @@ class _AllEventsState extends ConsumerState<AllEvents> {
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 14),
+                                SizedBox(width: 14.w),
                                 Expanded(
                                   child: ElevatedButton(
                                     onPressed: () {
                                       Navigator.pushNamed(
                                         context,
                                         RouteNames.eventDetails,
+                                        arguments: event?.id
                                       );
                                     },
                                     style: ElevatedButton.styleFrom(
-                                      fixedSize: const Size.fromHeight(56),
+                                      fixedSize: Size.fromHeight(56.h),
                                       backgroundColor: AppColors.splashRed,
                                       foregroundColor: Colors.white,
                                       shape: RoundedRectangleBorder(
@@ -199,9 +218,12 @@ class _AllEventsState extends ConsumerState<AllEvents> {
                                           'assets/icons/ticket.svg',
                                           height: 16.h,
                                           width: 16.h,
-                                          color: Colors.white,
+                                          colorFilter: const ColorFilter.mode(
+                                            Colors.white,
+                                            BlendMode.srcIn,
+                                          ),
                                         ),
-                                        const SizedBox(width: 6),
+                                        SizedBox(width: 6.w),
                                         Text(
                                           'Get Tickets',
                                           style: TextStyle(

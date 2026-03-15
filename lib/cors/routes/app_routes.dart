@@ -172,7 +172,11 @@ class AppRoutes {
     RouteNames.groupProfileScreen: (context) => GroupProfileScreen(),
     RouteNames.addGroupMember: (context) => AddGroupMember(),
     RouteNames.seeGroupMemberScreen: (context) => SeeGroupMemberScreen(),
-    RouteNames.eventDetails: (context) => EventDetails(),
+    RouteNames.eventDetails: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments;
+      final eventId = args is String ? args : '';
+      return EventDetails(eventId: eventId);
+    },
     RouteNames.completePayment: (context) => CompletePayment(),
     RouteNames.prosHome: (context) => ProsHome(),
     RouteNames.myCourse: (context) => MyCourse(),

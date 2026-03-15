@@ -32,15 +32,20 @@ class GetAllEventsProvider
 
 /// -------------------------- Get Event By Id ---------------------------------
 
+final getEventByIdProvider =
+    StateNotifierProvider<
+      GetEventByIdProvider,
+      AsyncValue<GetEventsByIdModel?>
+    >((ref) => GetEventByIdProvider(dioClient: DioClient()));
+
 class GetEventByIdProvider
     extends StateNotifier<AsyncValue<GetEventsByIdModel?>> {
   DioClient dioClient;
 
   GetEventByIdProvider({required this.dioClient})
-    : super(AsyncValue.data(null));
+    : super(AsyncValue.loading());
 
   Future<void> getEventById(String eventId) async {
-    state = const AsyncValue.loading();
     try {
       final res = await dioClient.getHttp(ApiEndpoints.getEventById(eventId));
       final model = GetEventsByIdModel.fromJson(res);
