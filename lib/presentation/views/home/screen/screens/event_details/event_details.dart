@@ -1,14 +1,54 @@
+import 'package:abbas/presentation/views/home/view_model/events_provider.dart';
+import 'package:abbas/presentation/widgets/shimmer_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
 import '../../../../../../cors/routes/route_names.dart';
 import '../../../../../widgets/primary_button.dart';
 import '../../../../../widgets/secondary_appber.dart';
 
-class EventDetails extends StatelessWidget {
-  const EventDetails({super.key});
+class EventDetails extends ConsumerStatefulWidget {
+  final String eventId;
+
+  const EventDetails({super.key, required this.eventId});
+
+  @override
+  ConsumerState<EventDetails> createState() => _EventDetailsState();
+}
+
+class _EventDetailsState extends ConsumerState<EventDetails> {
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(getEventByIdProvider.notifier).getEventById(widget.eventId);
+    });
+    super.initState();
+  }
+
+  /// ------------------- Format Created At ------------------------------------
+  String formatCreatedAt(String? createdAt) {
+    if (createdAt == null) return 'N/A';
+    final dateTime = DateTime.parse(createdAt);
+    final formatted = DateFormat('dd-MM-yyyy').format(dateTime);
+    return formatted;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final eventDetailsProvider = ref.watch(getEventByIdProvider);
+    final eventDetails = eventDetailsProvider.value;
+    if (eventDetailsProvider.isLoading) {
+      return ListView(
+        children: [
+          shimmerWidget(),
+          SizedBox(height: 12.h),
+          shimmerWidget(),
+          SizedBox(height: 12.h),
+          shimmerWidget(),
+        ],
+      );
+    }
     return Scaffold(
       backgroundColor: Color(0xff030D15),
       body: SingleChildScrollView(
@@ -17,11 +57,11 @@ class EventDetails extends StatelessWidget {
           children: [
             const SecondaryAppBar(title: 'Event Details'),
 
-            SizedBox(height: 20),
+            SizedBox(height: 20.h),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: Container(
-                padding: EdgeInsets.all(13),
+                padding: EdgeInsets.all(16.r),
                 decoration: BoxDecoration(
                   color: Color(0xff1C2C41),
                   borderRadius: BorderRadius.circular(12),
@@ -31,7 +71,7 @@ class EventDetails extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Annual Alumni Meetup",
+                      eventDetails?.name ?? 'N/A',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 18.sp,
@@ -48,7 +88,7 @@ class EventDetails extends StatelessWidget {
                         ),
                         SizedBox(width: 5.w),
                         Text(
-                          "12 July, Monday 󠁯•󠁏󠁏 1:30 PM",
+                          "${formatCreatedAt(eventDetails?.createdAt)} • ${eventDetails?.time}",
                           style: TextStyle(
                             color: Color(0xffE9E9EA),
                             fontSize: 14.sp,
@@ -66,7 +106,8 @@ class EventDetails extends StatelessWidget {
                         ),
                         SizedBox(width: 10.w),
                         Text(
-                          "Main Theater",
+
+                          eventDetails?.location ?? 'N/A',
                           style: TextStyle(
                             color: Color(0xffE9E9EA),
                             fontSize: 14.sp,
@@ -89,7 +130,7 @@ class EventDetails extends StatelessWidget {
                           size: 20,
                         ),
                         Text(
-                          "246",
+                          eventDetails?.amount ?? 'N/A',
                           style: TextStyle(
                             color: Color(0xffE9E9EA),
                             fontSize: 14.sp,
@@ -104,7 +145,7 @@ class EventDetails extends StatelessWidget {
             ),
             SizedBox(height: 18.h),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: Container(
                 padding: EdgeInsets.all(13),
                 decoration: BoxDecoration(
@@ -228,7 +269,7 @@ class EventDetails extends StatelessWidget {
             ),
             SizedBox(height: 18.h),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: Container(
                 width: double.infinity,
                 padding: EdgeInsets.all(13),

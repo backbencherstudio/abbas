@@ -16,12 +16,16 @@ class ApiEndpoints {
       '$baseUrl/api/auth/request-email-change';
   static const String updateProfile = '$baseUrl/api/auth/update';
   static const String getProfile = '$baseUrl/api/auth/me';
+
   static String getOtherProfile(String userId) =>
       '$baseUrl/api/community/profile/$userId';
   static const String editProfile = '$baseUrl/api/auth/update';
 
   //profile
   static const String profileInfo = '/api/auth/me';
+
+  /// -------------------- Home ------------------------------------------------
+  static const String getHomeData = '$baseUrl/api/home';
 
   /// ------------------- Courses ----------------------------------------------
   static String submitAssignment(String assignmentId) =>
@@ -81,5 +85,21 @@ class ApiEndpoints {
   static const String createConversation = '$baseUrl/api/conversations/dm';
   static const String allConversationList = '$baseUrl/api/conversations';
   static String dmAllMessage(String conversationId, int cursor, int limit) =>
-      '$baseUrl/api/conversations/$conversationId/messages?cursor=$cursor&limit=$limit';
+      '$baseUrl/api/conversations/$conversationId/messages?cursor=&limit=$limit';
+
+  static String dmSendMessage(String conversationId) =>
+      '$baseUrl/api/conversations/$conversationId/messages';
+
+  //call
+  static String startCall(String conversationId) =>
+      '$baseUrl/api/rtc/conversations/$conversationId/start';
+
+  static String joinCall(String conversationId) =>
+      '$baseUrl/api/rtc/conversations/$conversationId/join';
+
+  static String endCall(String conversationId) =>
+      '$baseUrl/api/rtc/conversations/$conversationId/join';
+  static const String rtcHealth =
+      '$baseUrl/api/rtc/health';
+
 }

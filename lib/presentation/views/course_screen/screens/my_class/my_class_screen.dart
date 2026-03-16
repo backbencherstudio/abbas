@@ -31,7 +31,7 @@ class _MyClassScreenState extends ConsumerState<MyClassScreen> {
   String formatCreatedAt(String? createdAt){
     if(createdAt == null) return 'N/A';
     final dateTime = DateTime.parse(createdAt);
-    final formatted = DateFormat('dd MM yyyy').format(dateTime);
+    final formatted = DateFormat('dd-MM-yyyy').format(dateTime);
     return formatted;
   }
   

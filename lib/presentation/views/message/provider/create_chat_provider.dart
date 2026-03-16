@@ -1,6 +1,5 @@
 import 'package:abbas/cors/constants/api_endpoints.dart';
 import 'package:abbas/cors/network/api_response_model.dart';
-import 'package:abbas/data/models/response_model.dart';
 import 'package:abbas/presentation/views/message/model/all_conversation_model.dart';
 import 'package:abbas/presentation/views/message/model/create_conversation_model.dart';
 import 'package:flutter/cupertino.dart';
@@ -117,6 +116,30 @@ class CreateChatProvider extends ChangeNotifier {
         logger.i("API Message:========== ${response.message}");
         logger.d("Raw API Data:========= ${response.data}");
         // update cursor for next pagination
+        _cursor += _limit;
+      }
+    } catch (error) {
+      _errorMessage = error.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> dmSendMessage(String conversationId) async {
+    _errorMessage = null;
+    _isLoading = true;
+
+    notifyListeners();
+
+    try {
+      final ApiResponseModel response = await _apiClient.post(
+        ApiEndpoints.dmSendMessage(conversationId),
+      );
+      if (response.success) {
+        logger.i("API Success Status=======: ${response.success}");
+        logger.i("API Message:========== ${response.message}");
+        logger.d("Raw API Data:========= ${response.data}");
         _cursor += _limit;
       }
     } catch (error) {

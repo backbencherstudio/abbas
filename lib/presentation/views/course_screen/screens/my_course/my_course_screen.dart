@@ -1,6 +1,7 @@
 import 'package:abbas/presentation/views/course_screen/screens/my_course/widget/course_widget.dart';
 import 'package:abbas/presentation/views/course_screen/screens/my_course/widget/my_assignment_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../widgets/secondary_appber.dart';
 
@@ -41,11 +42,11 @@ class _MyCourseScreenState extends State<MyCourseScreen> {
                       ),
                       labelColor: Colors.white,
                       unselectedLabelColor: Colors.white54,
-                      labelStyle: const TextStyle(
-                        fontSize: 16,
+                      labelStyle: TextStyle(
+                        fontSize: 16.sp,
                         fontWeight: FontWeight.bold,
                       ),
-                      unselectedLabelStyle: const TextStyle(fontSize: 16),
+                      unselectedLabelStyle: TextStyle(fontSize: 16.sp),
                       tabs: const [
                         Tab(text: "Course"),
                         Tab(text: "Assignment"),

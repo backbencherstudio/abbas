@@ -8,6 +8,8 @@ import 'package:abbas/data/models/response_model.dart';
 import 'package:abbas/presentation/views/auth/model/auth_model.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
+import '../../../../cors/services/user_id_storage.dart';
+
 final authProvider = StateNotifierProvider<AuthProvider, AuthModel>(
   (ref) => AuthProvider(dioClient: DioClient()),
 );
@@ -45,6 +47,7 @@ class AuthProvider extends StateNotifier<AuthModel> {
   }
 
   final _tokenStorage = TokenStorage();
+  final _userIdStorage = UserIdStorage();
 
   /// -------------------------- Register --------------------------------------
   Future<ResponseModel> register({
@@ -77,10 +80,14 @@ class AuthProvider extends StateNotifier<AuthModel> {
       final res = await dioClient.postHttp(ApiEndpoints.login, body);
       if (res['success']) {
         final token = res['authorization']['access_token'];
+        final userId = res['userId'];
         if (token != null) {
           await _tokenStorage.saveToken(token);
         }
-
+        if (userId != null) {
+          await _userIdStorage.saveUserId(userId);
+        }
+        logger.d("User Id $userId");
         logger.d("Login Token Save $token");
         return ResponseModel(success: true, message: res['message']);
       } else {

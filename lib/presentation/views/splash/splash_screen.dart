@@ -58,7 +58,7 @@ class _SplashScreenState extends State<SplashScreen>
       );
 
       _startAnimationSequence();
-      _fetchAccessToken();
+      //_fetchAccessToken();
 
       final token = await TokenStorage().getToken();
       logger.d("========== Splash Screen $token ===========");
