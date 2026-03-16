@@ -106,6 +106,7 @@ class _EventDetailsState extends ConsumerState<EventDetails> {
                         ),
                         SizedBox(width: 10.w),
                         Text(
+
                           eventDetails?.location ?? 'N/A',
                           style: TextStyle(
                             color: Color(0xffE9E9EA),
