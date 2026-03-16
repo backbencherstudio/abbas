@@ -75,25 +75,36 @@ class ChatAppBer extends StatelessWidget implements PreferredSizeWidget {
               Spacer(),
 
               GestureDetector(
-
-                  onTap: (){
-
-                    if(conId !=null){
-                      debugPrint("The conId $conId");
-                      Navigator.pushNamed(
-                        context,
-                        RouteNames.audioCallScreen,
-                        arguments: conId, // conversationId
-                      );
-                    }else{
-
-                      debugPrint("The conv id not found");
-
-                    }
-                            },
-                  child: Icon(Icons.call, color: Color(0xffE9201D))),
+                onTap: () {
+                  if (conId != null) {
+                    debugPrint("The conId $conId");
+                    Navigator.pushNamed(
+                      context,
+                      RouteNames.audioCallScreen,
+                      arguments: conId, // conversationId
+                    );
+                  } else {
+                    debugPrint("The conv id not found");
+                  }
+                },
+                child: Icon(Icons.call, color: Color(0xffE9201D)),
+              ),
               SizedBox(width: 16),
-              Icon(Icons.videocam_rounded, color: Color(0xffE9201D)),
+              GestureDetector(
+                onTap: () {
+                  if (conId != null) {
+                    debugPrint("The conId $conId");
+                    Navigator.pushNamed(
+                      context,
+                      RouteNames.videoCallScreen,
+                      arguments: conId, // conversationId
+                    );
+                  } else {
+                    debugPrint("The conv id not found");
+                  }
+                },
+                child: Icon(Icons.videocam_rounded, color: Color(0xffE9201D)),
+              ),
               SizedBox(width: 16),
 
               Icon(Icons.report_outlined, color: Color(0xff8D9CDC)),

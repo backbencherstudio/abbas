@@ -46,6 +46,7 @@ import '../../presentation/views/message/screens/new_message_screens.dart';
 import '../../presentation/views/message/screens/one_two_one_chat_screen.dart';
 import '../../presentation/views/message/screens/see_group_member_screen.dart';
 import '../../presentation/views/message/screens/user_profile_screen.dart';
+import '../../presentation/views/message/screens/video_call_screen.dart';
 import '../../presentation/views/onboarding/screen/login_and_signup_screen.dart';
 import '../../presentation/views/onboarding/screen/onboarding_screen.dart';
 import '../../presentation/views/parent/parent_screen.dart';
@@ -158,6 +159,11 @@ class AppRoutes {
     RouteNames.audioCallScreen: (context) {
       final args = ModalRoute.of(context)!.settings.arguments as String;
       return AudioCallScreen(conversationId: args);
+    },
+
+    RouteNames.videoCallScreen: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments as String;
+      return VideoCallScreen(conversationId: args);
     },
     RouteNames.certificate: (context) => const Certificate(),
     RouteNames.supportUser: (context) => const SupportUser(),

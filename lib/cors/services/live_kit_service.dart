@@ -1,9 +1,9 @@
-// live_kit_service.dart
 import 'package:livekit_client/livekit_client.dart';
 import 'package:logger/logger.dart';
 
 class LiveKitService {
-  late Room room;
+  // Make room nullable
+  Room? _room;
   final Logger logger = Logger();
   bool _isConnected = false;
 
@@ -12,6 +12,9 @@ class LiveKitService {
   LocalTrackPublication? _videoPublication;
 
   bool get isConnected => _isConnected;
+
+  // Safe getter for room - returns null if not connected
+  Room? get roomInstance => _room;
 
   /// Connect to a LiveKit room
   Future<void> connectToRoom({
@@ -22,26 +25,26 @@ class LiveKitService {
   }) async {
     try {
       // Initialize room
-      room = Room();
+      _room = Room();
 
       // Set up event listeners
       _setupEventListeners();
 
       // Connect to room
       logger.i("Connecting to room: $roomName at $url");
-      await room.connect(url, token);
+      await _room!.connect(url, token);
       _isConnected = true;
 
       // Publish audio track
-      if (room.localParticipant != null) {
+      if (_room!.localParticipant != null) {
         final audioTrack = await LocalAudioTrack.create();
-        _audioPublication = await room.localParticipant!.publishAudioTrack(audioTrack);
+        _audioPublication = await _room!.localParticipant!.publishAudioTrack(audioTrack);
 
         // Publish video if not audio only
         if (!audioOnly) {
           try {
             final videoTrack = await LocalVideoTrack.createCameraTrack();
-            _videoPublication = await room.localParticipant!.publishVideoTrack(videoTrack);
+            _videoPublication = await _room!.localParticipant!.publishVideoTrack(videoTrack);
           } catch (e) {
             logger.e("Failed to publish video: $e");
           }
@@ -52,13 +55,13 @@ class LiveKitService {
     } catch (e) {
       logger.e("Failed to connect: $e");
       _isConnected = false;
+      _room = null;
       rethrow;
     }
   }
 
   void _setupEventListeners() {
-    // Use the events stream directly
-    room.events.listen((event) {
+    _room?.events.listen((event) {
       if (event is ParticipantConnectedEvent) {
         logger.i("New participant joined: ${event.participant.identity}");
       }
@@ -78,54 +81,45 @@ class LiveKitService {
       if (event is RoomDisconnectedEvent) {
         logger.i("Disconnected from room: ${event.reason}");
         _isConnected = false;
-      }
-
-      if (event is LocalTrackPublishedEvent) {
-        logger.i("Local track published");
-      }
-
-      if (event is LocalTrackUnpublishedEvent) {
-        logger.i("Local track unpublished");
+        _room = null;
       }
     });
   }
 
-  /// Enable/Publish audio
+  /// Enable audio
   Future<void> enableAudio() async {
     try {
-      if (room.localParticipant != null) {
-        if (_audioPublication == null) {
-          final audioTrack = await LocalAudioTrack.create();
-          _audioPublication = await room.localParticipant!.publishAudioTrack(audioTrack);
-        } else {
-          // Unmute the track
-          await _audioPublication!.unmute();
-        }
+      if (_audioPublication != null) {
+        await _audioPublication!.unmute();
+        logger.i("Audio unmuted");
       }
     } catch (e) {
       logger.e("Failed to enable audio: $e");
     }
   }
 
-  /// Disable/Mute audio
+  /// Disable audio
   Future<void> disableAudio() async {
     try {
       if (_audioPublication != null) {
         await _audioPublication!.mute();
+        logger.i("Audio muted");
       }
     } catch (e) {
       logger.e("Failed to disable audio: $e");
     }
   }
 
-  /// Toggle audio mute
+  /// Toggle audio
   Future<void> toggleAudio() async {
     try {
       if (_audioPublication != null) {
         if (_audioPublication!.muted) {
           await _audioPublication!.unmute();
+          logger.i("Audio unmuted");
         } else {
           await _audioPublication!.mute();
+          logger.i("Audio muted");
         }
       }
     } catch (e) {
@@ -136,12 +130,14 @@ class LiveKitService {
   /// Enable video
   Future<void> enableVideo() async {
     try {
-      if (room.localParticipant != null) {
+      if (_room?.localParticipant != null) {
         if (_videoPublication == null) {
           final videoTrack = await LocalVideoTrack.createCameraTrack();
-          _videoPublication = await room.localParticipant!.publishVideoTrack(videoTrack);
+          _videoPublication = await _room!.localParticipant!.publishVideoTrack(videoTrack);
+          logger.i("Video track published");
         } else {
           await _videoPublication!.unmute();
+          logger.i("Video unmuted");
         }
       }
     } catch (e) {
@@ -154,6 +150,7 @@ class LiveKitService {
     try {
       if (_videoPublication != null) {
         await _videoPublication!.mute();
+        logger.i("Video muted");
       }
     } catch (e) {
       logger.e("Failed to disable video: $e");
@@ -163,15 +160,16 @@ class LiveKitService {
   /// Toggle video
   Future<void> toggleVideo() async {
     try {
-      if (room.localParticipant != null) {
+      if (_room?.localParticipant != null) {
         if (_videoPublication == null) {
-          final videoTrack = await LocalVideoTrack.createCameraTrack();
-          _videoPublication = await room.localParticipant!.publishVideoTrack(videoTrack);
+          await enableVideo();
         } else {
           if (_videoPublication!.muted) {
             await _videoPublication!.unmute();
+            logger.i("Video unmuted");
           } else {
             await _videoPublication!.mute();
+            logger.i("Video muted");
           }
         }
       }
@@ -198,11 +196,12 @@ class LiveKitService {
   /// Disconnect from room
   void leaveCall() {
     try {
-      if (_isConnected) {
-        room.disconnect();
+      if (_isConnected && _room != null) {
+        _room!.disconnect();
         _isConnected = false;
         _audioPublication = null;
         _videoPublication = null;
+        _room = null;
         logger.i("Disconnected from room");
       }
     } catch (e) {
