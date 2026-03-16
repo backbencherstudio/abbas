@@ -84,4 +84,22 @@ class ApiEndpoints {
 
   static const String createConversation = '$baseUrl/api/conversations/dm';
   static const String allConversationList = '$baseUrl/api/conversations';
+  static String dmAllMessage(String conversationId, int cursor, int limit) =>
+      '$baseUrl/api/conversations/$conversationId/messages?cursor=&limit=$limit';
+
+  static String dmSendMessage(String conversationId) =>
+      '$baseUrl/api/conversations/$conversationId/messages';
+
+  //call
+  static String startCall(String conversationId) =>
+      '$baseUrl/api/rtc/conversations/$conversationId/start';
+
+  static String joinCall(String conversationId) =>
+      '$baseUrl/api/rtc/conversations/$conversationId/join';
+
+  static String endCall(String conversationId) =>
+      '$baseUrl/api/rtc/conversations/$conversationId/join';
+  static const String rtcHealth =
+      '$baseUrl/api/rtc/health';
+
 }

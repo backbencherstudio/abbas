@@ -5,14 +5,14 @@ import 'package:provider/provider.dart';
 import 'package:abbas/presentation/views/message/provider/create_chat_provider.dart';
 import '../../../widgets/chat_appber.dart';
 
-class OneTwoOneChatScreen extends StatefulWidget {
-  const OneTwoOneChatScreen({super.key});
+class GroupChatScreen extends StatefulWidget {
+  const GroupChatScreen({super.key});
 
   @override
-  State<OneTwoOneChatScreen> createState() => _OneTwoOneChatScreenState();
+  State<GroupChatScreen> createState() => _OneTwoOneChatScreenState();
 }
 
-class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
+class _OneTwoOneChatScreenState extends State<GroupChatScreen> {
   final UserIdStorage _userIdStorage = UserIdStorage();
 
   String? currentUserId;
@@ -61,7 +61,7 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            ChatAppBer(title: "Chat", image: "",conId:conversationId),
+            const ChatAppBer(title: "Chat", image: ""),
             Expanded(
               child: provider.isLoading
                   ? const Center(child: CircularProgressIndicator())
@@ -199,7 +199,6 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
             onTap: () {
               final text = _messageController.text.trim();
               if (text.isNotEmpty) {
-                // TODO: Call your send message API here
                 _messageController.clear();
               }
             },

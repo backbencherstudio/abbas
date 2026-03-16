@@ -15,7 +15,6 @@ class ApiResponseHandle {
     try {
       body = response.body.isNotEmpty ? jsonDecode(response.body) : {};
     } catch (_) {
-      // Return raw body if JSON decode fails
       body = response.body;
     }
 

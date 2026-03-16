@@ -18,6 +18,7 @@ class RouteNames {
   static const String startEnrollment = '/startEnrollment';
   static const String selectCourse = '/selectCourse';
   static const String courseModule = '/courseModule';
+  static const String audioCallScreen = '/audioCallScreen';
 
 
   static const String personalInfoScreen = '/personalInfoScreen';
@@ -60,6 +61,7 @@ class RouteNames {
   static const String newMessageScreens = '/newMessageScreens';
   static const String createGroupScreen = '/createGroupScreen';
   static const String oneTwoOneChatScreen = '/oneTwoOneChatScreen';
+  static const String groupChatScreen = '/groupChatScreen';
   static const String userProfileScreen = '/userProfileScreen';
   static const String groupProfileScreen = '/groupProfileScreen';
   static const String addGroupMember = '/addGroupMember';

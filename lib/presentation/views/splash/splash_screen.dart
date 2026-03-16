@@ -58,13 +58,13 @@ class _SplashScreenState extends State<SplashScreen>
       );
 
       _startAnimationSequence();
-      _fetchAccessToken();
+      //_fetchAccessToken();
 
       final token = await TokenStorage().getToken();
       logger.d("========== Splash Screen $token ===========");
       if (token != null) {
         Future.delayed(const Duration(milliseconds: 1500), () async {
-          Navigator.pushReplacementNamed(context, RouteNames.loginScreen);
+          Navigator.pushReplacementNamed(context, RouteNames.parentScreen);
         });
       } else {
         Navigator.pushReplacementNamed(context, RouteNames.onBoardingScreen);
