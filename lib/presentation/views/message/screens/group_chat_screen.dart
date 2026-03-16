@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:abbas/presentation/views/message/provider/create_chat_provider.dart';
-import '../../../widgets/chat_appber.dart';
 
-class OneTwoOneChatScreen extends StatefulWidget {
-  const OneTwoOneChatScreen({super.key});
+class GroupChatScreen extends StatefulWidget {
+  const GroupChatScreen({super.key});
 
   @override
-  State<OneTwoOneChatScreen> createState() =>
-      _OneTwoOneChatScreenState();
+  State<GroupChatScreen> createState() =>
+      _GroupChatScreenState();
 }
 
-class _OneTwoOneChatScreenState
-    extends State<OneTwoOneChatScreen> {
+class _GroupChatScreenState
+    extends State<GroupChatScreen> {
 
   late String conversationId;
 
+  // 🔥 Replace with your logged-in user id
   final String currentUserId = "YOUR_USER_ID";
 
   @override
@@ -42,31 +42,25 @@ class _OneTwoOneChatScreenState
     final messages =
         provider.dmAllMessageModel?.items ?? [];
 
-    final receiverName =
-        provider.createConversationModel
-            ?.receiverTitle ??
-            "N/A";
-
-    final receiverAvatar =
-        provider.createConversationModel
-            ?.avatarUrl ??
-            "";
-
     return Scaffold(
-      backgroundColor:
-      const Color(0xff030D15),
+      backgroundColor: const Color(0xff030D15),
 
       body: SafeArea(
         child: Column(
           children: [
 
-            /// Top Bar
-            ChatAppBer(
-              title: receiverName,
-              image: receiverAvatar,
+            const SizedBox(height: 10),
+
+            const Text(
+              "Group Chat",
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
             ),
 
-            /// Messages
+            /// Messages List
             Expanded(
               child: provider.isLoading
                   ? const Center(
@@ -99,14 +93,16 @@ class _OneTwoOneChatScreenState
                     time: time,
                     isSentByMe:
                     isSentByMe,
+                    senderName:
+                    msg.sender.name,
+                    avatar:
+                    msg.sender.avatar,
                   );
                 },
               ),
             ),
 
-            /// Input Field
             _messageInput(),
-
           ],
         ),
       ),
@@ -118,6 +114,8 @@ class _OneTwoOneChatScreenState
     required String text,
     required String time,
     required bool isSentByMe,
+    required String senderName,
+    required String avatar,
   }) {
     return Align(
       alignment: isSentByMe
@@ -138,6 +136,16 @@ class _OneTwoOneChatScreenState
           crossAxisAlignment:
           CrossAxisAlignment.start,
           children: [
+
+            /// Sender Name (for group)
+            if (!isSentByMe)
+              Text(
+                senderName,
+                style: const TextStyle(
+                  color: Colors.grey,
+                  fontSize: 12,
+                ),
+              ),
 
             Text(
               text,
@@ -160,7 +168,7 @@ class _OneTwoOneChatScreenState
     );
   }
 
-  /// Message Input
+  /// Input Field
   Widget _messageInput() {
     return Padding(
       padding: EdgeInsets.all(12.w),
@@ -190,7 +198,6 @@ class _OneTwoOneChatScreenState
             Icons.send,
             color: Colors.white,
           ),
-
         ],
       ),
     );

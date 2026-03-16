@@ -60,6 +60,7 @@ class RouteNames {
   static const String newMessageScreens = '/newMessageScreens';
   static const String createGroupScreen = '/createGroupScreen';
   static const String oneTwoOneChatScreen = '/oneTwoOneChatScreen';
+  static const String groupChatScreen = '/groupChatScreen';
   static const String userProfileScreen = '/userProfileScreen';
   static const String groupProfileScreen = '/groupProfileScreen';
   static const String addGroupMember = '/addGroupMember';
