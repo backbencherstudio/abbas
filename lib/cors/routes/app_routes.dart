@@ -22,6 +22,7 @@ import '../../presentation/views/course_screen/screens/my_course/my_assignment/d
 import '../../presentation/views/course_screen/screens/my_course/my_assignment/submitted_assignment_screen.dart';
 import '../../presentation/views/course_screen/screens/my_course/my_course_screen.dart';
 import '../../presentation/views/course_screen/screens/other_corses/other_course_screen.dart';
+import '../../presentation/views/course_screen/screens/video_player/video_player_screen.dart';
 import '../../presentation/views/form_fillup_and_rules/screens/course_module/screen/course_module.dart';
 import '../../presentation/views/form_fillup_and_rules/screens/digital_contract/digital_contract_signing.dart';
 import '../../presentation/views/form_fillup_and_rules/screens/fill_enrollment_form/screen/fill_enrollment_form.dart';
@@ -78,13 +79,19 @@ class AppRoutes {
     RouteNames.registerScreen: (context) => const RegisterScreen(),
     RouteNames.forgotPasswordScreen: (context) => const ForgotPasswordScreen(),
     RouteNames.otpVerifyScreen: (context) {
-      final args = ModalRoute.of(context)?.settings.arguments;
+      final args = ModalRoute
+          .of(context)
+          ?.settings
+          .arguments;
       final email = args is String ? args : '';
 
       return OtpVerifyScreen(email: email);
     },
     RouteNames.setNewPasswordScreen: (context) {
-      final args = ModalRoute.of(context)!.settings.arguments as Map;
+      final args = ModalRoute
+          .of(context)!
+          .settings
+          .arguments as Map;
       final email = args['email'];
       final otp = args['otp'];
       logger.d("App Route Email $email");
@@ -95,12 +102,18 @@ class AppRoutes {
     RouteNames.scanner: (context) => const Scanner(),
     RouteNames.otherCourseScreen: (context) => const OtherCourseScreen(),
     RouteNames.myCourseScreen: (context) {
-      final args = ModalRoute.of(context)?.settings.arguments;
+      final args = ModalRoute
+          .of(context)
+          ?.settings
+          .arguments;
       final courseId = args is String ? args : '';
       return MyCourseScreen(courseId: courseId);
     },
     RouteNames.courseModuleScreen: (context) {
-      final args = ModalRoute.of(context)?.settings.arguments;
+      final args = ModalRoute
+          .of(context)
+          ?.settings
+          .arguments;
       final moduleId = args is String ? args : '';
       return CourseModuleScreen(moduleId: moduleId);
     },
@@ -108,36 +121,61 @@ class AppRoutes {
     RouteNames.paymentHistoryScreen: (context) => const PaymentHistory(),
     // RouteNames.editPersonalInfoScreen: (context) =>  const EditPersonalInfoScreen(),
     RouteNames.myClassScreen: (context) {
-      final args = ModalRoute.of(context)!.settings.arguments;
+      final args = ModalRoute
+          .of(context)!
+          .settings
+          .arguments;
       final classId = args is String ? args : '';
       return MyClassScreen(classId: classId);
     },
     RouteNames.dueAssignmentScreen: (context) {
-      final args = ModalRoute.of(context)!.settings.arguments;
+      final args = ModalRoute
+          .of(context)!
+          .settings
+          .arguments;
       final assignmentId = args is String ? args : '';
       return DueAssignmentScreen(assignmentId: assignmentId);
     },
     RouteNames.submittedAssignmentScreen: (context) =>
-        const SubmittedAssignmentScreen(),
-    RouteNames.assetsScreen: (context) => const AssetsScreen(),
+    const SubmittedAssignmentScreen(),
+    RouteNames.assetsScreen: (context) {
+      final args = ModalRoute
+          .of(context)!
+          .settings
+          .arguments;
+      final courseId = args is String ? args : '';
+      return AssetsScreen(courseId: courseId);
+    },
     RouteNames.startEnrollment: (context) => const StartEnrollment(),
     RouteNames.selectCourse: (context) => const SelectCourse(),
     RouteNames.courseModule: (context) {
-      final courseId = ModalRoute.of(context)!.settings.arguments as String;
+      final courseId = ModalRoute
+          .of(context)!
+          .settings
+          .arguments as String;
       return CourseModule(courseId: courseId);
     },
     RouteNames.fillEnrollmentForm: (context) {
-      final courseId = ModalRoute.of(context)!.settings.arguments as String;
+      final courseId = ModalRoute
+          .of(context)!
+          .settings
+          .arguments as String;
       return FillEnrollmentForm(courseId: courseId);
     },
     RouteNames.rulesRegulations: (context) {
-      final args = ModalRoute.of(context)?.settings.arguments;
+      final args = ModalRoute
+          .of(context)
+          ?.settings
+          .arguments;
       final enrollmentId = args is String ? args : '';
 
       return RulesRegulations(enrollmentId: enrollmentId);
     },
     RouteNames.digitalContractSigning: (context) {
-      final args = ModalRoute.of(context)?.settings.arguments;
+      final args = ModalRoute
+          .of(context)
+          ?.settings
+          .arguments;
       final enrollmentId = args is String ? args : '';
       return DigitalContractSigning(enrollmentId: enrollmentId);
     },
@@ -148,15 +186,18 @@ class AppRoutes {
     RouteNames.trackPayment: (context) => const TrackPayment(),
     RouteNames.changeStripe: (context) => const ChangeStripe(),
     RouteNames.contractAndDocumentScreen: (context) =>
-        const ContractDocumentScreen(),
+    const ContractDocumentScreen(),
     RouteNames.accountSettingsScreen: (context) => const AccountSettingScreen(),
     RouteNames.changePassword: (context) => const ChangePassword(),
     RouteNames.feedbackScreen: (context) =>
-        const FeedbackAndCertificatesScreen(),
+    const FeedbackAndCertificatesScreen(),
     RouteNames.feedbackPage: (context) => const FeedbackScreen(),
     RouteNames.helpSupportScreen: (context) => const SupportScreen(),
     RouteNames.audioCallScreen: (context) {
-      final args = ModalRoute.of(context)!.settings.arguments as String;
+      final args = ModalRoute
+          .of(context)!
+          .settings
+          .arguments as String;
       return AudioCallScreen(conversationId: args);
     },
     RouteNames.certificate: (context) => const Certificate(),
@@ -179,7 +220,10 @@ class AppRoutes {
     RouteNames.addGroupMember: (context) => AddGroupMember(),
     RouteNames.seeGroupMemberScreen: (context) => SeeGroupMemberScreen(),
     RouteNames.eventDetails: (context) {
-      final args = ModalRoute.of(context)!.settings.arguments;
+      final args = ModalRoute
+          .of(context)!
+          .settings
+          .arguments;
       final eventId = args is String ? args : '';
       return EventDetails(eventId: eventId);
     },
@@ -190,8 +234,13 @@ class AppRoutes {
     RouteNames.parentScreenTwo: (context) => ParentScreenTwo(),
     RouteNames.allEvents: (context) => AllEvents(),
     RouteNames.editPersonalInfoScreen: (context) => EditPersonalInfoScreen(),
-    RouteNames.videoPlayerScreen: (context) =>
-        VideoPlayerScreen(url: '', title: ''),
+    RouteNames.videoPlayerScreen: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments ;
+      final assetUrl = args is Map ? args['asset_url'] : '';
+      final fileName = args is Map ? args['file_name'] : '';
+      return VideoPlayerScreen(assetUrl: assetUrl, fileName: fileName);
+    }
+    ,
     RouteNames.pdfWidget: (context) => PdfWidget(),
   };
 }

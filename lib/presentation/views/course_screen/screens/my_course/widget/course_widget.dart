@@ -1,3 +1,4 @@
+import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:abbas/presentation/views/course_screen/view_model/get_all_courses_provider.dart';
 import 'package:abbas/presentation/widgets/shimmer_widget.dart';
 import 'package:dotted_border/dotted_border.dart';
@@ -46,7 +47,6 @@ class _CourseWidgetState extends ConsumerState<CourseWidget> {
       final end = DateFormat('HH:mm').parse(parts[1]);
       final formattedStart = DateFormat('h:mm a').format(start);
       final formattedEnd = DateFormat('h:mm a').format(end);
-
 
       return '$formattedStart - $formattedEnd';
     } catch (e) {
@@ -176,7 +176,7 @@ class _CourseWidgetState extends ConsumerState<CourseWidget> {
                           ),
                           SizedBox(width: 7.w),
                           Text(
-                            formatClassTime(nextClassData?.classTime ?? 'N/A') ,
+                            formatClassTime(nextClassData?.classTime ?? 'N/A'),
                             style: TextStyle(
                               fontSize: 14.sp,
                               color: Colors.white,
@@ -212,7 +212,7 @@ class _CourseWidgetState extends ConsumerState<CourseWidget> {
                               style: OutlinedButton.styleFrom(
                                 padding: EdgeInsets.symmetric(
                                   horizontal: 32.w,
-                                  vertical: 7.h,
+                                  vertical: 16.h,
                                 ),
                                 side: const BorderSide(
                                   color: Color(0xFF3D4566),
@@ -221,29 +221,24 @@ class _CourseWidgetState extends ConsumerState<CourseWidget> {
                                   borderRadius: BorderRadius.circular(12.r),
                                 ),
                               ),
-                              onPressed: () => Navigator.pushNamed(
-                                context,
-                                RouteNames.assetsScreen,
-                              ),
+                              onPressed: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  RouteNames.assetsScreen,
+                                  arguments: data?.data?.id,
+                                );
+                              },
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   SvgPicture.asset('assets/icons/folder.svg'),
                                   SizedBox(width: 4.w),
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.pushNamed(
-                                        context,
-                                        RouteNames.assetsScreen,
-                                      );
-                                    },
-                                    child: Text(
-                                      "Assets",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 14.sp,
-                                        fontWeight: FontWeight.w500,
-                                      ),
+                                  Text(
+                                    "Assets",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ],

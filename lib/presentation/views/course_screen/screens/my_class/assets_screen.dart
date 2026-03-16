@@ -1,34 +1,56 @@
+import 'package:abbas/cors/routes/route_names.dart';
+import 'package:abbas/cors/theme/app_colors.dart';
 import 'package:abbas/presentation/views/course_screen/screens/my_class/widget/pdf_widget.dart';
-import 'package:chewie/chewie.dart';
+import 'package:abbas/presentation/views/course_screen/view_model/get_all_courses_provider.dart';
+import 'package:abbas/presentation/widgets/shimmer_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:video_player/video_player.dart';
-
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../widgets/secondary_appber.dart';
 
-class AssetsScreen extends StatelessWidget {
-  const AssetsScreen({super.key});
+class AssetsScreen extends ConsumerStatefulWidget {
+  final String courseId;
+
+  const AssetsScreen({super.key, required this.courseId});
+
+  @override
+  ConsumerState<AssetsScreen> createState() => _AssetsScreenState();
+}
+
+class _AssetsScreenState extends ConsumerState<AssetsScreen> {
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref
+          .read(getCourseAssetsProvider.notifier)
+          .getCourseAssets(courseId: widget.courseId);
+    });
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final assets = ref.watch(getCourseAssetsProvider);
+    final data = assets.value;
+    final videosValue = data?.data?.videos ?? [];
+
     return Scaffold(
-      backgroundColor: const Color(0xff030D15),
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           const SecondaryAppBar(title: "Assets"),
+
           Expanded(
             child: DefaultTabController(
               length: 2,
               child: Column(
                 children: [
-                  const SizedBox(height: 10),
-                  Container(
+                  SizedBox(height: 10.h),
+
+                  SizedBox(
                     width: MediaQuery.of(context).size.width * 0.9,
-                    decoration: const BoxDecoration(color: Colors.transparent),
                     child: const TabBar(
-                      tabAlignment: TabAlignment.fill,
-                      indicatorSize: TabBarIndicatorSize.tab,
                       indicatorColor: Colors.red,
                       indicatorWeight: 2,
                       labelColor: Colors.white,
@@ -39,8 +61,139 @@ class AssetsScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const Expanded(
-                    child: TabBarView(children: [VideoWidget(), PdfWidget()]),
+
+                  Expanded(
+                    child: TabBarView(
+                      children: [
+                        /// -------------------- Videos ------------------------
+                        assets.isLoading
+                            ? ListView(
+                                padding: EdgeInsets.all(16.r),
+                                children: [
+                                  shimmerWidget(),
+                                  SizedBox(height: 12.h),
+                                  shimmerWidget(),
+                                ],
+                              )
+                            : data?.data == null
+                            ? Center(
+                                child: Text(
+                                  "No data available",
+                                  style: TextStyle(
+                                    fontSize: 16.sp,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              )
+                            : ListView(
+                                padding: EdgeInsets.all(16.r),
+                                children: videosValue.map((video) {
+                                  return Theme(
+                                    data: Theme.of(context).copyWith(
+                                      dividerColor: Colors.transparent,
+                                      iconTheme: const IconThemeData(color: Colors.white),
+                                    ),
+                                    child: ExpansionTile(
+                                      title: Text(
+                                        '${video.moduleTitle ?? 'N/A'}: ${video.moduleName ?? 'N/A'}',
+                                        style: TextStyle(
+                                          fontSize: 16.sp,
+                                          fontWeight: FontWeight.w500,
+                                          color: const Color(0xffB2B5B8),
+                                        ),
+                                      ),
+
+                                      children: [
+                                        Column(
+                                          children: (video.assets ?? []).map((
+                                            asset,
+                                          ) {
+                                            return Padding(
+                                              padding: EdgeInsets.only(
+                                                bottom: 8.h,
+                                              ),
+
+                                              child: Container(
+                                                height: 60.h,
+                                                width: double.infinity,
+                                                padding: EdgeInsets.all(16.w),
+
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFF101923),
+                                                  borderRadius:
+                                                      BorderRadius.circular(12.r),
+                                                  border: Border(
+                                                    left: BorderSide(
+                                                      color: const Color(
+                                                        0xFF5F6CA0,
+                                                      ),
+                                                      width: 1.5.w,
+                                                    ),
+                                                  ),
+                                                ),
+
+                                                child: Row(
+                                                  children: [
+                                                    SvgPicture.asset(
+                                                      'assets/icons/video_stroke.svg',
+                                                      height: 24.h,
+                                                      width: 24.w,
+                                                    ),
+
+                                                    SizedBox(width: 16.w),
+
+                                                    Expanded(
+                                                      child: Text(
+                                                        asset.fileName ?? 'N/A',
+                                                        style: TextStyle(
+                                                          fontSize: 14.sp,
+                                                          color: Colors.white,
+                                                          fontWeight:
+                                                              FontWeight.w400,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                        ),
+                                                      ),
+                                                    ),
+
+                                                    IconButton(
+                                                      onPressed: () {
+                                                        Navigator.pushNamed(
+                                                          context,
+                                                          RouteNames
+                                                              .videoPlayerScreen,
+                                                          arguments: {
+                                                            'asset_url':
+                                                                asset.assetUrl,
+                                                            'file_name':
+                                                                asset.fileName,
+                                                          },
+                                                        );
+                                                      },
+                                                      icon: const Icon(
+                                                        Icons.play_arrow_outlined,
+                                                        color: Colors.red,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            );
+                                          }).toList(),
+                                        ),
+
+                                        SizedBox(height: 12.h),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+
+                        /// ---------------- PDF ----------------
+                        PdfWidget(),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -103,377 +256,19 @@ class LediKhadashProtiva extends StatelessWidget {
               ),
               if (hasIcon)
                 isVideo
-                    ? GestureDetector(
-                  onTap: onTap,
-                  child: Icon(
-                    Icons.play_arrow_outlined,
-                    color: Colors.red,
-                    size: 28.h,
-                  ),
-                )
-                    : SvgPicture.asset(
-                  'assets/icons/download.svg',
-                  height: 24.h,
-                  width: 24.w,
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class VideoWidget extends StatelessWidget {
-  const VideoWidget({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-        child: ListView(
-          children: [
-            Text(
-              'Module 1: Personal Development',
-              style: TextStyle(
-                fontSize: 16.sp,
-                fontWeight: FontWeight.w500,
-                color: Color(0xffB2B5B8),
-              ),
-            ),
-            SizedBox(height: 12.h),
-            LediKhadashProtiva(
-              title: "Class-01.mp4",
-              isVideo: true,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => VideoPlayerScreen(
-                      url:
-                      "https://dn720702.ca.archive.org/0/items/fantastic-planet__1973/Fantastic.Planet.1973.DUBBED.REMASTERED.1080p.BluRay.H264.AAC.ia.mp4",
-                      title: "Class-01.mp4",
-                    ),
-                  ),
-                );
-              },
-            ),
-            SizedBox(height: 12.h),
-            LediKhadashProtiva(
-              title: "Class-02.mp4",
-              isVideo: true,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => VideoPlayerScreen(
-                      url:
-                      "https://dn720702.ca.archive.org/0/items/fantastic-planet__1973/Fantastic.Planet.1973.DUBBED.REMASTERED.1080p.BluRay.H264.AAC.ia.mp4",
-                      title: "Class-02.mp4",
-                    ),
-                  ),
-                );
-              },
-            ),
-            SizedBox(height: 12.h),
-            LediKhadashProtiva(
-              title: "Class-03.mp4",
-              isVideo: true,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => VideoPlayerScreen(
-                      url:
-                      "https://dn720702.ca.archive.org/0/items/fantastic-planet__1973/Fantastic.Planet.1973.DUBBED.REMASTERED.1080p.BluRay.H264.AAC.ia.mp4",
-                      title: "Class-03.mp4",
-                    ),
-                  ),
-                );
-              },
-            ),
-            SizedBox(height: 12.h),
-            LediKhadashProtiva(
-              title: "Class-04.mp4",
-              isVideo: true,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => VideoPlayerScreen(
-                      url:
-                      "https://dn720702.ca.archive.org/0/items/fantastic-planet__1973/Fantastic.Planet.1973.DUBBED.REMASTERED.1080p.BluRay.H264.AAC.ia.mp4",
-                      title: "Class-04.mp4",
-                    ),
-                  ),
-                );
-              },
-            ),
-            SizedBox(height: 12.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Module 2: Script Analysis",
-                  style: TextStyle(
-                    color: Color(0xffB2B5B8),
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16.sp,
-                  ),
-                ),
-                Icon(Icons.arrow_drop_down, color: Colors.white),
-              ],
-            ),
-            SizedBox(height: 10.h),
-            Column(
-              spacing: 8.h,
-              children: List.generate(4, (index) {
-                return LediKhadashProtiva(
-                  title: 'Class-0${index + 1}.mp4',
-                  isVideo: true,
-                );
-              }),
-            ),
-          ],
-        ),
-    );
-  }
-}
-
-class VideoPlayerScreen extends StatefulWidget {
-  final String url;
-  final String title;
-
-  const VideoPlayerScreen({super.key, required this.url, required this.title});
-
-  @override
-  State<VideoPlayerScreen> createState() => _VideoPlayerScreenState();
-}
-
-class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
-  late VideoPlayerController _videoPlayerController;
-  late ChewieController _chewieController;
-  bool _showControls = true;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _videoPlayerController = VideoPlayerController.network(widget.url)
-      ..initialize().then((_) {
-        setState(() {});
-      });
-
-    _chewieController = ChewieController(
-      videoPlayerController: _videoPlayerController,
-      autoPlay: true,
-      looping: false,
-      showControls: false,
-    );
-  }
-
-  @override
-  void dispose() {
-    _chewieController.dispose();
-    _videoPlayerController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          SecondaryAppBar(title: 'Videos'),
-          SizedBox(height: 10.h),
-          Padding(
-            padding: const EdgeInsets.only(left: 20.0),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                widget.title,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Stack(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _showControls = !_showControls;
-                      });
-                    },
-                    child: Align(
-                      alignment: Alignment.topCenter,
-                      child: _videoPlayerController.value.isInitialized
-                          ? AspectRatio(
-                        aspectRatio:
-                        _videoPlayerController.value.aspectRatio,
-                        child: Chewie(controller: _chewieController),
+                    ? Icon(
+                        Icons.play_arrow_outlined,
+                        color: Colors.red,
+                        size: 28.h,
                       )
-                          : const CircularProgressIndicator(),
-                    ),
-                  ),
-                  if (_showControls)
-                    Positioned(
-                      bottom: 400,
-                      left: 0,
-                      right: 0,
-                      child:
-                      VideoControls(controller: _videoPlayerController),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class VideoControls extends StatefulWidget {
-  final VideoPlayerController controller;
-
-  const VideoControls({super.key, required this.controller});
-
-  @override
-  State<VideoControls> createState() => _VideoControlsState();
-}
-
-class _VideoControlsState extends State<VideoControls> {
-  late VideoPlayerController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = widget.controller;
-    _controller.addListener(() => setState(() {}));
-  }
-
-  String formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final minutes = twoDigits(duration.inMinutes.remainder(60));
-    final seconds = twoDigits(duration.inSeconds.remainder(60));
-    return '$minutes:$seconds';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final position = _controller.value.position;
-    final duration = _controller.value.duration;
-
-    return Container(
-      color: Colors.black54,
-      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 6),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Slider(
-                  activeColor: Colors.red,
-                  inactiveColor: Colors.grey,
-                  min: 0,
-                  max: duration.inMilliseconds.toDouble(),
-                  value: position.inMilliseconds
-                      .clamp(0, duration.inMilliseconds)
-                      .toDouble(),
-                  onChanged: (value) {
-                    _controller.seekTo(Duration(milliseconds: value.toInt()));
-                  },
-                ),
-              ),
-              Text(
-                formatDuration(position),
-                style: const TextStyle(color: Colors.white, fontSize: 12),
-              ),
-              const Text(
-                ' / ',
-                style: TextStyle(color: Colors.white, fontSize: 12),
-              ),
-              Text(
-                formatDuration(duration),
-                style: const TextStyle(color: Colors.white, fontSize: 12),
-              ),
+                    : SvgPicture.asset(
+                        'assets/icons/download.svg',
+                        height: 24.h,
+                        width: 24.w,
+                      ),
             ],
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                icon: Icon(
-                  _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
-                  color: Colors.white,
-                  size: 20,
-                ),
-                onPressed: () {
-                  if (_controller.value.isPlaying) {
-                    _controller.pause();
-                  } else {
-                    _controller.play();
-                  }
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.replay_10,
-                    color: Colors.white, size: 20),
-                onPressed: () {
-                  final current = _controller.value.position;
-                  _controller.seekTo(current - const Duration(seconds: 10));
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.forward_10,
-                    color: Colors.white, size: 20),
-                onPressed: () {
-                  final current = _controller.value.position;
-                  _controller.seekTo(current + const Duration(seconds: 10));
-                },
-              ),
-              const Spacer(),
-              IconButton(
-                icon: const Icon(Icons.volume_up,
-                    color: Colors.white, size: 20),
-                onPressed: () {
-                  final currentVolume = _controller.value.volume;
-                  _controller.setVolume(currentVolume > 0 ? 0 : 1);
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.mode_comment_outlined,
-                    color: Colors.white, size: 20),
-                onPressed: () {},
-              ),
-              IconButton(
-                icon: const Icon(Icons.zoom_out_map,
-                    color: Colors.white, size: 20),
-                onPressed: () {},
-              ),
-              IconButton(
-                icon:
-                const Icon(Icons.more_vert, color: Colors.white, size: 20),
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('More button pressed')),
-                  );
-                },
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }

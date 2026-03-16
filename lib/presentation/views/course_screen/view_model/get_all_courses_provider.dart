@@ -331,6 +331,11 @@ class GetAssignmentDetailsProvider
 }
 
 /// --------------------- Get Course Assets ------------------------------------
+final getCourseAssetsProvider =
+    StateNotifierProvider<
+      GetCourseAssetsProvider,
+      AsyncValue<GetCourseAssetsModel?>
+    >((ref) => GetCourseAssetsProvider(dioClient: DioClient()));
 
 class GetCourseAssetsProvider
     extends StateNotifier<AsyncValue<GetCourseAssetsModel?>> {

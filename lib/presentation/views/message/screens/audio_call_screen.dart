@@ -28,6 +28,10 @@ class _AudioCallScreenState extends State<AudioCallScreen>
   late AnimationController _pulseAnimation;
   late Animation<double> _pulseAnimationValue;
 
+  // Timer for call duration
+  int _callSeconds = 0;
+  bool _isTimerRunning = false;
+
   @override
   void initState() {
     super.initState();
@@ -51,6 +55,7 @@ class _AudioCallScreenState extends State<AudioCallScreen>
   @override
   void dispose() {
     _pulseAnimation.dispose();
+    _stopTimer();
     if (_hasJoined) {
       Provider.of<CallProvider>(
         context,
@@ -60,10 +65,41 @@ class _AudioCallScreenState extends State<AudioCallScreen>
     super.dispose();
   }
 
+  // Start call timer
+  void _startTimer() {
+    _isTimerRunning = true;
+    _callSeconds = 0;
+    Future.delayed(const Duration(seconds: 1), _tickTimer);
+  }
+
+  void _tickTimer() {
+    if (_isTimerRunning && mounted) {
+      setState(() {
+        _callSeconds++;
+      });
+      Future.delayed(const Duration(seconds: 1), _tickTimer);
+    }
+  }
+
+  void _stopTimer() {
+    _isTimerRunning = false;
+  }
+
+  // Format seconds to MM:SS
+  String _formatDuration(int seconds) {
+    final minutes = seconds ~/ 60;
+    final remainingSeconds = seconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
+  }
+
   Future<void> _initiateCall() async {
     if (!mounted) return;
 
     final provider = Provider.of<CallProvider>(context, listen: false);
+
+    // Print debug info
+    provider.printState();
+
     final success = await provider.startCall(
       widget.conversationId,
       kind: widget.callKind,
@@ -74,63 +110,157 @@ class _AudioCallScreenState extends State<AudioCallScreen>
         _hasJoined = true;
         _isCallActive = true;
       });
+      _startTimer(); // Start timer when call connects
     }
   }
 
   Future<void> _endCall() async {
     _pulseAnimation.stop();
+    _stopTimer();
+
     final provider = Provider.of<CallProvider>(context, listen: false);
+
+    // Show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(color: Colors.white),
+      ),
+    );
+
     await provider.leaveCall(widget.conversationId);
+
     if (mounted) {
-      Navigator.pop(context);
+      Navigator.pop(context); // Remove loading dialog
+      Navigator.pop(context); // Go back to previous screen
     }
+  }
+
+  Future<void> _toggleSpeaker() async {
+    // Implement speaker toggle
+    // You can add this to LiveKitService
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Speaker toggled'),
+        duration: Duration(milliseconds: 500),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<CallProvider>();
 
-    return Scaffold(
-      backgroundColor: const Color(0xff030D15),
-      body: Stack(
-        children: [
-          // Background gradient
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  const Color(0xff030D15),
-                  const Color(0xff1A1F2C).withOpacity(0.9),
-                  const Color(0xff030D15),
-                ],
-              ),
-            ),
-          ),
-
-          // Animated background circles
-          ...List.generate(3, (index) {
-            return Positioned(
-              top: MediaQuery.of(context).size.height * (0.2 + index * 0.15),
-              right: -50.r + (index * 30.r),
-              child: Container(
-                width: 200.r - (index * 30.r),
-                height: 200.r - (index * 30.r),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.blue.withOpacity(0.03 - (index * 0.01)),
+    return WillPopScope(
+      onWillPop: () async {
+        // Prevent back button during call
+        if (provider.isInCall) {
+          _showExitDialog();
+          return false;
+        }
+        return true;
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xff030D15),
+        body: Stack(
+          children: [
+            // Background gradient
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    const Color(0xff030D15),
+                    const Color(0xff1A1F2C).withOpacity(0.9),
+                    const Color(0xff030D15),
+                  ],
                 ),
               ),
-            );
-          }),
+            ),
 
-          SafeArea(
-            child: provider.isLoading
-                ? _buildLoadingState()
-                : provider.errorMessage != null
-                ? _buildErrorState(provider)
-                : _buildCallActiveState(provider),
+            // Animated background circles
+            ...List.generate(3, (index) {
+              return Positioned(
+                top: MediaQuery.of(context).size.height * (0.2 + index * 0.15),
+                right: -50.r + (index * 30.r),
+                child: Container(
+                  width: 200.r - (index * 30.r),
+                  height: 200.r - (index * 30.r),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.blue.withOpacity(0.03 - (index * 0.01)),
+                  ),
+                ),
+              );
+            }),
+
+            SafeArea(
+              child: provider.isLoading
+                  ? _buildLoadingState()
+                  : provider.errorMessage != null
+                  ? _buildErrorState(provider)
+                  : _buildCallActiveState(provider),
+            ),
+
+            // Close button when loading or error
+            if (provider.isLoading || provider.errorMessage != null)
+              Positioned(
+                top: 20.h,
+                left: 20.w,
+                child: IconButton(
+                  icon: Container(
+                    padding: EdgeInsets.all(8.r),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.close,
+                      color: Colors.white,
+                      size: 20.r,
+                    ),
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showExitDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xff1A1F2C),
+        title: Text(
+          'End Call?',
+          style: TextStyle(color: Colors.white, fontSize: 18.sp),
+        ),
+        content: Text(
+          'Are you sure you want to end this call?',
+          style: TextStyle(color: Colors.white70, fontSize: 14.sp),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TextStyle(color: Colors.white70),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _endCall();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            child: const Text('End Call'),
           ),
         ],
       ),
@@ -201,6 +331,16 @@ class _AudioCallScreenState extends State<AudioCallScreen>
               fontSize: 14.sp,
             ),
           ),
+          SizedBox(height: 20.h),
+          // Show connection status
+          // if (provider.currentCallId != null)
+          //   Text(
+          //     "Call ID: ${provider.currentCallId}",
+          //     style: TextStyle(
+          //       color: Colors.white.withOpacity(0.3),
+          //       fontSize: 10.sp,
+          //     ),
+          //   ),
         ],
       ),
     );
@@ -291,13 +431,37 @@ class _AudioCallScreenState extends State<AudioCallScreen>
             padding: EdgeInsets.only(top: 40.h),
             child: Column(
               children: [
-                Text(
-                  "Connected",
-                  style: TextStyle(
-                    color: Colors.green.withOpacity(0.8),
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 1.2,
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 16.w,
+                    vertical: 4.h,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20.r),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8.r,
+                        height: 8.r,
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      SizedBox(width: 8.w),
+                      Text(
+                        "Connected",
+                        style: TextStyle(
+                          color: Colors.green.withOpacity(0.8),
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 SizedBox(height: 8.h),
@@ -368,11 +532,11 @@ class _AudioCallScreenState extends State<AudioCallScreen>
                                 ],
                                 image: widget.callerAvatar != null
                                     ? DecorationImage(
-                                        image: NetworkImage(
-                                          widget.callerAvatar!,
-                                        ),
-                                        fit: BoxFit.cover,
-                                      )
+                                  image: NetworkImage(
+                                    widget.callerAvatar!,
+                                  ),
+                                  fit: BoxFit.cover,
+                                )
                                     : null,
                                 color: widget.callerAvatar == null
                                     ? Colors.blue.withOpacity(0.2)
@@ -380,10 +544,10 @@ class _AudioCallScreenState extends State<AudioCallScreen>
                               ),
                               child: widget.callerAvatar == null
                                   ? Icon(
-                                      Icons.person_rounded,
-                                      color: Colors.white,
-                                      size: 60.r,
-                                    )
+                                Icons.person_rounded,
+                                color: Colors.white,
+                                size: 60.r,
+                              )
                                   : null,
                             ),
                           ),
@@ -423,7 +587,7 @@ class _AudioCallScreenState extends State<AudioCallScreen>
                       border: Border.all(color: Colors.white.withOpacity(0.1)),
                     ),
                     child: Text(
-                      "00:00", // Replace with actual timer
+                      _formatDuration(_callSeconds),
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 32.sp,
@@ -460,7 +624,7 @@ class _AudioCallScreenState extends State<AudioCallScreen>
                   icon: Icons.call_end_rounded,
                   label: "End",
                   color: Colors.red,
-                  onPressed: _endCall,
+                  onPressed: _showExitDialog,
                   isEndCall: true,
                   size: 70.r,
                 ),
@@ -471,9 +635,7 @@ class _AudioCallScreenState extends State<AudioCallScreen>
                   icon: Icons.volume_up_rounded,
                   label: "Speaker",
                   color: Colors.white,
-                  onPressed: () {
-                    // Toggle speaker
-                  },
+                  onPressed: _toggleSpeaker,
                 ),
               ],
             ),
@@ -497,8 +659,8 @@ class _AudioCallScreenState extends State<AudioCallScreen>
         GestureDetector(
           onTap: onPressed,
           child: Container(
-            width: isEndCall ? size + 10.r : size,
-            height: isEndCall ? size + 10.r : size,
+            width: isEndCall ? size + 10.r : size.r,
+            height: isEndCall ? size + 10.r : size.r,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: color.withOpacity(0.15),
@@ -545,13 +707,13 @@ class _AudioCallScreenState extends State<AudioCallScreen>
           gradient: LinearGradient(
             colors: isSecondary
                 ? [
-                    Colors.white.withOpacity(0.05),
-                    Colors.white.withOpacity(0.02),
-                  ]
+              Colors.white.withOpacity(0.05),
+              Colors.white.withOpacity(0.02),
+            ]
                 : [
-                    Colors.blue.withOpacity(0.2),
-                    Colors.purple.withOpacity(0.1),
-                  ],
+              Colors.blue.withOpacity(0.2),
+              Colors.purple.withOpacity(0.1),
+            ],
           ),
           borderRadius: BorderRadius.circular(16.r),
           border: Border.all(

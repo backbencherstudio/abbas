@@ -1,7 +1,7 @@
 class ApiEndpoints {
   ApiEndpoints._();
 
-  static const String baseUrl = 'http://192.168.7.12:4000';
+  static const String baseUrl = 'http://192.168.7.14:4000';
   static const String register = '$baseUrl/api/auth/register';
   static const String login = '$baseUrl/api/auth/login';
   static const String refreshToken = '$baseUrl/api/auth/refresh-token';
@@ -99,6 +99,12 @@ class ApiEndpoints {
 
   static String endCall(String conversationId) =>
       '$baseUrl/api/rtc/conversations/$conversationId/join';
+
+  static String leaveCall(String conversationId) =>
+      '$baseUrl/api/rtc/conversations/$conversationId/leave';
+
+  static String getToken(String conversationId) =>
+      '$baseUrl/api/rtc/conversations/$conversationId/token';
   static const String rtcHealth =
       '$baseUrl/api/rtc/health';
 
