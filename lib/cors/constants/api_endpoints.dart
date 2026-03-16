@@ -1,5 +1,4 @@
 class ApiEndpoints {
-
   ApiEndpoints._();
 
   static const String baseUrl = 'http://192.168.7.12:4000';
@@ -17,11 +16,16 @@ class ApiEndpoints {
       '$baseUrl/api/auth/request-email-change';
   static const String updateProfile = '$baseUrl/api/auth/update';
   static const String getProfile = '$baseUrl/api/auth/me';
-  static  String getOtherProfile(String userId) => '$baseUrl/api/community/profile/$userId';
+
+  static String getOtherProfile(String userId) =>
+      '$baseUrl/api/community/profile/$userId';
   static const String editProfile = '$baseUrl/api/auth/update';
 
   //profile
   static const String profileInfo = '/api/auth/me';
+
+  /// -------------------- Home ------------------------------------------------
+  static const String getHomeData = '$baseUrl/api/home';
 
   /// ------------------- Courses ----------------------------------------------
   static String submitAssignment(String assignmentId) =>
@@ -71,14 +75,13 @@ class ApiEndpoints {
 
   // community
 
-
   static String getEventById(String eventId) => '$baseUrl/api/events/$eventId';
 
   static const String getFeed = '$baseUrl/api/community/feed';
   static const String createPost = '$baseUrl/api/community/post';
 
-
   // chat
 
-static const String createConversation = '$baseUrl/api/conversations/dm';
+  static const String createConversation = '$baseUrl/api/conversations/dm';
+  static const String allConversationList = '$baseUrl/api/conversations';
 }

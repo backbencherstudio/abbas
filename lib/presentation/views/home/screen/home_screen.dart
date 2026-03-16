@@ -13,12 +13,14 @@ import '../../../widgets/custom_appbar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
   late final HomeViewModel vm;
+
   @override
   void initState() {
     super.initState();
@@ -31,7 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return ChangeNotifierProvider.value(
       value: vm,
       child: Consumer<HomeViewModel>(
-        builder: (_, vm, __) {
+        builder: (_, vm, _) {
           if (vm.loading) {
             return const _Shell(
               child: Center(child: CircularProgressIndicator()),
@@ -61,10 +63,31 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: 8),
                         _QuickGrid(
                           items: [
-                            QuickAction(icon: 'qr', label: 'Attendance', onTap: () {  }),
-                            QuickAction(icon: 'book', label: 'My Course', onTap: () { Navigator.pushNamed(context, RouteNames.prosHome); }),
-                            QuickAction(icon: 'note', label: 'Assignments', onTap: () {  }),
-                            QuickAction(icon: 'folder', label: 'Assets', onTap: () {  }),
+                            QuickAction(
+                              icon: 'qr',
+                              label: 'Attendance',
+                              onTap: () {},
+                            ),
+                            QuickAction(
+                              icon: 'book',
+                              label: 'My Course',
+                              onTap: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  RouteNames.prosHome,
+                                );
+                              },
+                            ),
+                            QuickAction(
+                              icon: 'note',
+                              label: 'Assignments',
+                              onTap: () {},
+                            ),
+                            QuickAction(
+                              icon: 'folder',
+                              label: 'Assets',
+                              onTap: () {},
+                            ),
                           ],
                         ),
                         const SizedBox(height: 16),
@@ -105,7 +128,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
 class _Shell extends StatelessWidget {
   final Widget child;
+
   const _Shell({required this.child});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(backgroundColor: AppColors.background, body: child);
@@ -115,7 +140,9 @@ class _Shell extends StatelessWidget {
 class _SectionTitle extends StatelessWidget {
   final String text;
   final String? trailing;
+
   const _SectionTitle(this.text, {this.trailing});
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -132,26 +159,28 @@ class _SectionTitle extends StatelessWidget {
         if (trailing != null)
           Text(
             trailing!,
-            style: const TextStyle(color: Color(0xFF9AA5B1), fontSize: 12),
+            style: TextStyle(
+              color: Color(0xFFDFE1E7),
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w400,
+            ),
           ),
       ],
     );
   }
 }
+
 class QuickAction {
   final String icon;
   final String label;
   final VoidCallback onTap;
 
-  QuickAction({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
+  QuickAction({required this.icon, required this.label, required this.onTap});
 }
 
 class _QuickGrid extends StatelessWidget {
   final List<QuickAction> items;
+
   const _QuickGrid({required this.items});
 
   String _icon(String k) {
@@ -210,17 +239,18 @@ class _QuickGrid extends StatelessWidget {
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: AppColors.borderColor),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SvgPicture.asset(_icon(it.icon), height: 32.h, width: 32.h),
-                const SizedBox(height: 10),
+                SizedBox(height: 10.h),
                 Text(
                   it.label,
-                  style: const TextStyle(
+                  style: TextStyle(
+                    fontSize: 14.sp,
                     color: Colors.white,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -234,6 +264,7 @@ class _QuickGrid extends StatelessWidget {
 
 class _ClassCard extends StatelessWidget {
   final ClassSession item;
+
   const _ClassCard({required this.item});
 
   String _date(DateTime d) {
@@ -271,9 +302,9 @@ class _ClassCard extends StatelessWidget {
           radius: 2,
           colors: [AppColors.splashRed, AppColors.cardBackground],
         ),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(14.r),
       ),
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -285,46 +316,45 @@ class _ClassCard extends StatelessWidget {
               fontSize: 16.sp,
             ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4.h),
           Text(
             'by ${item.teacher}',
             style: TextStyle(color: Color(0xFFEAD8D9), fontSize: 13.sp),
           ),
-          const SizedBox(height: 18),
+          SizedBox(height: 18.h),
           Row(
             children: [
-              const Icon(
+              Icon(
                 Icons.calendar_month_outlined,
-                size: 16,
+                size: 16.sp,
                 color: AppColors.splashRed,
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: 6.w),
               Text(
                 _date(item.dateTime),
                 style: TextStyle(color: Colors.white, fontSize: 12.sp),
               ),
-              const SizedBox(width: 16),
-              const Icon(
+              SizedBox(width: 16.w),
+              Icon(
                 Icons.access_time_outlined,
-                size: 16,
+                size: 16.sp,
                 color: AppColors.splashRed,
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: 6.w),
               Text(
                 _time(item.dateTime),
                 style: TextStyle(color: Colors.white, fontSize: 12.sp),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20.h),
           Row(
             children: [
               Expanded(
                 child: OutlinedButton(
                   onPressed: () {},
                   style: OutlinedButton.styleFrom(
-                    fixedSize: const Size.fromHeight(56),
-                    foregroundColor: Colors.white,
+                    fixedSize:  Size.fromHeight(48.h),
                     side: BorderSide(color: Color(0xFF3D4466), width: 2),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12.r),
@@ -338,28 +368,31 @@ class _ClassCard extends StatelessWidget {
                         'assets/icons/note.svg',
                         height: 16.h,
                         width: 16.h,
-                        color: Colors.white,
+                        colorFilter: const ColorFilter.mode(
+                          Colors.white,
+                          BlendMode.srcIn,
+                        ),
                       ),
-                      const SizedBox(width: 6),
+                      SizedBox(width: 6.w),
                       Text(
                         'Materials',
                         style: TextStyle(
                           fontSize: 14.sp,
-                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(width: 14),
+              SizedBox(width: 14.w),
               Expanded(
                 child: ElevatedButton(
                   onPressed: () {},
                   style: ElevatedButton.styleFrom(
-                    fixedSize: const Size.fromHeight(56),
+                    fixedSize: Size.fromHeight(48.h),
                     backgroundColor: AppColors.splashRed,
-                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12.r),
                     ),
@@ -372,14 +405,18 @@ class _ClassCard extends StatelessWidget {
                         'assets/icons/video.svg',
                         height: 16.h,
                         width: 16.h,
-                        color: Colors.white,
+                        colorFilter: const ColorFilter.mode(
+                          Colors.white,
+                          BlendMode.srcIn,
+                        ),
                       ),
-                      const SizedBox(width: 6),
+                      SizedBox(width: 6.w),
                       Text(
                         'Join Class',
                         style: TextStyle(
                           fontSize: 14.sp,
-                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
@@ -396,24 +433,26 @@ class _ClassCard extends StatelessWidget {
 
 class _AssignmentCard extends StatelessWidget {
   final Assignment item;
+
   const _AssignmentCard({required this.item});
+
   @override
   Widget build(BuildContext context) {
     final days = item.dueAt.difference(DateTime.now()).inDays.abs();
     return Container(
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.borderColor),
+        borderRadius: BorderRadius.circular(14.r),
+        border: Border.all(color: Color(0xFF0A1A29), width: 1.w),
       ),
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: EdgeInsets.all(8.r),
                 decoration: BoxDecoration(
                   color: AppColors.subContainerColor,
                   borderRadius: BorderRadius.circular(8.r),
@@ -422,10 +461,13 @@ class _AssignmentCard extends StatelessWidget {
                   'assets/icons/note.svg',
                   height: 24.h,
                   width: 24.h,
-                  color: AppColors.splashRed,
+                  colorFilter: const ColorFilter.mode(
+                    AppColors.splashRed,
+                    BlendMode.srcIn,
+                  ),
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8.w),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -437,20 +479,20 @@ class _AssignmentCard extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 3),
+                  SizedBox(height: 3.h),
                   Text(
                     '${item.course} • ${item.teacher}',
-                    style: const TextStyle(color: Color(0xFF9AA5B1), fontSize: 12),
-                  )
+                    style: TextStyle(color: Color(0xFF9AA5B1), fontSize: 12.sp),
+                  ),
                 ],
               ),
             ],
           ),
-          SizedBox(height: 16.h,),
+          SizedBox(height: 16.h),
           Row(
             children: [
-              const Icon(Icons.schedule, size: 16, color: Colors.white),
-              const SizedBox(width: 6),
+              Icon(Icons.schedule, size: 16.sp, color: Colors.white),
+              SizedBox(width: 6.w),
               Text(
                 'Due in $days days',
                 style: TextStyle(color: Color(0xFFFFC9A3), fontSize: 12.sp),
@@ -458,16 +500,16 @@ class _AssignmentCard extends StatelessWidget {
               const Spacer(),
             ],
           ),
-          const SizedBox(height: 18),
+          SizedBox(height: 18.h),
           Row(
             children: [
               Expanded(
                 child: OutlinedButton(
                   onPressed: () {},
                   style: OutlinedButton.styleFrom(
-                    fixedSize: const Size.fromHeight(56),
+                    fixedSize: Size.fromHeight(48.h),
                     foregroundColor: Colors.white,
-                    side: BorderSide(color: Color(0xFF3D4466), width: 2),
+                    side: BorderSide(color: Color(0xFF3D4466), width: 2.w),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12.r),
                     ),
@@ -476,20 +518,20 @@ class _AssignmentCard extends StatelessWidget {
                     'View Details',
                     style: TextStyle(
                       fontSize: 14.sp,
-                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 14),
+              SizedBox(width: 14.w),
               SizedBox(
-                width: 180.w,
+                width: 174.w,
                 child: ElevatedButton(
                   onPressed: () {},
                   style: ElevatedButton.styleFrom(
-                    fixedSize: const Size.fromHeight(56),
+                    fixedSize: Size.fromHeight(48.h),
                     backgroundColor: AppColors.white,
-                    foregroundColor: Colors.black,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12.r),
                     ),
@@ -498,7 +540,8 @@ class _AssignmentCard extends StatelessWidget {
                     'Submit Assignment',
                     style: TextStyle(
                       fontSize: 14.sp,
-                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF030C15),
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
@@ -513,7 +556,9 @@ class _AssignmentCard extends StatelessWidget {
 
 class _EventCard extends StatelessWidget {
   final EventItem item;
+
   const _EventCard({required this.item});
+
   @override
   Widget build(BuildContext context) {
     String date(DateTime d) {
@@ -551,7 +596,7 @@ class _EventCard extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(14),
       ),
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16.r),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -563,7 +608,7 @@ class _EventCard extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Row(
             children: [
               Icon(
@@ -571,21 +616,21 @@ class _EventCard extends StatelessWidget {
                 size: 16.sp,
                 color: Colors.white,
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: 6.w),
               Text(
                 date(item.dateTime),
                 style: TextStyle(color: Colors.white, fontSize: 12.sp),
               ),
-              const SizedBox(width: 7),
-              const Text(' • '),
-              const SizedBox(width: 7),
+              SizedBox(width: 7.w),
+              const Text(' • ', style: TextStyle(color: Colors.white)),
+              SizedBox(width: 7.w),
               Text(
                 time(item.dateTime),
                 style: TextStyle(color: Colors.white, fontSize: 12.sp),
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4.h),
           Row(
             children: [
               Icon(
@@ -593,19 +638,19 @@ class _EventCard extends StatelessWidget {
                 size: 20.sp,
                 color: Colors.white,
               ),
-              const SizedBox(width: 6),
+              SizedBox(width: 6.w),
               Text(
                 item.location,
                 style: TextStyle(color: Colors.white, fontSize: 14.sp),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8.h),
           Text(
             item.note,
-            style: const TextStyle(color: Color(0xFFE5E7EB), fontSize: 12),
+            style: TextStyle(color: Color(0xFFE5E7EB), fontSize: 12.sp),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16.h),
           Row(
             children: [
               Expanded(
@@ -632,7 +677,7 @@ class _EventCard extends StatelessWidget {
               Expanded(
                 child: ElevatedButton(
                   onPressed: () {
-                   Navigator.pushNamed(context, RouteNames.allEvents);
+                    Navigator.pushNamed(context, RouteNames.allEvents);
                   },
                   style: ElevatedButton.styleFrom(
                     fixedSize: const Size.fromHeight(56),
@@ -650,9 +695,12 @@ class _EventCard extends StatelessWidget {
                         'assets/icons/ticket.svg',
                         height: 16.h,
                         width: 16.h,
-                        color: Colors.white,
+                        colorFilter: const ColorFilter.mode(
+                          Colors.white,
+                          BlendMode.srcIn,
+                        ),
                       ),
-                      const SizedBox(width: 6),
+                      SizedBox(width: 6.w),
                       Text(
                         'Get Tickets',
                         style: TextStyle(
@@ -665,7 +713,7 @@ class _EventCard extends StatelessWidget {
                 ),
               ),
             ],
-          )
+          ),
         ],
       ),
     );
