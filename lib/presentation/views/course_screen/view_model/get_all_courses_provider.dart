@@ -329,6 +329,10 @@ class GetAssignmentDetailsProvider
   }
 }
 
+/// --------------------- Get Course Assets ------------------------------------
+
+// class GetCourseAssetsProvider extends StateNotifier<AsyncValue<GetCours>>
+
 /// ------------------------- Get Course Details -------------------------------
 
 final getCourseDetailsProvider =
