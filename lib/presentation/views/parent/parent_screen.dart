@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -40,30 +39,31 @@ class _BottomNavBar extends StatelessWidget {
   const _BottomNavBar();
   @override
   Widget build(BuildContext context) {
-    const bg = Color(0xFF131C24);
-    const active = Color(0xFFE33632);
-    const inactive = Color(0xFF8A96A3);
+    //const bg = Color(0xFF131C24);
+    // const active = Color(0xFFE33632);
+    //const inactive = Color(0xFF8A96A3);
 
     final vm = context.watch<ParentViewModel>();
 
     return SafeArea(
       top: false,
-      minimum: const EdgeInsets.only(bottom: 8, left: 16, right: 16),
+      minimum:  EdgeInsets.only(bottom: 8.h, left: 16.w, right: 16.w),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20.r),
         child: Container(
-          height: 84,
+          height: 86.h,
+          padding: EdgeInsets.symmetric(vertical: 20.h),
           decoration: BoxDecoration(
-            color: bg,
-            borderRadius: BorderRadius.circular(24),
+            color: Color(0xFF081421),
+            borderRadius: BorderRadius.circular(20.r),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                height: 2,
-                color: active.withOpacity(0.4),
-              ), // top red line
+              // Container(
+              //   height: 2.h,
+              //   color: active.withValues(alpha: 0.4),
+              // ), // top red line
               Expanded(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -132,24 +132,24 @@ class _Item extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const active = Color(0xFFE33632);
-    const inactive = Color(0xFF8A96A3);
+    const inactive = Color(0xFF5F6CA0);
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: SizedBox(
-        width: 70,
+        width: 60.w,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SvgPicture.asset(isActive ? activeIcon : inactiveIcon, height: 22.h, width: 22.w),
-            const SizedBox(height: 6),
+             SizedBox(height: 6.h),
             Text(
               label,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w500,
                 color: isActive ? active : inactive,
               ),
             ),
