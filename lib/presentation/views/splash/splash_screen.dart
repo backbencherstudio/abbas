@@ -64,7 +64,7 @@ class _SplashScreenState extends State<SplashScreen>
       logger.d("========== Splash Screen $token ===========");
       if (token != null) {
         Future.delayed(const Duration(milliseconds: 1500), () async {
-          Navigator.pushReplacementNamed(context, RouteNames.startEnrollment);
+          Navigator.pushReplacementNamed(context, RouteNames.parentScreen);
         });
       } else {
         Navigator.pushReplacementNamed(context, RouteNames.onBoardingScreen);

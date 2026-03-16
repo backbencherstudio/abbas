@@ -38,7 +38,9 @@ import '../../presentation/views/home/screen/screens/home_for_prospective_studen
 import '../../presentation/views/home/screen/screens/my_course/my_course.dart';
 import '../../presentation/views/home/screen/screens/scanner/scanner.dart';
 import '../../presentation/views/message/screens/add_group_member.dart';
+import '../../presentation/views/message/screens/audio_call_screen.dart';
 import '../../presentation/views/message/screens/create_group_screen.dart';
+import '../../presentation/views/message/screens/group_chat_screen.dart';
 import '../../presentation/views/message/screens/group_profile_screen.dart';
 import '../../presentation/views/message/screens/new_message_screens.dart';
 import '../../presentation/views/message/screens/one_two_one_chat_screen.dart';
@@ -153,7 +155,10 @@ class AppRoutes {
         const FeedbackAndCertificatesScreen(),
     RouteNames.feedbackPage: (context) => const FeedbackScreen(),
     RouteNames.helpSupportScreen: (context) => const SupportScreen(),
-
+    RouteNames.audioCallScreen: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments as String;
+      return AudioCallScreen(conversationId: args);
+    },
     RouteNames.certificate: (context) => const Certificate(),
     RouteNames.supportUser: (context) => const SupportUser(),
     RouteNames.pushNotifications: (context) => const PushNotifications(),
@@ -168,6 +173,7 @@ class AppRoutes {
     RouteNames.newMessageScreens: (context) => NewMessageScreens(),
     RouteNames.createGroupScreen: (context) => CreateGroupScreen(),
     RouteNames.oneTwoOneChatScreen: (context) => OneTwoOneChatScreen(),
+    RouteNames.groupChatScreen: (context) => GroupChatScreen(),
     RouteNames.userProfileScreen: (context) => UserProfileScreen(),
     RouteNames.groupProfileScreen: (context) => GroupProfileScreen(),
     RouteNames.addGroupMember: (context) => AddGroupMember(),

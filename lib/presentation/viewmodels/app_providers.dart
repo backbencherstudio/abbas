@@ -7,6 +7,7 @@ import 'package:provider/single_child_widget.dart';
 import '../../cors/di/injection.dart';
 import '../views/auth/login/presentaion/provider/LoginScreenProvider.dart';
 import '../views/community/presentaion/provider/community/community_screen_provider.dart';
+import '../views/message/provider/call_provider.dart';
 import '../views/message/provider/create_chat_provider.dart';
 import '../views/profile/view_model/profil_screen_provider.dart';
 import 'auth/forgot_password/forgot_password_viewmodel.dart';
@@ -48,5 +49,6 @@ class AppProviders {
     ChangeNotifierProvider(create: (_) => getIt<ProfileScreenProvider>()),
     ChangeNotifierProvider(create: (_) => getIt<CreatePostProvider>()),
     ChangeNotifierProvider(create: (_) => getIt<CreateChatProvider>()),
+    ChangeNotifierProvider(create: (_) => getIt<CallProvider>()),
   ];
 }

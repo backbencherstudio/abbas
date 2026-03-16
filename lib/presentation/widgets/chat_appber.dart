@@ -1,8 +1,10 @@
+import 'package:abbas/cors/routes/route_names.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../cors/theme/app_colors.dart';
 
 class ChatAppBer extends StatelessWidget implements PreferredSizeWidget {
+  final String? conId;
   final String title;
   final bool hasButton;
   final bool isEdit;
@@ -12,6 +14,7 @@ class ChatAppBer extends StatelessWidget implements PreferredSizeWidget {
 
   const ChatAppBer({
     super.key,
+    this.conId,
     required this.title,
     this.hasButton = false,
     this.onEditButtonTap,
@@ -71,7 +74,24 @@ class ChatAppBer extends StatelessWidget implements PreferredSizeWidget {
               ),
               Spacer(),
 
-              Icon(Icons.call, color: Color(0xffE9201D)),
+              GestureDetector(
+
+                  onTap: (){
+
+                    if(conId !=null){
+                      debugPrint("The conId $conId");
+                      Navigator.pushNamed(
+                        context,
+                        RouteNames.audioCallScreen,
+                        arguments: conId, // conversationId
+                      );
+                    }else{
+
+                      debugPrint("The conv id not found");
+
+                    }
+                            },
+                  child: Icon(Icons.call, color: Color(0xffE9201D))),
               SizedBox(width: 16),
               Icon(Icons.videocam_rounded, color: Color(0xffE9201D)),
               SizedBox(width: 16),

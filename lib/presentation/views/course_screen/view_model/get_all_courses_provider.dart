@@ -3,6 +3,7 @@ import 'package:abbas/cors/services/token_storage.dart';
 import 'package:abbas/data/models/response_model.dart';
 import 'package:abbas/presentation/views/course_screen/model/get_assignment_details_model.dart';
 import 'package:abbas/presentation/views/course_screen/model/get_class_details_model.dart';
+import 'package:abbas/presentation/views/course_screen/model/get_course_assets_model.dart';
 import 'package:abbas/presentation/views/course_screen/model/get_module_details_model.dart';
 import 'package:abbas/presentation/views/course_screen/model/get_my_assignments_model.dart';
 import 'package:abbas/presentation/views/course_screen/model/my_course_details_model.dart';
@@ -331,7 +332,25 @@ class GetAssignmentDetailsProvider
 
 /// --------------------- Get Course Assets ------------------------------------
 
-// class GetCourseAssetsProvider extends StateNotifier<AsyncValue<GetCours>>
+class GetCourseAssetsProvider
+    extends StateNotifier<AsyncValue<GetCourseAssetsModel?>> {
+  DioClient dioClient;
+
+  GetCourseAssetsProvider({required this.dioClient})
+    : super(AsyncValue.loading());
+
+  Future<void> getCourseAssets({required String courseId}) async {
+    try {
+      final res = await dioClient.getHttp(
+        ApiEndpoints.getCourseAssets(courseId),
+      );
+      final model = GetCourseAssetsModel.fromJson(res);
+      state = AsyncValue.data(model);
+    } catch (e, stackTrace) {
+      state = AsyncValue.error(e.toString(), stackTrace);
+    }
+  }
+}
 
 /// ------------------------- Get Course Details -------------------------------
 
