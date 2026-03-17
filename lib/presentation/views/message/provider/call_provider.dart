@@ -89,8 +89,8 @@ class CallProvider extends ChangeNotifier {
           return false;
         }
       } else {
-        _errorMessage = startResponse.message ?? "Failed to start call";
-        logger.e("❌ Start Call Failed: ${_errorMessage}");
+        _errorMessage = startResponse.message ;
+        logger.e("❌ Start Call Failed: $_errorMessage");
         _isLoading = false;
         notifyListeners();
         return false;
@@ -143,8 +143,8 @@ class CallProvider extends ChangeNotifier {
           return false;
         }
       } else {
-        _errorMessage = tokenResponse.message ?? "Failed to get LiveKit token";
-        logger.e("❌ Token Error: ${_errorMessage}");
+        _errorMessage = tokenResponse.message ;
+        logger.e("❌ Token Error: $_errorMessage");
         return false;
       }
     } catch (e) {

@@ -71,11 +71,11 @@ class LiveKitService {
       }
 
       if (event is TrackSubscribedEvent) {
-        logger.i("New track subscribed from: ${event.participant?.identity}");
+        logger.i("New track subscribed from: ${event.participant.identity}");
       }
 
       if (event is TrackUnsubscribedEvent) {
-        logger.i("Track unsubscribed from: ${event.participant?.identity}");
+        logger.i("Track unsubscribed from: ${event.participant.identity}");
       }
 
       if (event is RoomDisconnectedEvent) {

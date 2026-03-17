@@ -11,16 +11,19 @@ class CreateChatProvider extends ChangeNotifier {
   CreateChatProvider() {
     getAllConversation();
   }
+
   final ApiClient _apiClient = ApiClient();
   final Logger logger = Logger();
 
   CreateConversationModel? _createConversationModel;
+
   CreateConversationModel? get createConversationModel =>
       _createConversationModel;
   bool _isLoading = false;
   String? _errorMessage;
 
   bool get isLoading => _isLoading;
+
   String? get errorMessage => _errorMessage;
 
   Future<bool> createConversation(String otherId) async {
@@ -58,6 +61,7 @@ class CreateChatProvider extends ChangeNotifier {
   }
 
   List<AllConversationModel> _allConversationModel = [];
+
   List<AllConversationModel> get allConversationModel => _allConversationModel;
 
   Future<bool> getAllConversation() async {
@@ -92,11 +96,13 @@ class CreateChatProvider extends ChangeNotifier {
   }
 
   int _cursor = 0;
-  int _limit = 20;
+  final int _limit = 20;
 
   int get cursor => _cursor;
+
   int get limit => _limit;
   DmAllMessageModel? _dmAllMessageModel;
+
   DmAllMessageModel? get dmAllMessageModel => _dmAllMessageModel;
 
   Future<void> getDmAllMessageRoom(String conversationId) async {
