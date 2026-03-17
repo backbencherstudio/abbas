@@ -6,7 +6,7 @@ class MyCourseDetailsModel {
 
   MyCourseDetailsModel.fromJson(Map<String, dynamic> json) {
     success = json['success'];
-    data = json['data'] != null ?  Data.fromJson(json['data']) : null;
+    data = json['data'] != null ? Data.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -37,29 +37,30 @@ class Data {
   String? status;
   List<Modules>? modules;
   Instructor? instructor;
-  dynamic nextClass;
+  NextClass? nextClass;
   bool? isEnrolled;
 
-  Data(
-      {this.id,
-        this.createdAt,
-        this.updatedAt,
-        this.startDate,
-        this.title,
-        this.createdBy,
-        this.instructorId,
-        this.fee,
-        this.courseOverview,
-        this.courseModuleDetails,
-        this.installmentProcess,
-        this.seatCapacity,
-        this.classTime,
-        this.duration,
-        this.status,
-        this.modules,
-        this.instructor,
-        this.nextClass,
-        this.isEnrolled});
+  Data({
+    this.id,
+    this.createdAt,
+    this.updatedAt,
+    this.startDate,
+    this.title,
+    this.createdBy,
+    this.instructorId,
+    this.fee,
+    this.courseOverview,
+    this.courseModuleDetails,
+    this.installmentProcess,
+    this.seatCapacity,
+    this.classTime,
+    this.duration,
+    this.status,
+    this.modules,
+    this.instructor,
+    this.nextClass,
+    this.isEnrolled,
+  });
 
   Data.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -80,13 +81,16 @@ class Data {
     if (json['modules'] != null) {
       modules = <Modules>[];
       json['modules'].forEach((v) {
-        modules!.add( Modules.fromJson(v));
+        modules!.add(Modules.fromJson(v));
       });
     }
     instructor = json['instructor'] != null
-        ?  Instructor.fromJson(json['instructor'])
+        ? Instructor.fromJson(json['instructor'])
         : null;
-    nextClass = json['nextClass'];
+
+    nextClass = json['nextClass'] != null
+        ? NextClass.fromJson(json['nextClass'])
+        : null;
     isEnrolled = json['isEnrolled'];
   }
 
@@ -113,7 +117,10 @@ class Data {
     if (instructor != null) {
       data['instructor'] = instructor!.toJson();
     }
-    data['nextClass'] = nextClass;
+    if (nextClass != null) {
+      data['nextClass'] = nextClass!.toJson();
+    }
+
     data['isEnrolled'] = isEnrolled;
     return data;
   }
@@ -162,6 +169,52 @@ class Instructor {
     data['name'] = name;
     data['avatar'] = avatar;
     data['about'] = about;
+    return data;
+  }
+}
+
+class NextClass {
+  String? id;
+  String? classTitle;
+  String? className;
+  String? classOverView;
+  String? duration;
+  String? startDate;
+  String? classTime;
+  String? moduleId;
+
+  NextClass({
+    this.id,
+    this.classTitle,
+    this.className,
+    this.classOverView,
+    this.duration,
+    this.startDate,
+    this.classTime,
+    this.moduleId,
+  });
+
+  NextClass.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    classTitle = json['class_title'];
+    className = json['class_name'];
+    classOverView = json['class_overview'];
+    duration = json['duration'];
+    startDate = json['start_date'];
+    classTime = json['class_time'];
+    moduleId = json['moduleId'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = {};
+    data['id'] = id;
+    data['class_title'] = classTitle;
+    data['class_name'] = className;
+    data['class_overview'] = classOverView;
+    data['duration'] = duration;
+    data['start_date'] = startDate;
+    data['class_time'] = classTime;
+    data['moduleId'] = moduleId;
     return data;
   }
 }

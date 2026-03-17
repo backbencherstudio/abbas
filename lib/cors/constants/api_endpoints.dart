@@ -39,8 +39,8 @@ class ApiEndpoints {
   static String getAssignmentDetails(String assignmentId) =>
       '$baseUrl/api/course/assignments/details/$assignmentId';
 
-  static String getCourseAssets(String assetsId) =>
-      '$baseUrl/api/course/assets/$assetsId';
+  static String getCourseAssets(String courseId) =>
+      '$baseUrl/api/course/assets/$courseId';
 
   static String myCourseDetails(String courseId) =>
       '$baseUrl/api/course/my-course-details/$courseId';

@@ -1,5 +1,6 @@
 import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:abbas/cors/routes/route_names.dart';
+import 'package:abbas/presentation/views/course_screen/screens/my_class/pdf_viewer_screen.dart';
 import 'package:flutter/material.dart';
 import '../../presentation/views/auth/forgot_password/screen/forgot_password_screen.dart';
 import '../../presentation/views/auth/login/presentaion/screen/login_screen.dart';
@@ -22,6 +23,7 @@ import '../../presentation/views/course_screen/screens/my_course/my_assignment/d
 import '../../presentation/views/course_screen/screens/my_course/my_assignment/submitted_assignment_screen.dart';
 import '../../presentation/views/course_screen/screens/my_course/my_course_screen.dart';
 import '../../presentation/views/course_screen/screens/other_corses/other_course_screen.dart';
+import '../../presentation/views/course_screen/screens/video_player/video_player_screen.dart';
 import '../../presentation/views/form_fillup_and_rules/screens/course_module/screen/course_module.dart';
 import '../../presentation/views/form_fillup_and_rules/screens/digital_contract/digital_contract_signing.dart';
 import '../../presentation/views/form_fillup_and_rules/screens/fill_enrollment_form/screen/fill_enrollment_form.dart';
@@ -120,7 +122,11 @@ class AppRoutes {
     },
     RouteNames.submittedAssignmentScreen: (context) =>
         const SubmittedAssignmentScreen(),
-    RouteNames.assetsScreen: (context) => const AssetsScreen(),
+    RouteNames.assetsScreen: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments;
+      final courseId = args is String ? args : '';
+      return AssetsScreen(courseId: courseId);
+    },
     RouteNames.startEnrollment: (context) => const StartEnrollment(),
     RouteNames.selectCourse: (context) => const SelectCourse(),
     RouteNames.courseModule: (context) {
@@ -196,8 +202,18 @@ class AppRoutes {
     RouteNames.parentScreenTwo: (context) => ParentScreenTwo(),
     RouteNames.allEvents: (context) => AllEvents(),
     RouteNames.editPersonalInfoScreen: (context) => EditPersonalInfoScreen(),
-    RouteNames.videoPlayerScreen: (context) =>
-        VideoPlayerScreen(url: '', title: ''),
+    RouteNames.videoPlayerScreen: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments;
+      final assetUrl = args is Map ? args['asset_url'] : '';
+      final fileName = args is Map ? args['file_name'] : '';
+      return VideoPlayerScreen(assetUrl: assetUrl, fileName: fileName);
+    },
     RouteNames.pdfWidget: (context) => PdfWidget(),
+    RouteNames.pdfViewerScreen: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments;
+      final filePath = args is Map ? args['asset_url'] : '';
+      final title = args is Map ? args['file_name'] : '';
+      return PdfViewerScreen(filePath: filePath, title: title);
+    },
   };
 }

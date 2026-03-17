@@ -1,10 +1,11 @@
 import 'package:abbas/presentation/views/course_screen/view_model/get_all_courses_provider.dart';
-import 'package:abbas/presentation/widgets/shimmer_widget.dart';
+import 'package:abbas/presentation/widgets/animated_loading.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:intl/intl.dart';
 import '../../../../../../cors/routes/route_names.dart';
 import '../../../../../../cors/theme/app_colors.dart';
 
@@ -28,39 +29,37 @@ class _CourseWidgetState extends ConsumerState<CourseWidget> {
     super.initState();
   }
 
+  /// ---------------- Formatted Date ------------------------------------------
+  String? formattedDate(String? startDate) {
+    if (startDate == null) return 'N/A';
+    final parseDate = DateTime.parse(startDate);
+    final formatted = DateFormat('dd MMM yyyy').format(parseDate);
+    return formatted;
+  }
+
+  /// ------------------ Format Class Time -------------------------------------
+  String formatClassTime(String? classTime) {
+    if (classTime == null) return 'N/A';
+    try {
+      final parts = classTime.split('_');
+      final start = DateFormat('HH:mm').parse(parts[0]);
+      final end = DateFormat('HH:mm').parse(parts[1]);
+      final formattedStart = DateFormat('h:mm a').format(start);
+      final formattedEnd = DateFormat('h:mm a').format(end);
+
+      return '$formattedStart - $formattedEnd';
+    } catch (e) {
+      return classTime;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final courseDetails = ref.watch(myCourseDetailsProvider);
     final data = courseDetails.value;
     final modules = data?.data?.modules ?? [];
     final instructor = data?.data?.instructor;
-    if (courseDetails.isLoading) {
-      return ListView(
-        children: [
-          shimmerWidget(),
-          shimmerWidget(),
-          shimmerWidget(),
-          shimmerWidget(),
-        ],
-      );
-    } else if (courseDetails.hasError) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.error_outline, size: 24.sp, color: Colors.white),
-          SizedBox(height: 4.h),
-          Text(
-            'Network error : Connection refused',
-            style: TextStyle(
-              fontSize: 16.sp,
-              color: Colors.white,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      );
-    }
+    final nextClassData = data?.data?.nextClass;
     return ListView(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
       children: [
@@ -102,22 +101,47 @@ class _CourseWidgetState extends ConsumerState<CourseWidget> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      if (courseDetails.isLoading) AnimatedLoading(),
+                      if (courseDetails.hasError)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 24.sp,
+                              color: Colors.white,
+                            ),
+                            SizedBox(height: 4.h),
+                            Text(
+                              'Network error : Connection refused',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+
                       Text(
-                        "Class-4: Boost creativity and focus",
+                        "${nextClassData?.classTitle ?? 'N/A'}: ${nextClassData?.className ?? 'N/A'}",
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 16.sp,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      Text(
-                        "Module-1: Personal Development",
-                        style: TextStyle(
-                          color: Color(0xff8D9CDC),
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
+                      ...modules.map((module) {
+                        return Text(
+                          "${module.moduleTitle}: ${module.moduleName}",
+                          style: TextStyle(
+                            color: Color(0xff8D9CDC),
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        );
+                      }),
 
                       SizedBox(height: 16.h),
                       Row(
@@ -129,7 +153,7 @@ class _CourseWidgetState extends ConsumerState<CourseWidget> {
                           ),
                           SizedBox(width: 7.w),
                           Text(
-                            "Monday",
+                            formattedDate(nextClassData?.startDate) ?? 'N/A',
                             style: TextStyle(
                               fontSize: 14.sp,
                               color: Colors.white,
@@ -144,7 +168,7 @@ class _CourseWidgetState extends ConsumerState<CourseWidget> {
                           ),
                           SizedBox(width: 7.w),
                           Text(
-                            "10:00 AM",
+                            formatClassTime(nextClassData?.classTime ?? 'N/A'),
                             style: TextStyle(
                               fontSize: 14.sp,
                               color: Colors.white,
@@ -163,9 +187,9 @@ class _CourseWidgetState extends ConsumerState<CourseWidget> {
                         strokeWidth: 1.5,
                         dashPattern: [6, 5],
                         child: Text(
-                          'Today’s class will start from 11:00 AM.',
+                          'Today’s class will start from ${formatClassTime(nextClassData?.classTime ?? 'N/A')} AM.',
                           style: TextStyle(
-                            fontSize: 14.sp,
+                            fontSize: 13.sp,
                             color: Color(0xffF9C80E),
                             fontWeight: FontWeight.w400,
                           ),
@@ -180,7 +204,7 @@ class _CourseWidgetState extends ConsumerState<CourseWidget> {
                               style: OutlinedButton.styleFrom(
                                 padding: EdgeInsets.symmetric(
                                   horizontal: 32.w,
-                                  vertical: 7.h,
+                                  vertical: 16.h,
                                 ),
                                 side: const BorderSide(
                                   color: Color(0xFF3D4566),
@@ -189,29 +213,24 @@ class _CourseWidgetState extends ConsumerState<CourseWidget> {
                                   borderRadius: BorderRadius.circular(12.r),
                                 ),
                               ),
-                              onPressed: () => Navigator.pushNamed(
-                                context,
-                                RouteNames.assetsScreen,
-                              ),
+                              onPressed: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  RouteNames.assetsScreen,
+                                  arguments: data?.data?.id,
+                                );
+                              },
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   SvgPicture.asset('assets/icons/folder.svg'),
                                   SizedBox(width: 4.w),
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.pushNamed(
-                                        context,
-                                        RouteNames.assetsScreen,
-                                      );
-                                    },
-                                    child: Text(
-                                      "Assets",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 14.sp,
-                                        fontWeight: FontWeight.w500,
-                                      ),
+                                  Text(
+                                    "Assets",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ],
@@ -323,7 +342,7 @@ class _CourseWidgetState extends ConsumerState<CourseWidget> {
           child: Column(
             children: [
               Padding(
-                padding:  EdgeInsets.only(left: 12.w, top: 12.h),
+                padding: EdgeInsets.only(left: 12.w, top: 12.h),
                 child: Row(
                   children: [
                     SvgPicture.asset(

@@ -1,4 +1,5 @@
 import 'package:abbas/presentation/viewmodels/app_providers.dart';
+import 'package:abbas/presentation/views/course_screen/screens/my_class/pdf_viewer_screen.dart';
 import 'package:abbas/presentation/views/course_screen/screens/my_class/widget/pdf_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
