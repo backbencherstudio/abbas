@@ -1,8 +1,8 @@
+import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:abbas/cors/routes/route_names.dart';
 import 'package:abbas/cors/theme/app_colors.dart';
-import 'package:abbas/presentation/views/course_screen/screens/my_class/widget/pdf_widget.dart';
 import 'package:abbas/presentation/views/course_screen/view_model/get_all_courses_provider.dart';
-import 'package:abbas/presentation/widgets/shimmer_widget.dart';
+import 'package:abbas/presentation/widgets/animated_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -34,6 +34,7 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen> {
     final assets = ref.watch(getCourseAssetsProvider);
     final data = assets.value;
     final videosValue = data?.data?.videos ?? [];
+    final pdfsValue = data?.data?.pdfs ?? [];
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -65,16 +66,9 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen> {
                   Expanded(
                     child: TabBarView(
                       children: [
-                        /// -------------------- Videos ------------------------
+                        // -------------------- Videos ------------------------
                         assets.isLoading
-                            ? ListView(
-                                padding: EdgeInsets.all(16.r),
-                                children: [
-                                  shimmerWidget(),
-                                  SizedBox(height: 12.h),
-                                  shimmerWidget(),
-                                ],
-                              )
+                            ? AnimatedLoading()
                             : data?.data == null
                             ? Center(
                                 child: Text(
@@ -92,7 +86,9 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen> {
                                   return Theme(
                                     data: Theme.of(context).copyWith(
                                       dividerColor: Colors.transparent,
-                                      iconTheme: const IconThemeData(color: Colors.white),
+                                      iconTheme: const IconThemeData(
+                                        color: Colors.white,
+                                      ),
                                     ),
                                     child: ExpansionTile(
                                       title: Text(
@@ -103,95 +99,107 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen> {
                                           color: const Color(0xffB2B5B8),
                                         ),
                                       ),
-
-                                      children: [
-                                        Column(
-                                          children: (video.assets ?? []).map((
-                                            asset,
-                                          ) {
-                                            return Padding(
+                                      children: (video.assets ?? [])
+                                          .map(
+                                            (asset) => Padding(
                                               padding: EdgeInsets.only(
                                                 bottom: 8.h,
                                               ),
-
-                                              child: Container(
-                                                height: 60.h,
-                                                width: double.infinity,
-                                                padding: EdgeInsets.all(16.w),
-
-                                                decoration: BoxDecoration(
-                                                  color: const Color(0xFF101923),
-                                                  borderRadius:
-                                                      BorderRadius.circular(12.r),
-                                                  border: Border(
-                                                    left: BorderSide(
-                                                      color: const Color(
-                                                        0xFF5F6CA0,
-                                                      ),
-                                                      width: 1.5.w,
-                                                    ),
-                                                  ),
-                                                ),
-
-                                                child: Row(
-                                                  children: [
-                                                    SvgPicture.asset(
-                                                      'assets/icons/video_stroke.svg',
-                                                      height: 24.h,
-                                                      width: 24.w,
-                                                    ),
-
-                                                    SizedBox(width: 16.w),
-
-                                                    Expanded(
-                                                      child: Text(
-                                                        asset.fileName ?? 'N/A',
-                                                        style: TextStyle(
-                                                          fontSize: 14.sp,
-                                                          color: Colors.white,
-                                                          fontWeight:
-                                                              FontWeight.w400,
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                        ),
-                                                      ),
-                                                    ),
-
-                                                    IconButton(
-                                                      onPressed: () {
-                                                        Navigator.pushNamed(
-                                                          context,
-                                                          RouteNames
-                                                              .videoPlayerScreen,
-                                                          arguments: {
-                                                            'asset_url':
-                                                                asset.assetUrl,
-                                                            'file_name':
-                                                                asset.fileName,
-                                                          },
-                                                        );
-                                                      },
-                                                      icon: const Icon(
-                                                        Icons.play_arrow_outlined,
-                                                        color: Colors.red,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
+                                              child: AssetsWidget(
+                                                title: asset.fileName ?? 'N/A',
+                                                isVideo: true,
+                                                onTap: () {
+                                                  Navigator.pushNamed(
+                                                    context,
+                                                    RouteNames
+                                                        .videoPlayerScreen,
+                                                    arguments: {
+                                                      'asset_url':
+                                                          asset.assetUrl,
+                                                      'file_name':
+                                                          asset.fileName,
+                                                    },
+                                                  );
+                                                },
                                               ),
-                                            );
-                                          }).toList(),
-                                        ),
-
-                                        SizedBox(height: 12.h),
-                                      ],
+                                            ),
+                                          )
+                                          .toList(),
                                     ),
                                   );
                                 }).toList(),
                               ),
 
-                        /// ---------------- PDF ----------------
-                        PdfWidget(),
+                        /// -------------------- PDFs --------------------------
+                        assets.isLoading
+                            ? AnimatedLoading()
+                            : data?.data == null
+                            ? Center(
+                                child: Text(
+                                  "No data available",
+                                  style: TextStyle(
+                                    fontSize: 16.sp,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              )
+                            : ListView(
+                                padding: EdgeInsets.all(16.w),
+                                children: [
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: pdfsValue.map((pdfModule) {
+                                      return Theme(
+                                        data: Theme.of(context).copyWith(
+                                          dividerColor: Colors.transparent,
+                                          iconTheme: const IconThemeData(
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                        child: ExpansionTile(
+                                          title: Text(
+                                            pdfModule.moduleTitle ?? 'Module',
+                                            style: TextStyle(
+                                              color: const Color(0xffB2B5B8),
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 16.sp,
+                                            ),
+                                          ),
+                                          children: (pdfModule.assets ?? [])
+                                              .map(
+                                                (pdfAsset) => Padding(
+                                                  padding: EdgeInsets.only(
+                                                    bottom: 8.h,
+                                                  ),
+                                                  child: AssetsWidget(
+                                                    title:
+                                                        pdfAsset.fileName ??
+                                                        'N/A',
+                                                    isVideo: false,
+                                                    onTap: () {
+                                                      logger.d("Pdf url : ${pdfAsset.assetUrl}");
+                                                      logger.d("Pdf file name : ${pdfAsset.fileName}");
+                                                      Navigator.pushNamed(
+                                                        context,
+                                                        RouteNames.pdfViewerScreen,
+                                                        arguments: {
+                                                          'asset_url': pdfAsset.assetUrl,
+                                                          'file_name': pdfAsset.fileName,
+                                                        },
+                                                      );
+                                                    },
+                                                  ),
+                                                ),
+                                              )
+                                              .toList(),
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ],
+                              ),
                       ],
                     ),
                   ),
@@ -205,8 +213,9 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen> {
   }
 }
 
-class LediKhadashProtiva extends StatelessWidget {
-  const LediKhadashProtiva({
+/// Reusable widget for Videos and PDFs
+class AssetsWidget extends StatelessWidget {
+  const AssetsWidget({
     super.key,
     required this.title,
     this.hasIcon = true,
@@ -231,7 +240,7 @@ class LediKhadashProtiva extends StatelessWidget {
           width: double.infinity,
           padding: EdgeInsets.all(16.w),
           decoration: BoxDecoration(
-            color: const Color(0xFF0D2136),
+            color: const Color(0xFF101923),
             borderRadius: BorderRadius.circular(12.r),
             border: Border(
               left: BorderSide(color: const Color(0xFF5F6CA0), width: 1.5.w),
@@ -250,7 +259,11 @@ class LediKhadashProtiva extends StatelessWidget {
               Expanded(
                 child: Text(
                   title,
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w400,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),

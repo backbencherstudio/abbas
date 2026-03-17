@@ -138,12 +138,12 @@ class LediKhadashProtiva extends StatelessWidget {
             label: 'Open',
             onPressed: () {
               // Open PDF when user taps "Open"
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => PdfViewerScreen(filePath: filePath, title: title),
-                ),
-              );
+              // Navigator.push(
+              //   context,
+              //   MaterialPageRoute(
+              //     builder: (_) => PdfViewerScreen(filePath: filePath, title: title),
+              //   ),
+              // );
             },
           ),
         ),
@@ -214,20 +214,4 @@ class LediKhadashProtiva extends StatelessWidget {
   }
 }
 
-/// 🔹 PDF Viewer screen
-class PdfViewerScreen extends StatelessWidget {
-  const PdfViewerScreen({super.key, required this.filePath, required this.title});
 
-  final String filePath;
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-      ),
-      body: SfPdfViewer.file(File(filePath)),
-    );
-  }
-}

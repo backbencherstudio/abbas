@@ -10,7 +10,7 @@ class AnimatedLoading extends StatelessWidget {
     return Center(
       child: SpinKitCircle(
         color: Colors.white,
-        size: 120.sp,
+        size: 100.sp,
       ),
     );
   }

@@ -1,6 +1,5 @@
-import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:abbas/presentation/views/course_screen/view_model/get_all_courses_provider.dart';
-import 'package:abbas/presentation/widgets/shimmer_widget.dart';
+import 'package:abbas/presentation/widgets/animated_loading.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -61,36 +60,6 @@ class _CourseWidgetState extends ConsumerState<CourseWidget> {
     final modules = data?.data?.modules ?? [];
     final instructor = data?.data?.instructor;
     final nextClassData = data?.data?.nextClass;
-    if (courseDetails.isLoading) {
-      return ListView(
-        children: [
-          shimmerWidget(),
-          SizedBox(height: 12.h),
-          shimmerWidget(),
-          SizedBox(height: 12.h),
-          shimmerWidget(),
-          SizedBox(height: 12.h),
-          shimmerWidget(),
-        ],
-      );
-    } else if (courseDetails.hasError) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.error_outline, size: 24.sp, color: Colors.white),
-          SizedBox(height: 4.h),
-          Text(
-            'Network error : Connection refused',
-            style: TextStyle(
-              fontSize: 16.sp,
-              color: Colors.white,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      );
-    }
     return ListView(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
       children: [
@@ -132,6 +101,29 @@ class _CourseWidgetState extends ConsumerState<CourseWidget> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      if (courseDetails.isLoading) AnimatedLoading(),
+                      if (courseDetails.hasError)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 24.sp,
+                              color: Colors.white,
+                            ),
+                            SizedBox(height: 4.h),
+                            Text(
+                              'Network error : Connection refused',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+
                       Text(
                         "${nextClassData?.classTitle ?? 'N/A'}: ${nextClassData?.className ?? 'N/A'}",
                         style: TextStyle(

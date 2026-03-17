@@ -76,5 +76,5 @@ class RouteNames {
   static const String assetsPdfVideo = '/assetsPdfVideo';
   static const String videoPlayerScreen = '/videoPlayerScreen';
   static const String pdfWidget = '/pdfWidget';
-  static const String lediKhadashProtiva = '/lediKhadashProtiva';
+  static const String pdfViewerScreen = '/pdfViewerScreen';
 }

@@ -42,123 +42,123 @@ class OnboardingScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // Pages
-            PageView.builder(
-              controller: onboardingViewModel.pageController,
-              onPageChanged: onboardingViewModel.onPageChanged,
-              itemCount: pages.length,
-              itemBuilder: (_, index) {
-                final p = pages[index];
-                return OnboardingScreenWidget(
-                  imageAsset: p["image"]!,
-                  title: p["title"]!,
-                  subtitle1: p["subtitle1"]!,
-                  subtitle2: p["subtitle2"]!,
+      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0,),
+      extendBodyBehindAppBar: true,
+      body: Stack(
+        children: [
+          // Pages
+          PageView.builder(
+            controller: onboardingViewModel.pageController,
+            onPageChanged: onboardingViewModel.onPageChanged,
+            itemCount: pages.length,
+            itemBuilder: (_, index) {
+              final p = pages[index];
+              return OnboardingScreenWidget(
+                imageAsset: p["image"]!,
+                title: p["title"]!,
+                subtitle1: p["subtitle1"]!,
+                subtitle2: p["subtitle2"]!,
+              );
+            },
+          ),
+
+          // Skip Button
+          Positioned(
+            top: 48.h,
+            right: 20.w,
+            child: TextButton(
+              onPressed: () => onboardingViewModel.skip(context),  // skip method
+              child: Text(
+                "Skip",
+                style: AppTextStyles.textTheme.titleLarge?.copyWith(
+                  color: AppColors.lightGreyTextColor,
+                ),
+              ),
+            ),
+          ),
+
+          // Dots Indicator
+          Positioned(
+            bottom: 180.h,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: SmoothPageIndicator(
+                controller: onboardingViewModel.pageController,
+                count: pages.length,
+                effect: CustomizableEffect(
+                  spacing: 6.w,
+                  dotDecoration: DotDecoration(
+                    width: 8.w,
+                    height: 8.h,
+                    color: AppColors.greyPurpleTextColor, // inactive
+                    borderRadius: BorderRadius.circular(4.r),
+                  ),
+                  activeDotDecoration: DotDecoration(
+                    width: 18.w,
+                    height: 8.h,
+                    color: AppColors.activeButtonColor, // active (red)
+                    borderRadius: BorderRadius.circular(4.r),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Next / Get Started Button
+          Positioned(
+            bottom: 40.h,
+            left: 24.w,
+            right: 24.w,
+            child: AnimatedBuilder(
+              animation: onboardingViewModel.pageController,
+              builder: (context, _) {
+                final currentPage = onboardingViewModel.pageController.hasClients
+                    ? onboardingViewModel.pageController.page?.round() ?? 0
+                    : 0;
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12.r),
+                    color: currentPage == pages.length - 1
+                        ? AppColors.activeButtonColor // red for last page
+                        : Color(0xff0A1A29), // gray for first pages
+                  ),
+                  child: CustomElevatedButton(
+                    backgroundColor: currentPage == pages.length - 1
+                        ? AppColors.activeButtonColor
+                        : Color(0xff0A1A29),
+                    onPressed: () {
+                      if (currentPage == pages.length - 1) {
+                        Navigator.pushReplacementNamed(
+                            context, RouteNames.loginAndSignUpScreen);
+                      } else {
+                        onboardingViewModel.nextPage();
+                      }
+                    },
+                    text: currentPage == pages.length - 1 ? "Get Started" : "Next",
+                    textStyle: AppTextStyles.textTheme.bodyLarge?.copyWith(
+                      color: currentPage == pages.length - 1
+                          ? Colors.white
+                          : Colors.white,
+                    ),
+                    prefixIcon: null,
+                    suffixIcon: currentPage != pages.length - 1
+                        ? const Icon(
+                      Icons.arrow_forward_ios,
+                      size: 16,
+                      color: Colors.white,
+                    )
+                        : null,
+                  ),
                 );
               },
             ),
-
-            // Skip Button
-            Positioned(
-              top: 16.h,
-              right: 20.w,
-              child: TextButton(
-                onPressed: () => onboardingViewModel.skip(context),  // skip method
-                child: Text(
-                  "Skip",
-                  style: AppTextStyles.textTheme.titleLarge?.copyWith(
-                    color: AppColors.lightGreyTextColor,
-                  ),
-                ),
-              ),
-            ),
-
-            // Dots Indicator
-            Positioned(
-              bottom: 180.h,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: SmoothPageIndicator(
-                  controller: onboardingViewModel.pageController,
-                  count: pages.length,
-                  effect: CustomizableEffect(
-                    spacing: 6.w,
-                    dotDecoration: DotDecoration(
-                      width: 8.w,
-                      height: 8.h,
-                      color: AppColors.greyPurpleTextColor, // inactive
-                      borderRadius: BorderRadius.circular(4.r),
-                    ),
-                    activeDotDecoration: DotDecoration(
-                      width: 18.w,
-                      height: 8.h,
-                      color: AppColors.activeButtonColor, // active (red)
-                      borderRadius: BorderRadius.circular(4.r),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            // Next / Get Started Button
-            Positioned(
-              bottom: 40.h,
-              left: 24.w,
-              right: 24.w,
-              child: AnimatedBuilder(
-                animation: onboardingViewModel.pageController,
-                builder: (context, _) {
-                  final currentPage = onboardingViewModel.pageController.hasClients
-                      ? onboardingViewModel.pageController.page?.round() ?? 0
-                      : 0;
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12.r),
-                      color: currentPage == pages.length - 1
-                          ? AppColors.activeButtonColor // red for last page
-                          : Color(0xff0A1A29), // gray for first pages
-                    ),
-                    child: CustomElevatedButton(
-                      backgroundColor: currentPage == pages.length - 1
-                          ? AppColors.activeButtonColor
-                          : Color(0xff0A1A29),
-                      onPressed: () {
-                        if (currentPage == pages.length - 1) {
-                          Navigator.pushReplacementNamed(
-                              context, RouteNames.loginAndSignUpScreen);
-                        } else {
-                          onboardingViewModel.nextPage();
-                        }
-                      },
-                      text: currentPage == pages.length - 1 ? "Get Started" : "Next",
-                      textStyle: AppTextStyles.textTheme.bodyLarge?.copyWith(
-                        color: currentPage == pages.length - 1
-                            ? Colors.white
-                            : Colors.white,
-                      ),
-                      prefixIcon: null,
-                      suffixIcon: currentPage != pages.length - 1
-                          ? const Icon(
-                        Icons.arrow_forward_ios,
-                        size: 16,
-                        color: Colors.white,
-                      )
-                          : null,
-                    ),
-                  );
-                },
-              ),
-            ),
+          ),
 
 
-          ],
-        ),
+        ],
       ),
     );
   }

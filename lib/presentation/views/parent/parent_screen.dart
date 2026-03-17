@@ -56,6 +56,7 @@ class _BottomNavBar extends StatelessWidget {
           decoration: BoxDecoration(
             color: Color(0xFF081421),
             borderRadius: BorderRadius.circular(20.r),
+            border: Border(top: BorderSide(color: Color(0xFFE33632),width: 1))
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -140,15 +141,16 @@ class _Item extends StatelessWidget {
       child: SizedBox(
         width: 60.w,
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SvgPicture.asset(isActive ? activeIcon : inactiveIcon, height: 22.h, width: 22.w),
-             SizedBox(height: 6.h),
+            SvgPicture.asset(isActive ? activeIcon : inactiveIcon, height: 20.h, width: 20.w),
+             SizedBox(height: 4.h),
             Text(
               label,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 12.sp,
+                fontSize: 11.sp,
                 fontWeight: FontWeight.w500,
                 color: isActive ? active : inactive,
               ),
