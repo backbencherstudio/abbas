@@ -19,6 +19,7 @@ class RouteNames {
   static const String selectCourse = '/selectCourse';
   static const String courseModule = '/courseModule';
   static const String audioCallScreen = '/audioCallScreen';
+  static const String videoCallScreen = '/videoCallScreen';
 
 
   static const String personalInfoScreen = '/personalInfoScreen';

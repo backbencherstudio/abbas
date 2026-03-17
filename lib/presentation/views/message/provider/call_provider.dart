@@ -50,6 +50,13 @@ class CallProvider extends ChangeNotifier {
     logger.i("   Call Kind: $kind");
 
     try {
+      // First, ensure any previous connection is cleaned up
+      if (liveKitService.isConnected) {
+        logger.i("🔄 Previous LiveKit connection found, disconnecting...");
+        liveKitService.leaveCall();
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
+
       // Step 1: Start the call
       logger.i("📡 Calling start endpoint: ${ApiEndpoints.startCall(conversationId)}");
 
@@ -61,8 +68,7 @@ class CallProvider extends ChangeNotifier {
       logger.i("📨 Start Call Response: ${startResponse.data}");
 
       if (startResponse.success && startResponse.data != null) {
-        // Store callId from response (based on your actual response structure)
-        // Note: Your response might be different, adjust accordingly
+        // Store callId from response
         _currentCallId = startResponse.data!['callId'] ?? startResponse.data!['data']?['callId'];
 
         logger.i("✅ Call started successfully!");
@@ -111,10 +117,7 @@ class CallProvider extends ChangeNotifier {
 
       logger.i("📨 Token Response: ${tokenResponse.data}");
 
-      // Check the response structure from your docs
       if (tokenResponse.success && tokenResponse.data != null) {
-        // According to your docs, the response has "success" and "data" fields
-        // The actual token data is inside "data"
         final tokenData = tokenResponse.data!['data'] ?? tokenResponse.data;
 
         final token = tokenData['token'];
@@ -185,6 +188,13 @@ class CallProvider extends ChangeNotifier {
     logger.i("   Conversation ID: $conversationId");
 
     try {
+      // First, ensure any previous connection is cleaned up
+      if (liveKitService.isConnected) {
+        logger.i("🔄 Previous LiveKit connection found, disconnecting...");
+        liveKitService.leaveCall();
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
+
       // Step 1: Join the call
       logger.i("📡 Calling join endpoint: ${ApiEndpoints.joinCall(conversationId)}");
 
@@ -199,7 +209,7 @@ class CallProvider extends ChangeNotifier {
         logger.i("✅ Successfully joined call");
 
         // Step 2: Get LiveKit token
-        final tokenSuccess = await _getLiveKitToken(conversationId, "AUDIO"); // or VIDEO based on call type
+        final tokenSuccess = await _getLiveKitToken(conversationId, "AUDIO");
 
         if (tokenSuccess) {
           _isInCall = true;
