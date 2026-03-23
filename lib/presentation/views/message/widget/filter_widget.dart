@@ -1,20 +1,20 @@
+import 'package:abbas/presentation/views/message/provider/create_chat_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 
 void filterBottomSheet(BuildContext context) {
-  String? statusValue = 'all';
-  String? dateValue = 'today';
   showModalBottomSheet(
     context: context,
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+      borderRadius: BorderRadius.vertical(top: Radius.circular(25.r)),
     ),
     builder: (BuildContext context) {
       return Container(
         color: Color(0xff07121D),
         width: double.infinity,
-        padding: EdgeInsets.all(16),
-        height: 500,
+        padding: EdgeInsets.all(16.r),
+        height: 500.h,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -26,7 +26,7 @@ void filterBottomSheet(BuildContext context) {
                   "Filter",
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 18,
+                    fontSize: 18.sp,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -51,9 +51,9 @@ void filterBottomSheet(BuildContext context) {
                   ),
                   leading: Radio<String>(
                     value: 'all',
-                    groupValue: statusValue,
+                    groupValue: context.watch<CreateChatProvider>().statusValue,
                     onChanged: (value) {
-                      statusValue = value;
+                      context.read<CreateChatProvider>().toggleStatus(value!);
                     },
                   ),
                 ),
@@ -65,9 +65,9 @@ void filterBottomSheet(BuildContext context) {
                   ),
                   leading: Radio<String>(
                     value: 'active',
-                    groupValue: statusValue,
+                    groupValue: context.watch<CreateChatProvider>().statusValue,
                     onChanged: (value) {
-                      statusValue = value;
+                      context.read<CreateChatProvider>().toggleStatus(value!);
                     },
                   ),
                 ),
@@ -86,9 +86,9 @@ void filterBottomSheet(BuildContext context) {
                   ),
                   leading: Radio<String>(
                     value: 'today',
-                    groupValue: dateValue,
+                    groupValue: context.watch<CreateChatProvider>().dateValue,
                     onChanged: (value) {
-                      dateValue = value;
+                      context.read<CreateChatProvider>().toggleDate(value!);
                     },
                   ),
                 ),
@@ -100,9 +100,9 @@ void filterBottomSheet(BuildContext context) {
                   ),
                   leading: Radio<String>(
                     value: 'yesterday',
-                    groupValue: dateValue,
+                    groupValue: context.watch<CreateChatProvider>().dateValue,
                     onChanged: (value) {
-                      dateValue = value;
+                      context.read<CreateChatProvider>().toggleDate(value!);
                     },
                   ),
                 ),

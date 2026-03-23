@@ -26,6 +26,27 @@ class CreateChatProvider extends ChangeNotifier {
 
   String? get errorMessage => _errorMessage;
 
+  String selectedFilter = 'All';
+
+  void toggleFilter(String value) {
+    selectedFilter = value;
+    notifyListeners();
+  }
+
+  String? statusValue = 'all';
+
+  void toggleStatus(String value) {
+    statusValue = value;
+    notifyListeners();
+  }
+
+  String? dateValue = 'today';
+
+  void toggleDate(String value) {
+    dateValue = value;
+    notifyListeners();
+  }
+
   Future<bool> createConversation(String otherId) async {
     _errorMessage = null;
     _isLoading = true;
@@ -132,15 +153,24 @@ class CreateChatProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> dmSendMessage(String conversationId) async {
+  Future<void> dmSendMessage({
+    required String kind,
+    required String text,
+    required String conversationId,
+  }) async {
     _errorMessage = null;
     _isLoading = true;
 
     notifyListeners();
 
+    var body = {
+      'kind': kind,
+      'content': {'text': text},
+    };
     try {
       final ApiResponseModel response = await _apiClient.post(
         ApiEndpoints.dmSendMessage(conversationId),
+        body: body,
       );
       if (response.success) {
         logger.i("API Success Status=======: ${response.success}");

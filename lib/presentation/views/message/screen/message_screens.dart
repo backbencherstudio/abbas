@@ -9,13 +9,12 @@ import '../model/all_conversation_model.dart';
 
 class MessageScreens extends StatefulWidget {
   const MessageScreens({super.key});
+
   @override
   State<MessageScreens> createState() => _MessageScreensState();
 }
 
 class _MessageScreensState extends State<MessageScreens> {
-  String selectedFilter = 'All';
-
   @override
   void initState() {
     super.initState();
@@ -32,7 +31,7 @@ class _MessageScreensState extends State<MessageScreens> {
 
     /// Filter conversations
     final filteredData = data.where((conv) {
-      switch (selectedFilter) {
+      switch (context.watch<CreateChatProvider>().selectedFilter) {
         case 'Group':
           return conv.type?.toUpperCase() == "GROUP";
         case 'DM':
@@ -113,16 +112,16 @@ class _MessageScreensState extends State<MessageScreens> {
               scrollDirection: Axis.horizontal,
 
               children: ['All', 'Group', 'DM'].map((filter) {
-                final isSelected = selectedFilter == filter;
+                final isSelected =
+                    context.watch<CreateChatProvider>().selectedFilter ==
+                    filter;
 
                 return Padding(
                   padding: EdgeInsets.symmetric(horizontal: 6.w),
 
                   child: GestureDetector(
                     onTap: () {
-                      setState(() {
-                        selectedFilter = filter;
-                      });
+                      context.read<CreateChatProvider>().toggleFilter(filter);
                     },
 
                     child: Container(

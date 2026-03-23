@@ -13,8 +13,8 @@ class AllConversationModel {
   String? senderTitle;
   List<Memberships> memberships;
   List<Message> messages;
-  String? creator;
-  String? participant;
+  Creator? creator;
+  Participant? participant;
   int unread;
   String? otherUserAvatar;
 
@@ -37,9 +37,9 @@ class AllConversationModel {
     this.participant,
     int? unread,
     this.otherUserAvatar,
-  })  : memberships = memberships ?? [],
-        messages = messages ?? [],
-        unread = unread ?? 0;
+  }) : memberships = memberships ?? [],
+       messages = messages ?? [],
+       unread = unread ?? 0;
 
   factory AllConversationModel.fromJson(Map<String, dynamic> json) {
     return AllConversationModel(
@@ -55,16 +55,22 @@ class AllConversationModel {
       updatedAt: json['updatedAt']?.toString(),
       receiverTitle: json['receiverTitle']?.toString(),
       senderTitle: json['senderTitle']?.toString(),
-      memberships: (json['memberships'] as List<dynamic>?)
-          ?.map((e) => Memberships.fromJson(e))
-          .toList() ??
+      memberships:
+          (json['memberships'] as List<dynamic>?)
+              ?.map((e) => Memberships.fromJson(e))
+              .toList() ??
           [],
-      messages: (json['messages'] as List<dynamic>?)
-          ?.map((e) => Message.fromJson(e))
-          .toList() ??
+      messages:
+          (json['messages'] as List<dynamic>?)
+              ?.map((e) => Message.fromJson(e))
+              .toList() ??
           [],
-      creator: json['creator']?.toString(),
-      participant: json['participant']?.toString(),
+      creator: json['creator'] != null
+          ? Creator.fromJson(json['creator'])
+          : null,
+      participant: json['participant'] != null
+          ? Participant.fromJson(json['participant'])
+          : null,
       unread: json['unread'] ?? 0,
       otherUserAvatar: json['otherUserAvatar']?.toString(),
     );
@@ -100,12 +106,7 @@ class Memberships {
   String? lastReadAt;
   String? clearedAt;
 
-  Memberships({
-    this.userId,
-    this.role,
-    this.lastReadAt,
-    this.clearedAt,
-  });
+  Memberships({this.userId, this.role, this.lastReadAt, this.clearedAt});
 
   factory Memberships.fromJson(Map<String, dynamic> json) {
     return Memberships(
@@ -150,5 +151,43 @@ class Message {
       'text': text,
       'createdAt': createdAt,
     };
+  }
+}
+
+class Creator {
+  String? id;
+  String? avatar;
+
+  Creator({this.id, this.avatar});
+
+  Creator.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    avatar = json['avatar'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = {};
+    data['id'] = id;
+    data['avatar'] = avatar;
+    return data;
+  }
+}
+
+class Participant {
+  String? id;
+  dynamic avatar;
+
+  Participant({this.id, this.avatar});
+
+  Participant.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    avatar = json['avatar'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = {};
+    data['id'] = id;
+    data['avatar'] = avatar;
+    return data;
   }
 }

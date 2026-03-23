@@ -18,11 +18,19 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
   String? currentUserId;
   late String conversationId;
   final TextEditingController _messageController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _initialize();
+  }
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _initialize() async {
@@ -40,59 +48,142 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
     setState(() {});
   }
 
+  /// ---------------- Format Time --------------------------------------------
   String _formatTime(String? dateTime) {
     if (dateTime == null || dateTime.isEmpty) return "";
     try {
       final dt = DateTime.parse(dateTime);
-      return "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+
+      final localDt = dt.toLocal();
+      return "${localDt.hour.toString().padLeft(2, '0')}:${localDt.minute.toString().padLeft(2, '0')}";
     } catch (e) {
       return dateTime;
     }
   }
 
+  /// --------------- Auto-scroll to bottom when new message arrives -----------
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<CreateChatProvider>();
-    final messages = (provider.dmAllMessageModel?.items ?? []).reversed
-        .toList();
+
+    ///----------- Get messages and sort them chronologically (oldest first) ---
+    final messages = (provider.dmAllMessageModel?.items ?? []).toList()
+      ..sort((a, b) {
+        final aDate = DateTime.tryParse(a.createdAt ?? '');
+        final bDate = DateTime.tryParse(b.createdAt ?? '');
+        if (aDate == null || bDate == null) return 0;
+        return aDate.compareTo(bDate);
+      });
+
+    ///  Scroll to bottom when messages change
+    if (messages.isNotEmpty) {
+      _scrollToBottom();
+    }
 
     return Scaffold(
       backgroundColor: const Color(0xff030D15),
-      body: SafeArea(
-        child: Column(
-          children: [
-            ChatAppBer(title: "Chat", image: "",conId:conversationId),
-            Expanded(
-              child: provider.isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : messages.isEmpty
-                  ? const Center(
-                      child: Text(
-                        "No messages yet",
-                        style: TextStyle(color: Colors.white70),
+      body: Column(
+        children: [
+          ChatAppBer(title: "Chat", image: "", conId: conversationId),
+          Expanded(
+            child: provider.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : messages.isEmpty
+                ? Center(
+                    child: Text(
+                      "No messages yet",
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 24.sp,
+                        fontWeight: FontWeight.w500,
                       ),
-                    )
-                  : ListView.builder(
-                      reverse: true,
-                      padding: EdgeInsets.all(16.w),
-                      itemCount: messages.length,
-                      itemBuilder: (context, index) {
-                        final msg = messages[index];
-                        final isSentByMe = msg.senderId == currentUserId;
-                        return _buildMessage(
-                          text: msg.content?.text ?? "",
-                          time: _formatTime(msg.createdAt),
-                          isSentByMe: isSentByMe,
-                          avatarUrl: msg.sender?.avatar,
-                          senderName: msg.sender?.name,
-                          isGroup: false,
-                        );
-                      },
                     ),
+                  )
+                : ListView.builder(
+                    controller: _scrollController,
+                    reverse: true,
+                    padding: EdgeInsets.all(16.w),
+                    itemCount: messages.length,
+                    itemBuilder: (context, index) {
+                      final msg = messages[messages.length - 1 - index];
+                      final isSentByMe = msg.senderId == currentUserId;
+                      return _buildMessage(
+                        text: msg.content?.text ?? "",
+                        time: _formatTime(msg.createdAt),
+                        isSentByMe: isSentByMe,
+                        avatarUrl: msg.sender?.avatar,
+                        senderName: msg.sender?.name,
+                        isGroup: false,
+                      );
+                    },
+                  ),
+          ),
+          Padding(
+            padding: EdgeInsets.all(16.w),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _messageController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: "Type message...",
+                      hintStyle: const TextStyle(color: Colors.white54),
+                      filled: true,
+                      fillColor: const Color(0xff0A1A2A),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30.r),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 10.w),
+                GestureDetector(
+                  onTap: () async {
+                    final text = _messageController.text.trim();
+                    if (text.isNotEmpty) {
+                      // Clear input immediately for better UX
+                      _messageController.clear();
+
+                      // Send message
+                      await context.read<CreateChatProvider>().dmSendMessage(
+                        kind: "TEXT",
+                        text: text,
+                        conversationId: conversationId,
+                      );
+
+                      // Refresh messages after sending
+                      context.read<CreateChatProvider>().getDmAllMessageRoom(
+                        conversationId,
+                      );
+                    }
+                  },
+                  child: Container(
+                    padding: EdgeInsets.all(10.r),
+                    decoration: BoxDecoration(
+                      color: const Color(0xffE9201D),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.send, color: Colors.white),
+                  ),
+                ),
+              ],
             ),
-            _messageInput(),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -116,26 +207,28 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             if (!isSentByMe)
-              CircleAvatar(
-                radius: 16.r,
-                backgroundColor: Colors.grey[800],
-                child: avatarUrl != null && avatarUrl.isNotEmpty
-                    ? ClipOval(
-                        child: Image.network(
-                          avatarUrl,
-                          height: 32.h,
-                          width: 32.w,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Icon(
-                            Icons.person,
-                            color: Colors.white,
-                            size: 20.r,
+              Container(
+                margin: EdgeInsets.only(right: 8.w),
+                child: CircleAvatar(
+                  radius: 16.r,
+                  backgroundColor: Colors.grey[800],
+                  child: avatarUrl != null && avatarUrl.isNotEmpty
+                      ? ClipOval(
+                          child: Image.network(
+                            avatarUrl,
+                            height: 32.h,
+                            width: 32.w,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => Icon(
+                              Icons.person,
+                              color: Colors.white,
+                              size: 20.r,
+                            ),
                           ),
-                        ),
-                      )
-                    : Icon(Icons.person, color: Colors.white, size: 20.r),
+                        )
+                      : Icon(Icons.person, color: Colors.white, size: 20.r),
+                ),
               ),
-            SizedBox(width: 8.w),
             Flexible(
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
@@ -151,19 +244,19 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
                     if (!isSentByMe && isGroup && senderName != null)
                       Text(
                         senderName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Colors.white70,
-                          fontSize: 12,
+                          fontSize: 12.sp,
                         ),
                       ),
-                    Text(text, style: const TextStyle(color: Colors.white)),
-                    const SizedBox(height: 4),
+                    Text(
+                      text,
+                      style: TextStyle(color: Colors.white, fontSize: 14.sp),
+                    ),
+                    SizedBox(height: 4.h),
                     Text(
                       time,
-                      style: const TextStyle(
-                        fontSize: 10,
-                        color: Colors.white70,
-                      ),
+                      style: TextStyle(fontSize: 10.sp, color: Colors.white70),
                     ),
                   ],
                 ),
@@ -171,48 +264,6 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _messageInput() {
-    return Padding(
-      padding: EdgeInsets.all(12.w),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextFormField(
-              controller: _messageController,
-              decoration: InputDecoration(
-                hintText: "Type message...",
-                filled: true,
-                fillColor: const Color(0xff0A1A2A),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30.r),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-          ),
-          SizedBox(width: 10.w),
-          GestureDetector(
-            onTap: () {
-              final text = _messageController.text.trim();
-              if (text.isNotEmpty) {
-                // TODO: Call your send message API here
-                _messageController.clear();
-              }
-            },
-            child: Container(
-              padding: EdgeInsets.all(10.w),
-              decoration: BoxDecoration(
-                color: const Color(0xffE9201D),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.send, color: Colors.white),
-            ),
-          ),
-        ],
       ),
     );
   }
