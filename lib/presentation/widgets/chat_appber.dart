@@ -87,7 +87,7 @@ class ChatAppBer extends StatelessWidget implements PreferredSizeWidget {
                     debugPrint("The conv id not found");
                   }
                 },
-                child: Icon(Icons.call, color: Color(0xffE9201D)),
+                child: Icon(Icons.call, size: 20.sp, color: Color(0xffE9201D)),
               ),
               SizedBox(width: 16),
               GestureDetector(
@@ -103,11 +103,15 @@ class ChatAppBer extends StatelessWidget implements PreferredSizeWidget {
                     debugPrint("The conv id not found");
                   }
                 },
-                child: Icon(Icons.videocam_rounded, color: Color(0xffE9201D)),
+                child: Icon(
+                  Icons.videocam_rounded,
+                  size: 20.sp,
+                  color: Color(0xffE9201D),
+                ),
               ),
-              SizedBox(width: 16),
+              SizedBox(width: 16.w),
 
-              Icon(Icons.report_outlined, color: Color(0xff8D9CDC)),
+              Icon(Icons.info, size: 20.sp, color: Color(0xff8D9CDC)),
             ],
           ),
         ],

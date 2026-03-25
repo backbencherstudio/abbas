@@ -1,9 +1,13 @@
 import 'package:abbas/cors/services/user_id_storage.dart';
+import 'package:camera/camera.dart';
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:abbas/presentation/views/message/provider/create_chat_provider.dart';
 import '../../../widgets/chat_appber.dart';
+
+
 
 class OneTwoOneChatScreen extends StatefulWidget {
   const OneTwoOneChatScreen({super.key});
@@ -23,6 +27,7 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
   @override
   void initState() {
     super.initState();
+
     _initialize();
   }
 
@@ -74,6 +79,8 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
     });
   }
 
+  bool _showEmoji = false;
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<CreateChatProvider>();
@@ -93,7 +100,7 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xff030D15),
+      // backgroundColor: const Color(0xff030D15),
       body: Column(
         children: [
           ChatAppBer(title: "Chat", image: "", conId: conversationId),
@@ -102,84 +109,229 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
                 ? const Center(child: CircularProgressIndicator())
                 : messages.isEmpty
                 ? Center(
-                    child: Text(
-                      "No messages yet",
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 24.sp,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  )
+              child: Text(
+                "No messages yet",
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 24.sp,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            )
                 : ListView.builder(
-                    controller: _scrollController,
-                    reverse: true,
-                    padding: EdgeInsets.all(16.w),
-                    itemCount: messages.length,
-                    itemBuilder: (context, index) {
-                      final msg = messages[messages.length - 1 - index];
-                      final isSentByMe = msg.senderId == currentUserId;
-                      return _buildMessage(
-                        text: msg.content?.text ?? "",
-                        time: _formatTime(msg.createdAt),
-                        isSentByMe: isSentByMe,
-                        avatarUrl: msg.sender?.avatar,
-                        senderName: msg.sender?.name,
-                        isGroup: false,
-                      );
-                    },
-                  ),
+              controller: _scrollController,
+              reverse: true,
+              padding: EdgeInsets.all(16.w),
+              itemCount: messages.length,
+              itemBuilder: (context, index) {
+                final msg = messages[messages.length - 1 - index];
+                final isSentByMe = msg.senderId == currentUserId;
+                return _buildMessage(
+                  text: msg.content?.text ?? "",
+                  time: _formatTime(msg.createdAt),
+                  isSentByMe: isSentByMe,
+                  avatarUrl: msg.sender?.avatar,
+                  senderName: msg.sender?.name,
+                  isGroup: false,
+                );
+              },
+            ),
           ),
+
+          /// -------------- Create Input Card ---------------------------------
           Padding(
-            padding: EdgeInsets.all(16.w),
-            child: Row(
+            padding: EdgeInsets.only(bottom: 24.h, right: 6.w),
+            child: Column(
               children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _messageController,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      hintText: "Type message...",
-                      hintStyle: const TextStyle(color: Colors.white54),
-                      filled: true,
-                      fillColor: const Color(0xff0A1A2A),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30.r),
-                        borderSide: BorderSide.none,
+                Row(
+                  children: [
+                    // Replace IconButton with PopupMenuButton for the add button
+                    PopupMenuButton<String>(
+                      onSelected: (value) {
+                        // Handle menu item selection
+                        switch (value) {
+                          case 'file':
+                          // Handle file selection
+                            debugPrint('File selected');
+                            break;
+                          case 'contact':
+                          // Handle contact selection
+                            debugPrint('Contact selected');
+                            break;
+                          case 'location':
+                          // Handle location selection
+                            debugPrint('Location selected');
+                            break;
+                        }
+                      },
+                      icon: Icon(
+                        Icons.add_circle_outline_rounded,
+                        color: const Color(0xFF3D4566),
+                        size: 24.sp,
+                      ),
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: 'file',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.attach_file,
+                                color: const Color(0xFF3D4566),
+                                size: 20.sp,
+                              ),
+                              SizedBox(width: 12.w),
+                              Text(
+                                'File',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14.sp,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'contact',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.contact_phone,
+                                color: const Color(0xFF3D4566),
+                                size: 20.sp,
+                              ),
+                              SizedBox(width: 12.w),
+                              Text(
+                                'Contact',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14.sp,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'location',
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.location_on,
+                                color: const Color(0xFF3D4566),
+                                size: 20.sp,
+                              ),
+                              SizedBox(width: 12.w),
+                              Text(
+                                'Location',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14.sp,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                      // Optional: Customize the menu appearance
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      color: const Color(0xFF0A1A29),
+                      elevation: 8,
+                    ),
+                    IconButton(
+                      onPressed: () {},
+                      icon: Icon(
+                        Icons.camera_alt_rounded,
+                        color: const Color(0xFF3D4566),
+                        size: 24.sp,
                       ),
                     ),
-                  ),
-                ),
-                SizedBox(width: 10.w),
-                GestureDetector(
-                  onTap: () async {
-                    final text = _messageController.text.trim();
-                    if (text.isNotEmpty) {
-                      // Clear input immediately for better UX
-                      _messageController.clear();
-
-                      // Send message
-                      await context.read<CreateChatProvider>().dmSendMessage(
-                        kind: "TEXT",
-                        text: text,
-                        conversationId: conversationId,
-                      );
-
-                      // Refresh messages after sending
-                      context.read<CreateChatProvider>().getDmAllMessageRoom(
-                        conversationId,
-                      );
-                    }
-                  },
-                  child: Container(
-                    padding: EdgeInsets.all(10.r),
-                    decoration: BoxDecoration(
-                      color: const Color(0xffE9201D),
-                      shape: BoxShape.circle,
+                    IconButton(
+                      onPressed: () {},
+                      icon: Icon(
+                        Icons.image,
+                        color: const Color(0xFF3D4566),
+                        size: 24.sp,
+                      ),
                     ),
-                    child: const Icon(Icons.send, color: Colors.white),
-                  ),
+                    IconButton(
+                      onPressed: () {},
+                      icon: Icon(
+                        Icons.mic,
+                        color: const Color(0xFF3D4566),
+                        size: 24.sp,
+                      ),
+                    ),
+                    Expanded(
+                      child: TextFormField(
+                        textAlignVertical: TextAlignVertical.center,
+                        keyboardType: TextInputType.multiline,
+                        controller: _messageController,
+                        style: const TextStyle(color: Colors.white),
+                        maxLines: 5,
+                        minLines: 1,
+                        decoration: InputDecoration(
+                          hintText: "Message",
+                          hintStyle: const TextStyle(color: Colors.white54),
+                          filled: true,
+                          fillColor: const Color(0XFF0A1A29),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(30.r),
+                            borderSide: BorderSide.none,
+                          ),
+                          suffixIcon: IconButton(
+                            onPressed: () {
+                              setState(() {
+                                _showEmoji = !_showEmoji;
+                              });
+                            },
+                            icon: Icon(
+                              Icons.emoji_emotions,
+                              color: const Color(0xFF3D4566),
+                              size: 24.sp,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10.w),
+                    GestureDetector(
+                      onTap: () async {
+                        final text = _messageController.text.trim();
+                        if (text.isNotEmpty) {
+                          // Clear input immediately for better UX
+                          _messageController.clear();
+
+                          // Send message
+                          await context.read<CreateChatProvider>().dmSendMessage(
+                            kind: "TEXT",
+                            text: text,
+                            conversationId: conversationId,
+                          );
+
+                          // Refresh messages after sending
+                          context.read<CreateChatProvider>().getDmAllMessageRoom(
+                            conversationId,
+                          );
+                        }
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(10.r),
+                        decoration: BoxDecoration(
+                          color: const Color(0xffE9201D),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.send, color: Colors.white),
+                      ),
+                    ),
+                  ],
                 ),
+                // Show emoji picker below the input row
+                if (_showEmoji)
+                  SizedBox(
+                    height: 250.h,
+                    child: _emojiSelect(),
+                  ),
               ],
             ),
           ),
@@ -214,18 +366,18 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
                   backgroundColor: Colors.grey[800],
                   child: avatarUrl != null && avatarUrl.isNotEmpty
                       ? ClipOval(
-                          child: Image.network(
-                            avatarUrl,
-                            height: 32.h,
-                            width: 32.w,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => Icon(
-                              Icons.person,
-                              color: Colors.white,
-                              size: 20.r,
-                            ),
-                          ),
-                        )
+                    child: Image.network(
+                      avatarUrl,
+                      height: 32.h,
+                      width: 32.w,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => Icon(
+                        Icons.person,
+                        color: Colors.white,
+                        size: 20.r,
+                      ),
+                    ),
+                  )
                       : Icon(Icons.person, color: Colors.white, size: 20.r),
                 ),
               ),
@@ -267,4 +419,17 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
       ),
     );
   }
+
+  Widget _emojiSelect() {
+    return EmojiPicker(
+      onEmojiSelected: (category, emoji) {
+        setState(() {
+          _messageController.text += emoji.emoji;
+        });
+      },
+      config: Config(height: 256.h),
+    );
+  }
+
+
 }
