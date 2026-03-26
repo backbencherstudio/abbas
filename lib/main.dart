@@ -1,5 +1,8 @@
 import 'package:abbas/presentation/viewmodels/app_providers.dart';
+import 'package:abbas/presentation/views/course_screen/screens/my_class/pdf_viewer_screen.dart';
 import 'package:abbas/presentation/views/course_screen/screens/my_class/widget/pdf_widget.dart';
+import 'package:abbas/presentation/views/message/widget/camera_screen.dart';
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -13,9 +16,10 @@ import 'cors/theme/app_theme.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+ // cameras = await availableCameras();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   await Hive.initFlutter();
