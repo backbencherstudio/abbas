@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -407,8 +406,9 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
                 backgroundColor: Colors.blue,
                 padding: EdgeInsets.symmetric(horizontal: 40.w, vertical: 12.h),
               ),
-              child: const Text("Try Again"),
+              child: Text("Try Again"),
             ),
+
             SizedBox(height: 10.h),
             TextButton(
               onPressed: () => Navigator.pop(context),

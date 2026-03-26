@@ -55,12 +55,12 @@ class Items {
     this.sender,
   });
 
+  // ==================== Existing fromJson (keep this) ====================
   factory Items.fromJson(Map<String, dynamic> json) {
     return Items(
       id: json['id']?.toString(),
       receiverId: json['receiver_id']?.toString(),
-      content:
-      json['content'] != null ? Content.fromJson(json['content']) : null,
+      content: json['content'] != null ? Content.fromJson(json['content']) : null,
       conversationId: json['conversationId']?.toString(),
       createdAt: json['createdAt']?.toString(),
       deletedAt: json['deletedAt']?.toString(),
@@ -70,11 +70,31 @@ class Items {
       senderUserId: json['sender_user_id']?.toString(),
       readAt: json['readAt']?.toString(),
       mediaUrl: json['media_Url']?.toString(),
-      sender:
-      json['sender'] != null ? Sender.fromJson(json['sender']) : null,
+      sender: json['sender'] != null ? Sender.fromJson(json['sender']) : null,
     );
   }
 
+  // ==================== NEW: fromSocket for Real-time Messages ====================
+  factory Items.fromSocket(Map<String, dynamic> json) {
+    return Items(
+      id: json['id']?.toString(),
+      conversationId: json['conversationId']?.toString(),
+      senderId: json['senderId']?.toString(),
+      kind: json['kind']?.toString(),
+      createdAt: json['createdAt']?.toString() ?? DateTime.now().toIso8601String(),
+      content: json['content'] != null
+          ? Content.fromJson(json['content'] as Map<String, dynamic>)
+          : null,
+      sender: json['sender'] != null
+          ? Sender.fromJson(json['sender'] as Map<String, dynamic>)
+          : null,
+      receiverId: json['receiverId']?.toString(),
+      readAt: json['readAt']?.toString(),
+      // You can add more fields later if needed
+    );
+  }
+
+  // ==================== toJson (keep this) ====================
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -93,7 +113,6 @@ class Items {
     };
   }
 }
-
 class Content {
   String? text;
 
