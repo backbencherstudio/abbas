@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import '../../../../../../cors/constants/api_endpoints.dart';
@@ -14,12 +12,15 @@ class CommunityScreenProvider extends ChangeNotifier {
   CommunityScreenProvider({required this.getCommunityFeedsUseCase});
 
   List<CommunityEntity> _feeds = [];
+
   List<CommunityEntity> get feeds => _feeds;
 
   bool _isLoading = false;
+
   bool get isLoading => _isLoading;
 
   String? _error;
+
   String? get error => _error;
 
   Future<void> fetchFeeds() async {
@@ -82,7 +83,4 @@ class CommunityScreenProvider extends ChangeNotifier {
 
     logger.i("========== PROFILE API END ==========");
   }
-
-
-
 }
