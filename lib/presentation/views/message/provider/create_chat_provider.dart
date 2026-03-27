@@ -187,9 +187,7 @@ class CreateChatProvider extends ChangeNotifier {
     }
 
     try {
-      if (_dmAllMessageModel == null) {
-        _dmAllMessageModel = DmAllMessageModel(items: []);
-      }
+      _dmAllMessageModel ??= DmAllMessageModel(items: []);
 
       final newMessage = Items.fromSocket(data);
 
