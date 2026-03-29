@@ -67,6 +67,7 @@ import '../../presentation/views/message/provider/create_chat_provider.dart';
 import '../../presentation/views/profile/view_model/profil_screen_provider.dart';
 import '../services/api_client.dart';
 import '../services/api_services.dart';
+import '../services/socket_call.dart';
 import '../services/token_storage.dart';
 
 final GetIt getIt = GetIt.instance;
@@ -320,4 +321,5 @@ Future<void> configureDependencies() async {
   getIt.registerFactory<ProfileScreenProvider>(() => ProfileScreenProvider());
   getIt.registerFactory<CreateChatProvider>(() => CreateChatProvider());
   getIt.registerFactory<CallProvider>(() => CallProvider());
+  getIt.registerFactory<SocketCall>(() => SocketCall());
 }

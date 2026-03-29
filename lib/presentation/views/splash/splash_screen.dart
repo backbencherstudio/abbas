@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../cors/di/injection.dart';
 import '../../../cors/routes/route_names.dart';
 import '../../../cors/services/refresh_token_storage.dart';
+import '../../../cors/services/socket_call.dart';
 import '../../../cors/services/token_storage.dart';
 import '../../../cors/theme/app_colors.dart';
 import '../../../domain/repositories/auth/refresh_token_repository.dart';
@@ -63,10 +64,15 @@ class _SplashScreenState extends State<SplashScreen>
       final token = await TokenStorage().getToken();
       logger.d("========== Splash Screen $token ===========");
       if (token != null) {
+        // ✅ এই line যোগ করুন
+        SocketCall().connect(token);
+
         Future.delayed(const Duration(milliseconds: 1500), () async {
+          if (!mounted) return;
           Navigator.pushReplacementNamed(context, RouteNames.parentScreen);
         });
       } else {
+        if (!mounted) return;
         Navigator.pushReplacementNamed(context, RouteNames.onBoardingScreen);
       }
     });
