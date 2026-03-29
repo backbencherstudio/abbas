@@ -101,7 +101,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import '../../cors/theme/app_colors.dart';
 
-class SecondaryAppBar extends StatelessWidget implements PreferredSizeWidget {
+class SecondaryAppBar extends StatelessWidget  {
   final String title;
   final bool hasButton;
   final bool isEdit;
@@ -117,8 +117,6 @@ class SecondaryAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.isSearch = false,
   });
 
-  @override
-  Size get preferredSize => Size.fromHeight(100.h); // Add this proper implementation
 
   @override
   Widget build(BuildContext context) {

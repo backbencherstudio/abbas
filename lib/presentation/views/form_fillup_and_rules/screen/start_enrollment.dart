@@ -19,7 +19,7 @@ class StartEnrollment extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-       
+        automaticallyImplyLeading: false,
       ),
       extendBodyBehindAppBar: true,
       body: Stack(
@@ -88,10 +88,7 @@ class StartEnrollment extends StatelessWidget {
                     SizedBox(height: 80.h),
                     Text(
                       'Are You Prospective?',
-                      style: TextStyle(
-                        fontSize: 14.sp,
-                        color: Colors.white60,
-                      ),
+                      style: TextStyle(fontSize: 14.sp, color: Colors.white60),
                     ),
                     SizedBox(height: 8.h),
                     GestureDetector(

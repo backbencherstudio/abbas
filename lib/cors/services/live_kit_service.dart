@@ -1,4 +1,3 @@
-// live_kit_service.dart
 import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:logger/logger.dart';
@@ -11,11 +10,12 @@ class LiveKitService with ChangeNotifier {
   LocalTrackPublication? _audioPublication;
   LocalTrackPublication? _videoPublication;
 
-  final Logger logger = Logger();
+  final Logger logger = Logger(printer: PrettyPrinter(methodCount: 0));
 
   bool _isConnected = false;
-  bool get isConnected => _isConnected && _room != null;
+  bool _isFrontCamera = true;
 
+  bool get isConnected => _isConnected && _room != null;
   Room? get room => _room;
 
   VideoTrack? get localVideoTrack => _videoTrack;
@@ -31,42 +31,48 @@ class LiveKitService with ChangeNotifier {
     try {
       if (_room != null) await disconnect();
 
-      _room = Room();
+      // ✅ FIX: Room একবারই তৈরি করুন, RoomOptions সহ
+      _room = Room(
+        roomOptions: const RoomOptions(
+          adaptiveStream: true,
+          dynacast: true,
+        ),
+      );
+
+      // ✅ FIX: Room তৈরির পরেই listener লাগান, overwrite করবেন না
       _setupListeners();
 
-      logger.i("🔌 Connecting to LiveKit: $roomName");
+      logger.i("Connecting to LiveKit room: $roomName at $url");
       await _room!.connect(url, token);
-
       _isConnected = true;
+      logger.i("✅ Connected to room");
 
-      // Audio Track
+      // Publish audio
       _audioTrack = await LocalAudioTrack.create();
       _audioPublication = await _room!.localParticipant!.publishAudioTrack(
         _audioTrack!,
       );
+      logger.i("🎙️ Audio track published");
 
-      // Video Track - Very Simple (Real Device Friendly)
+      // Publish video (skip if audio-only)
       if (!audioOnly) {
         try {
-          logger.i("📹 Creating simple camera track...");
-
-          _videoTrack = await LocalVideoTrack.createCameraTrack();
-
+          _videoTrack = await LocalVideoTrack.createCameraTrack(
+            const CameraCaptureOptions(cameraPosition: CameraPosition.front),
+          );
           _videoPublication = await _room!.localParticipant!.publishVideoTrack(
             _videoTrack!,
           );
-
-          logger.i(" Video track published");
-          notifyListeners();
+          _isFrontCamera = true;
+          logger.i("📹 Video track published");
         } catch (e) {
-          logger.e("Video track failed: $e");
+          logger.e("Video track failed (continuing audio-only): $e");
         }
       }
 
-      logger.i("Successfully connected to LiveKit Room");
       notifyListeners();
     } catch (e) {
-      logger.e(" LiveKit Connection Failed: $e");
+      logger.e("❌ LiveKit connection failed: $e");
       _isConnected = false;
       _room = null;
       rethrow;
@@ -77,49 +83,78 @@ class LiveKitService with ChangeNotifier {
     _room?.events.listen((event) {
       if (event is ParticipantConnectedEvent) {
         logger.i("👤 Participant joined: ${event.participant.identity}");
+        notifyListeners(); // ✅ UI update করুন
       }
+
       if (event is ParticipantDisconnectedEvent) {
-        logger.i(" Participant left: ${event.participant.identity}");
+        logger.i("👤 Participant left: ${event.participant.identity}");
+        notifyListeners();
       }
+
       if (event is TrackSubscribedEvent) {
         if (event.track.kind == TrackType.VIDEO) {
           _remoteVideoTrack = event.track as VideoTrack;
+          logger.i("📺 Remote video subscribed");
+          notifyListeners();
+        }
+        // ✅ FIX: Audio track ও subscribe করুন
+        if (event.track.kind == TrackType.AUDIO) {
+          logger.i("🔊 Remote audio subscribed");
           notifyListeners();
         }
       }
+
       if (event is TrackUnsubscribedEvent) {
         if (event.track.kind == TrackType.VIDEO) {
           _remoteVideoTrack = null;
+          logger.i("📺 Remote video unsubscribed");
           notifyListeners();
         }
       }
+
       if (event is RoomDisconnectedEvent) {
-        logger.i(" Room disconnected");
+        logger.i("🔌 Room disconnected");
         _isConnected = false;
         _room = null;
+        _remoteVideoTrack = null;
         notifyListeners();
       }
     });
   }
 
-  // Audio
   Future<void> enableAudio() async {
-    if (_audioPublication != null) await _audioPublication!.unmute();
-    notifyListeners();
+    try {
+      if (_audioPublication != null) {
+        await _audioPublication!.unmute();
+        notifyListeners();
+      }
+    } catch (e) {
+      logger.e("Enable audio failed: $e");
+    }
   }
 
   Future<void> disableAudio() async {
-    if (_audioPublication != null) await _audioPublication!.mute();
-    notifyListeners();
+    try {
+      if (_audioPublication != null) {
+        await _audioPublication!.mute();
+        notifyListeners();
+      }
+    } catch (e) {
+      logger.e("Disable audio failed: $e");
+    }
   }
 
-  // Video
   Future<void> enableVideo() async {
     try {
       if (_videoPublication != null) {
         await _videoPublication!.unmute();
       } else if (_room?.localParticipant != null) {
-        _videoTrack = await LocalVideoTrack.createCameraTrack();
+        _videoTrack = await LocalVideoTrack.createCameraTrack(
+          CameraCaptureOptions(
+            cameraPosition:
+            _isFrontCamera ? CameraPosition.front : CameraPosition.back,
+          ),
+        );
         _videoPublication = await _room!.localParticipant!.publishVideoTrack(
           _videoTrack!,
         );
@@ -131,21 +166,31 @@ class LiveKitService with ChangeNotifier {
   }
 
   Future<void> disableVideo() async {
-    if (_videoPublication != null) await _videoPublication!.mute();
-    notifyListeners();
+    try {
+      if (_videoPublication != null) {
+        await _videoPublication!.mute();
+        notifyListeners();
+      }
+    } catch (e) {
+      logger.e("Disable video failed: $e");
+    }
   }
 
-  // Switch Camera
   Future<void> switchCamera() async {
     try {
       if (_videoTrack == null) return;
-
-      await _videoTrack!.switchCamera(""); // empty string = default behavior
-      logger.i(" Camera switched");
+      _isFrontCamera = !_isFrontCamera;
+      final newPosition =
+      _isFrontCamera ? CameraPosition.front : CameraPosition.back;
+      await _videoTrack!.restartTrack(
+        CameraCaptureOptions(cameraPosition: newPosition),
+      );
+      logger.i("🔄 Camera switched to ${newPosition.name}");
       notifyListeners();
     } catch (e) {
       logger.e("Switch camera failed: $e");
-      // Optional fallback
+      _isFrontCamera = !_isFrontCamera;
+      notifyListeners();
     }
   }
 
@@ -155,6 +200,8 @@ class LiveKitService with ChangeNotifier {
     } catch (e) {
       logger.e("Disconnect error: $e");
     } finally {
+      await _videoTrack?.stop();
+      await _audioTrack?.stop();
       _room = null;
       _audioTrack = null;
       _videoTrack = null;
@@ -162,6 +209,7 @@ class LiveKitService with ChangeNotifier {
       _videoPublication = null;
       _remoteVideoTrack = null;
       _isConnected = false;
+      _isFrontCamera = true;
       notifyListeners();
     }
   }
