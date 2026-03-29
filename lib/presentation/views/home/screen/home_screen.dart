@@ -84,13 +84,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           CustomAppbar(
             title: userProfileValues?.name ?? 'N/A',
             subtitle: "Welcome back!",
-            image: "assets/icons/search.png",
-            image2: "assets/icons/notification.png",
           ),
 
           Expanded(
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: ListView(
                 children: [
                   Text(

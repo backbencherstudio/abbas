@@ -23,15 +23,16 @@ class ProfileScreenProvider extends ChangeNotifier {
   CheckMeModel? _profile;
 
   bool get isLoading => _isLoading;
+
   String? get errorMessage => _errorMessage;
+
   CheckMeModel? get profile => _profile;
   OtherProfileModel? _otherProfileModel;
+
   OtherProfileModel? get otherProfileModel => _otherProfileModel;
 
-  /// GET PROFILE API
+  /// ------------------- GET PROFILE API --------------------------------------
   Future<void> getProfile() async {
-    logger.i("========== PROFILE API START ==========");
-
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -61,12 +62,10 @@ class ProfileScreenProvider extends ChangeNotifier {
       logger.e("Exception Occurred");
       logger.e(e);
       logger.e(stackTrace);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-
-    _isLoading = false;
-    notifyListeners();
-
-    logger.i("========== PROFILE API END ==========");
   }
 
   Future<void> getOtherProfile(String userId) async {
@@ -109,15 +108,15 @@ class ProfileScreenProvider extends ChangeNotifier {
     logger.i("========== PROFILE API END ==========");
   }
 
+  /// ------------------ Edit Profile -----------------------------------------
   Future<bool> editProfile({
     required String name,
     required String phone,
     required String dob,
     required String goal,
+    required String experienceLevel,
     String? imagePath,
   }) async {
-    logger.i("========== EDIT PROFILE API START ==========");
-
     _errorMessage = null;
     _isLoading = true;
     notifyListeners();
@@ -125,14 +124,16 @@ class ProfileScreenProvider extends ChangeNotifier {
     try {
       final response = await _apiClient.postMultipart(
         ApiEndpoints.editProfile,
-        fields: {"name": name, "phone": phone, "dob": dob, "goal": goal},
+        fields: {
+          "name": name,
+          "phone_number": phone,
+          "date_of_birth": dob,
+          'experience_level': experienceLevel,
+          "ActingGoals": goal,
+        },
         fileField: "image",
         filePath: imagePath ?? "",
       );
-
-      logger.i("API Success Status: ${response.success}");
-      logger.i("API Message: ${response.message}");
-      logger.d("Raw API Data: ${response.data}");
 
       if (response.success) {
         _profile = CheckMeModel.fromJson(response.data);
@@ -147,16 +148,13 @@ class ProfileScreenProvider extends ChangeNotifier {
         notifyListeners();
         return false;
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       _errorMessage = e.toString();
-      logger.e("Exception Occurred");
-      logger.e(e);
-      logger.e(stackTrace);
-      _isLoading = false;
-      notifyListeners();
+
       return false;
     } finally {
-      logger.i("========== EDIT PROFILE API END ==========");
+      _isLoading = false;
+      notifyListeners();
     }
   }
 }

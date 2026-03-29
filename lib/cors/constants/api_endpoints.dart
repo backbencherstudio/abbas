@@ -1,5 +1,6 @@
 class ApiEndpoints {
   ApiEndpoints._();
+
   static const String baseUrl = 'http://192.168.7.14:4000';
   static const String register = '$baseUrl/api/auth/register';
   static const String login = '$baseUrl/api/auth/login';
@@ -72,17 +73,19 @@ class ApiEndpoints {
   /// -------------------- Events ----------------------------------------------
   static const String getAllEvents = '$baseUrl/api/events';
 
-  // community
-
   static String getEventById(String eventId) => '$baseUrl/api/events/$eventId';
 
+  /// -------------------- Community -------------------------------------------
   static const String getFeed = '$baseUrl/api/community/feed';
   static const String createPost = '$baseUrl/api/community/post';
+  static const String createPostLike = '$baseUrl/api/community/like';
+  static const String getPostLike = '$baseUrl/api/community/like';
 
   // chat
 
   static const String createConversation = '$baseUrl/api/conversations/dm';
   static const String allConversationList = '$baseUrl/api/conversations';
+
   static String dmAllMessage(String conversationId, int cursor, int limit) =>
       '$baseUrl/api/conversations/$conversationId/messages?cursor=&limit=$limit';
 
