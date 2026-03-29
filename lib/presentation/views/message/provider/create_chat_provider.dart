@@ -37,7 +37,7 @@ class CreateChatProvider extends ChangeNotifier {
   DmAllMessageModel? get dmAllMessageModel => _dmAllMessageModel;
 
   int _cursor = 0;
-  final int _limit = 100;
+  final int _limit = 400;
 
   String selectedFilter = 'All';
   String? statusValue = 'all';
