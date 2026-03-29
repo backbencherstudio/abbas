@@ -1,11 +1,13 @@
+import 'package:abbas/cors/theme/app_colors.dart';
+import 'package:abbas/presentation/views/community/presentaion/provider/community/community_screen_provider.dart';
+import 'package:abbas/presentation/widgets/secondary_appber.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
 
-import '../../../../widgets/secondary_appber.dart';
-import '../provider/post/create_post_provider.dart'; // Adjust the import path
+import '../../../profile/view_model/profil_screen_provider.dart';
 
 class CreatePost extends StatefulWidget {
   const CreatePost({super.key});
@@ -117,7 +119,7 @@ class _CreatePostState extends State<CreatePost> {
     });
   }
 
-  Future<void> _createPost(CreatePostProvider provider) async {
+  Future<void> _createPost(CommunityScreenProvider provider) async {
     if (!_hasText && _selectedImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -162,355 +164,261 @@ class _CreatePostState extends State<CreatePost> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<CreatePostProvider>(
+    final profileProvider = Provider.of<ProfileScreenProvider>(context);
+    final authorImage = profileProvider.profile?.data?.avatar;
+    final authorName = profileProvider.profile?.data?.name ?? '';
+    return Consumer<CommunityScreenProvider>(
       builder: (context, provider, child) {
         return Scaffold(
-          backgroundColor: Colors.black,
+          backgroundColor: AppColors.background,
           body: Column(
             children: [
-              SecondaryAppBar(
-                title: 'Create Post',
-                onEditButtonTap: () {
-                  if (_hasText || _selectedImage != null) {
-                    _showDiscardDialog(context);
-                  } else {
-                    Navigator.pop(context);
-                  }
-                },
-              ),
-              Expanded(
-                child: Stack(
-                  children: [
-                    SingleChildScrollView(
-                      physics: const BouncingScrollPhysics(),
-                      child: Padding(
-                        padding: EdgeInsets.all(16.w),
-                        child: Column(
+              SecondaryAppBar(title: 'Create Post'),
+              SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Padding(
+                  padding: EdgeInsets.all(16.w),
+                  child: Column(
+                    children: [
+                      SizedBox(height: 10.h),
+                      /// ---------------- Author Info -------------------------
+                      Row(
+                        children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(100.r),
+                              border: Border.all(color: Color(0xFF5F6CA0)),
+                            ),
+                            child: CircleAvatar(
+                              radius: 20.r,
+                              backgroundImage: NetworkImage(authorImage ?? ''),
+                            ),
+                          ),
+                          SizedBox(width: 12.w),
+                          Text(
+                            authorName,
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const Spacer(),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 12.w,
+                              vertical: 6.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF0A1A29),
+                              borderRadius: BorderRadius.circular(20.r),
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(
+                                  Icons.public,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Public',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.arrow_drop_down,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      SizedBox(height: 16.h),
+
+                      /// ------------- Text input field -----------------------
+                      _buildTextField(
+                        "What's on your mind?",
+                        controller: _goalsController,
+                        maxLines: 8,
+                        focusNode: _goalsFocus,
+                      ),
+
+                      if (_selectedImage != null) ...[
+                        SizedBox(height: 16.h),
+                        Stack(
                           children: [
-                            SizedBox(height: 10.h),
-                            Row(
-                              children: [
-                                CircleAvatar(
-                                  radius: 20.r,
-                                  backgroundImage: const AssetImage(
-                                    'assets/icons/profile_post_screen.png',
-                                  ),
-                                  backgroundColor: Colors.blueGrey,
+                            Container(
+                              width: double.infinity,
+                              height: 200.h,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12.r),
+                                image: DecorationImage(
+                                  image: FileImage(_selectedImage!),
+                                  fit: BoxFit.cover,
                                 ),
-                                SizedBox(width: 12.w),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Sophie Lambert',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    Text(
-                                      'Public',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const Spacer(),
-                                // Privacy selector
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: 12.w,
-                                    vertical: 6.h,
-                                  ),
+                              ),
+                            ),
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: GestureDetector(
+                                onTap: _removeImage,
+                                child: Container(
+                                  padding: EdgeInsets.all(4.r),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF0A1A29),
-                                    borderRadius: BorderRadius.circular(20.r),
+                                    color: Colors.black.withValues(alpha: 0.5),
+                                    shape: BoxShape.circle,
                                   ),
-                                  child: const Row(
-                                    children: [
-                                      Icon(
-                                        Icons.public,
-                                        color: Colors.white,
-                                        size: 16,
-                                      ),
-                                      SizedBox(width: 4),
-                                      Text(
-                                        'Public',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      Icon(
-                                        Icons.arrow_drop_down,
-                                        color: Colors.white,
-                                        size: 16,
-                                      ),
-                                    ],
+                                  child: Icon(
+                                    Icons.close,
+                                    color: Colors.white,
+                                    size: 20,
                                   ),
-                                ),
-                              ],
-                            ),
-
-                            SizedBox(height: 16.h),
-
-                            // Text input field
-                            _buildTextField(
-                              "What's on your mind?",
-                              controller: _goalsController,
-                              maxLines: 8,
-                              focusNode: _goalsFocus,
-                            ),
-
-                            if (_selectedImage != null) ...[
-                              SizedBox(height: 16.h),
-                              Stack(
-                                children: [
-                                  Container(
-                                    width: double.infinity,
-                                    height: 200.h,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(12.r),
-                                      image: DecorationImage(
-                                        image: FileImage(_selectedImage!),
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    top: 8,
-                                    right: 8,
-                                    child: GestureDetector(
-                                      onTap: _removeImage,
-                                      child: Container(
-                                        padding: EdgeInsets.all(4.r),
-                                        decoration: BoxDecoration(
-                                          color: Colors.black.withOpacity(0.5),
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child:  Icon(
-                                          Icons.close,
-                                          color: Colors.white,
-                                          size: 20,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-
-                            SizedBox(height: 20.h),
-
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Expanded(
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 12.w,
-                                      vertical: 12.h,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[50],
-                                      borderRadius: BorderRadius.circular(12.r),
-                                      border: Border.all(
-                                        color: Colors.grey[300]!,
-                                      ),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        _buildMediaButton(
-                                          icon: 'assets/icons/video_icon.png',
-                                          label: 'Video',
-                                          onTap: () async {
-                                            try {
-                                              final XFile? video =
-                                                  await _imagePicker.pickVideo(
-                                                    source: ImageSource.gallery,
-                                                    maxDuration: const Duration(
-                                                      minutes: 5,
-                                                    ),
-                                                  );
-
-                                              if (video != null && mounted) {
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                      'Video selected: ${video.name}',
-                                                    ),
-                                                    duration: const Duration(
-                                                      seconds: 2,
-                                                    ),
-                                                  ),
-                                                );
-                                              }
-                                            } catch (e) {
-                                              if (mounted) {
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                      'Error picking video: $e',
-                                                    ),
-                                                    backgroundColor: Colors.red,
-                                                  ),
-                                                );
-                                              }
-                                            }
-                                          },
-                                        ),
-                                        SizedBox(width: 10.w),
-                                        _buildMediaButton(
-                                          icon: 'assets/icons/photo_icons.png',
-                                          label: 'Photo',
-                                          onTap: _showImageSourceDialog,
-                                        ),
-                                        // const Spacer(),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(width: 6),
-                                Expanded(
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: ElevatedButton(
-                                          onPressed:
-                                              (_hasText ||
-                                                      _selectedImage != null) &&
-                                                  !provider.isLoading
-                                              ? () => _createPost(provider)
-                                              : null,
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: const Color(
-                                              0xFFE9201D,
-                                            ),
-                                            disabledBackgroundColor:
-                                                Colors.grey[300],
-                                            foregroundColor: Colors.white,
-                                            padding: EdgeInsets.symmetric(
-                                              vertical: 14.h,
-                                            ),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(12.r),
-                                            ),
-                                            elevation: 0,
-                                          ),
-                                          child: Text(
-                                            'Post',
-                                            style: TextStyle(
-                                              fontSize: 16.sp,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            SizedBox(height: 20.h),
-
-                            // Character count
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: Text(
-                                '${_goalsController.text.length}/500',
-                                style: TextStyle(
-                                  color: _goalsController.text.length > 500
-                                      ? Colors.red
-                                      : Colors.grey,
-                                  fontSize: 12.sp,
                                 ),
                               ),
                             ),
-
-                            // Show error message if any
-                            if (provider.errorMessage != null) ...[
-                              SizedBox(height: 16.h),
-                              Container(
-                                padding: EdgeInsets.all(12.w),
-                                decoration: BoxDecoration(
-                                  color: Colors.red.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8.r),
-                                  border: Border.all(color: Colors.red),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.error_outline,
-                                      color: Colors.red,
-                                      size: 20,
-                                    ),
-                                    SizedBox(width: 8.w),
-                                    Expanded(
-                                      child: Text(
-                                        provider.errorMessage!,
-                                        style: const TextStyle(
-                                          color: Colors.red,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
                           ],
                         ),
-                      ),
-                    ),
+                      ],
 
-                    // Loading overlay
-                    if (provider.isLoading || _isPickingImage)
-                      Container(
-                        color: Colors.black.withOpacity(0.3),
-                        child: Center(
-                          child: Container(
-                            padding: EdgeInsets.all(20.r),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12.r),
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
+                      SizedBox(height: 20.h),
+
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Row(
                               children: [
-                                const CircularProgressIndicator(
-                                  strokeWidth: 3,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Color(0xFFE9201D),
-                                  ),
+                                _buildMediaButton(
+                                  icon: 'assets/icons/video.png',
+                                  onTap: () {},
                                 ),
-                                SizedBox(height: 16.h),
-                                Text(
-                                  _isPickingImage
-                                      ? 'Loading image...'
-                                      : 'Creating post...',
-                                  style: TextStyle(
-                                    fontSize: 14.sp,
-                                    fontWeight: FontWeight.w500,
+                                SizedBox(width: 10.w),
+                                _buildMediaButton(
+                                  icon: 'assets/icons/photo.png',
+                                  onTap: _showImageSourceDialog,
+                                ),
+                                // const Spacer(),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                ElevatedButton(
+                                  onPressed:
+                                      (_hasText || _selectedImage != null) &&
+                                          !provider.isLoading
+                                      ? () => _createPost(provider)
+                                      : null,
+                                  style: ElevatedButton.styleFrom(
+                                    fixedSize: Size(95.w, 48.h),
+                                    backgroundColor: const Color(0xFFE9201D),
+                                    padding: EdgeInsets.symmetric(
+                                      vertical: 12.h,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12.r),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                  child: Text(
+                                    'Post',
+                                    style: TextStyle(
+                                      fontSize: 16.sp,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                        ),
+                        ],
                       ),
-                  ],
+
+                      SizedBox(height: 20.h),
+
+                      // Show error message if any
+                      if (provider.errorMessage != null) ...[
+                        SizedBox(height: 16.h),
+                        Container(
+                          padding: EdgeInsets.all(12.w),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8.r),
+                            border: Border.all(color: Colors.red),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.error_outline,
+                                color: Colors.red,
+                                size: 20,
+                              ),
+                              SizedBox(width: 8.w),
+                              Expanded(
+                                child: Text(
+                                  provider.errorMessage!,
+                                  style: const TextStyle(
+                                    color: Colors.red,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
+
+              // Loading overlay
+              if (provider.isLoading || _isPickingImage)
+                Container(
+                  color: Colors.black.withValues(alpha: 0.3),
+                  child: Center(
+                    child: Container(
+                      padding: EdgeInsets.all(20.r),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const CircularProgressIndicator(
+                            strokeWidth: 3,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Color(0xFFE9201D),
+                            ),
+                          ),
+                          SizedBox(height: 16.h),
+                          Text(
+                            _isPickingImage
+                                ? 'Loading image...'
+                                : 'Creating post...',
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
 
               // Bottom bar with post button
             ],
@@ -522,37 +430,17 @@ class _CreatePostState extends State<CreatePost> {
 
   Widget _buildMediaButton({
     required String icon,
-    required String label,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
       onTap: onTap,
-      child: Row(
-        children: [
-          Image.asset(
-            icon,
-            width: 15.w,
-            height: 15.w,
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                // width: 24.w,
-                // height: 24.w,
-                color: Colors.grey[300],
-                child: const Icon(Icons.broken_image, size: 16),
-              );
-            },
-          ),
-          SizedBox(width: 8.w),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 14.sp,
-              color: Colors.grey[700],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
+      child: Container(
+        padding: EdgeInsets.all(8.r),
+        decoration: BoxDecoration(
+          color: Color(0xFF0E1B27),
+          borderRadius: BorderRadius.circular(12.r),
+        ),
+        child: Image.asset(icon, width: 24.w, height: 24.h),
       ),
     );
   }
@@ -565,9 +453,9 @@ class _CreatePostState extends State<CreatePost> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: Color(0xFF05111C),
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: Color(0xFF3D4566)),
       ),
       child: TextField(
         controller: controller,
