@@ -1,11 +1,11 @@
 import 'dart:io';
+import 'package:abbas/presentation/views/community/model/get_comment_model.dart';
 import 'package:abbas/presentation/views/community/model/get_post_like_model.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import '../../../../../../cors/constants/api_endpoints.dart';
 import '../../../../../../cors/network/api_response_model.dart';
 import '../../../../../../cors/services/api_client.dart';
-import '../../../../../../cors/services/token_storage.dart';
 import '../../../domain/community/community_entity.dart';
 import '../../../domain/community/community_usecase.dart';
 
@@ -23,6 +23,36 @@ class CommunityScreenProvider extends ChangeNotifier {
 
   GetPostLikeModel? get getPostLikeModel => _getPostLikeModel;
 
+  /// --------------- Per-post Like Counts -------------------------------------
+  final Map<String, int> _postLikeCounts = {};
+
+  int getPostLikeCount(String postId, int initialCount) {
+    return _postLikeCounts[postId] ?? initialCount;
+  }
+
+  /// ---------------- Get Comment Model -------------------------------------
+  List<GetCommentModel> _comments = [];
+
+  List<GetCommentModel> get comments => _comments;
+
+  /// --------------- Per-post Reaction State ----------------------------------
+  /// Maps postId -> selected ReactionType label (e.g. 'Like', 'Love', 'Angry')
+  final Map<String, String> _postReactions = {};
+
+  String? getReaction(String postId) => _postReactions[postId];
+
+  void setReaction(String postId, String reactionLabel) {
+    _postReactions[postId] = reactionLabel;
+    notifyListeners();
+  }
+
+  bool _isSubmitting = false;
+  bool get isSubmitting => _isSubmitting;
+  void setIsSubmitting(bool isSubmitting) {
+    _isSubmitting = isSubmitting;
+    notifyListeners();
+  }
+
   bool _isLoading = false;
 
   bool get isLoading => _isLoading;
@@ -33,35 +63,43 @@ class CommunityScreenProvider extends ChangeNotifier {
 
   final ApiClient _apiClient = ApiClient();
   final Logger logger = Logger();
-  final TokenStorage _tokenStorage = TokenStorage();
 
   String? _errorMessage;
 
   String? get errorMessage => _errorMessage;
 
-  File? _selectedImage;
+  File? _selectedMedia;
   bool _isPickingImage = false;
+  String _mediaType = 'TEXT';
 
-  File? get selectedImage => _selectedImage;
+  File? get selectedMedia => _selectedMedia;
   bool get isPickingImage => _isPickingImage;
+  String get mediaType => _mediaType;
 
-void setSelectedImage(File image) {
-  _selectedImage = image;
-  notifyListeners();
-}
+  void setSelectedMedia(File media, String type) {
+    _selectedMedia = media;
+    _mediaType = type;
+    notifyListeners();
+  }
 
-void setIsPickingImage(bool isPickingImage) {
-  _isPickingImage = isPickingImage;
-  notifyListeners();
-}
+  void setIsPickingImage(bool isPickingImage) {
+    _isPickingImage = isPickingImage;
+    notifyListeners();
+  }
 
-void removeImage() {
-  _selectedImage = null;
-  notifyListeners();
-}
+  void removeMedia() {
+    _selectedMedia = null;
+    _mediaType = 'TEXT';
+    notifyListeners();
+  }
 
-    
-    
+  String _privacy = 'PUBLIC';
+
+  String get privacy => _privacy;
+  void setPrivacy(String privacy) {
+    _privacy = privacy;
+    notifyListeners();
+  }
 
   /// ----------------- Fetch Feeds --------------------------------------------
   Future<void> fetchFeeds() async {
@@ -71,8 +109,10 @@ void removeImage() {
 
     try {
       final result = await getCommunityFeedsUseCase();
+      notifyListeners();
       _feeds = result;
     } catch (e) {
+      notifyListeners();
       _error = e.toString();
     }
 
@@ -81,47 +121,40 @@ void removeImage() {
   }
 
   /// ------------------- Create Post -----------------------------------------
-  Future<bool> createPost(String content, File? imageFile) async {
+  Future<dynamic> createPost(String content, File? mediaFile) async {
     _isLoading = true;
-    _errorMessage = null;
     notifyListeners();
 
     try {
-      final token = await _tokenStorage.getToken();
-      if (token == null) {
-        _errorMessage = "Please login again";
-        return false;
-      }
-
-      final fields = {
+      var fields = {
         'content': content,
-        'mediaType': 'PHOTO',
-        'visibility': 'PUBLIC',
+        'mediaType': _mediaType,
+        'visibility': _privacy,
       };
 
       ApiResponseModel response;
 
-      if (imageFile != null) {
+      if (mediaFile != null) {
         response = await _apiClient.postMultipart(
           ApiEndpoints.createPost,
           fields: fields,
           fileField: 'media',
-          filePath: imageFile.path,
+          filePath: mediaFile.path,
         );
       } else {
-        fields['mediaType'] = 'TEXT';
         response = await _apiClient.post(ApiEndpoints.createPost, body: fields);
       }
 
-      if (!response.success) {
-        _errorMessage = response.message;
-        return false;
+      if (response.success) {
+        fetchFeeds();
       }
 
-      return true;
+      notifyListeners();
+      return response;
     } catch (e) {
-      _errorMessage = e.toString();
-      return false;
+      notifyListeners();
+      logger.e("Error creating post: $e");
+      return e.toString();
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -133,15 +166,15 @@ void removeImage() {
   Future<ApiResponseModel> createPostLike(String postId) async {
     var body = {'postId': postId};
     try {
-      final response = await _apiClient.post(
+      final ApiResponseModel response = await _apiClient.post(
         ApiEndpoints.createPostLike,
         body: body,
       );
-      if (response['success']) {
-        logger.d(response['message']);
-        return ApiResponseModel(success: true, message: response['message']);
+      if (response.success) {
+        logger.d(response.message);
+        return ApiResponseModel(success: true, message: response.message);
       } else {
-        return ApiResponseModel(success: false, message: response['message']);
+        return ApiResponseModel(success: false, message: response.message);
       }
     } catch (e) {
       return ApiResponseModel(success: false, message: e.toString());
@@ -151,13 +184,61 @@ void removeImage() {
   /// ------------------- Get Post Like ---------------------------------------
   Future<void> getPostLike(String postId) async {
     try {
-      final response = await _apiClient.get(ApiEndpoints.getPostLike);
-      if (response) {
-        _getPostLikeModel = GetPostLikeModel.fromJson(response);
+      final ApiResponseModel response = await _apiClient.get(
+        ApiEndpoints.getPostLike(postId),
+      );
+      if (response.success && response.data != null) {
+        final model = GetPostLikeModel.fromJson(
+          response.data as Map<String, dynamic>,
+        );
+        _getPostLikeModel = model;
+        _postLikeCounts[postId] = model.likesCount ?? 0;
         notifyListeners();
       }
     } catch (e) {
-      _error = e.toString();
+      logger.e('getPostLike error: $e');
+    }
+  }
+
+  /// ------------------- Create Comment --------------------------------------
+  Future<ApiResponseModel> createComment(String postId, String comment) async {
+    var body = {'postId': postId, 'content': comment};
+    try {
+      final ApiResponseModel response = await _apiClient.post(
+        ApiEndpoints.createComment(postId),
+        body: body,
+      );
+      if (response.success) {
+        logger.d(response.message);
+        return ApiResponseModel(success: true, message: response.message);
+      }
+      return ApiResponseModel(success: false, message: response.message);
+    } catch (e) {
+      return ApiResponseModel(success: false, message: e.toString());
+    }
+  }
+
+  bool _isLoadingComments = false;
+  bool get isLoadingComments => _isLoadingComments;
+
+  /// ------------------- Get Comment --------------------------------------
+  Future<void> getComment(String postId) async {
+    _isLoadingComments = true;
+    _comments = [];
+    notifyListeners();
+    try {
+      final response = await _apiClient.get(
+        ApiEndpoints.getComment(postId),
+      );
+      final list = response.data as List<dynamic>;
+      _comments = list
+          .map((item) => GetCommentModel.fromJson(item as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      logger.e('getComment error: $e');
+    } finally {
+      _isLoadingComments = false;
+      notifyListeners();
     }
   }
 }

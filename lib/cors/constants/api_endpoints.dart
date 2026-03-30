@@ -79,7 +79,12 @@ class ApiEndpoints {
   static const String getFeed = '$baseUrl/api/community/feed';
   static const String createPost = '$baseUrl/api/community/post';
   static const String createPostLike = '$baseUrl/api/community/like';
-  static const String getPostLike = '$baseUrl/api/community/like';
+  static String getPostLike(String postId) =>
+      '$baseUrl/api/community/like/$postId';
+  static String createComment(String postId) =>
+      '$baseUrl/api/community/comment/$postId';
+  static String getComment(String postId) =>
+      '$baseUrl/api/community/comment/$postId';
 
   // chat
 

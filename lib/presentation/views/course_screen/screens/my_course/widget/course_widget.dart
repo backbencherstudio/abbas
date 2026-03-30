@@ -242,7 +242,7 @@ class _CourseWidgetState extends ConsumerState<CourseWidget> {
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 padding: EdgeInsets.symmetric(
-                                  horizontal: 32.w,
+                                  horizontal: 24.w,
                                   vertical: 16.h,
                                 ),
                                 backgroundColor: Color(0xFFE9201D),

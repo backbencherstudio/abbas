@@ -67,7 +67,7 @@ class ApiClient {
   }) async {
     try {
       var uri = Uri.parse(endpoint);
-      var request = http.MultipartRequest('PATCH', uri);
+      var request = http.MultipartRequest('POST', uri);
 
       final builtHeaders = await _buildHeaders(additionalHeaders);
       request.headers.addAll(builtHeaders);
