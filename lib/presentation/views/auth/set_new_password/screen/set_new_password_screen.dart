@@ -1,10 +1,10 @@
 import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:abbas/cors/routes/route_names.dart';
+import 'package:abbas/cors/utils/app_utils.dart';
 import 'package:abbas/presentation/views/auth/view_model/signup_screen_provider.dart';
 import 'package:abbas/presentation/widgets/custom_text_field.dart';
 import 'package:abbas/presentation/widgets/primary_button.dart';
 import 'package:abbas/presentation/widgets/validator.dart';
-import 'package:abbas/utils/app_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';

@@ -61,22 +61,22 @@ class _CommunityScreenState extends State<CommunityScreen> {
     final profileImage = profileProvider.profile?.data?.avatar;
     final profileName = profileProvider.profile?.data?.name;
     return Scaffold(
-      body: Column(
-        children: [
-          const CustomAppbar(title: "Community"),
-
-          Padding(
-            padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 0.h),
-            child: CreatePostWidget(),
-          ),
-
-          Expanded(
-            child: Consumer<CommunityScreenProvider>(
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            const CustomAppbar(title: "Community"),
+        
+            Padding(
+              padding: EdgeInsets.fromLTRB(16.w, 0.h, 16.w, 0.h),
+              child: CreatePostWidget(),
+            ),
+        
+            Consumer<CommunityScreenProvider>(
               builder: (context, provider, child) {
                 if (provider.isLoading) {
                   return const Center(child: AnimatedLoading());
                 }
-
+            
                 if (provider.error != null) {
                   return Center(
                     child: Text(
@@ -89,7 +89,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                     ),
                   );
                 }
-
+            
                 if (provider.feeds.isEmpty) {
                   return Center(
                     child: Column(
@@ -114,10 +114,12 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   );
                 }
                 return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
                   itemCount: provider.feeds.length,
                   itemBuilder: (context, index) {
                     final CommunityEntity feed = provider.feeds[index];
-
+            
                     return Padding(
                       padding: EdgeInsets.symmetric(
                         horizontal: 16.w,
@@ -138,18 +140,18 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                   GestureDetector(
                                     onTap: () async {
                                       final authorId = feed.authorId;
-
+            
                                       if (authorId != null &&
                                           authorId.isNotEmpty) {
                                         await profileProvider.getOtherProfile(
                                           authorId,
                                         );
-
+            
                                         Navigator.pushNamed(
                                           context,
                                           RouteNames.othersProfile,
                                         );
-
+            
                                         debugPrint("AuthorID: $authorId");
                                         debugPrint("PostID: ${feed.id}");
                                       }
@@ -197,16 +199,16 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                   ),
                                 ],
                               ),
-
+            
                               SizedBox(height: 10.h),
-
+            
                               Text(
                                 feed.content ?? "N/A",
                                 style: TextStyle(color: Colors.white),
                               ),
-
+            
                               SizedBox(height: 10.h),
-
+            
                               feed.mediaUrl != null && feed.mediaUrl!.isNotEmpty
                                   ? GestureDetector(
                                       onTap: () {},
@@ -391,8 +393,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
                 );
               },
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
