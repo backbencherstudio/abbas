@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../../../widgets/custom_appbar.dart';
 import '../../domain/community/community_entity.dart';
 import '../../widgets/create_post_widget.dart';
+import '../../widgets/community_video_widget.dart';
 import '../provider/community/community_screen_provider.dart';
 
 class CommunityScreen extends StatefulWidget {
@@ -67,7 +68,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
             const CustomAppbar(title: "Community"),
         
             Padding(
-              padding: EdgeInsets.fromLTRB(16.w, 0.h, 16.w, 0.h),
+              padding: EdgeInsets.fromLTRB(16.w, 0.h, 16.w, 8.h),
               child: CreatePostWidget(),
             ),
         
@@ -114,6 +115,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   );
                 }
                 return ListView.builder(
+                  padding: EdgeInsets.zero,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: provider.feeds.length,
@@ -209,27 +211,41 @@ class _CommunityScreenState extends State<CommunityScreen> {
             
                               SizedBox(height: 10.h),
             
-                              feed.mediaUrl != null && feed.mediaUrl!.isNotEmpty
-                                  ? GestureDetector(
-                                      onTap: () {},
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: Image.network(feed.mediaUrl!),
-                                      ),
-                                    )
-                                  : Container(
-                                      height: 200,
-                                      width: double.infinity,
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey[200],
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Icon(
-                                        Icons.image,
-                                        size: 50.sp,
-                                        color: Colors.grey,
+                              if (feed.mediaUrl != null && feed.mediaUrl!.isNotEmpty)
+                                if (feed.mediaType == 'VIDEO')
+                                  CommunityVideoWidget(videoUrl: feed.mediaUrl!)
+                                else
+                                  GestureDetector(
+                                    onTap: () {},
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8.r),
+                                      child: Image.network(
+                                        feed.mediaUrl!,
+                                        errorBuilder: (context, error, stackTrace) => Container(
+                                          height: 200.h,
+                                          width: double.infinity,
+                                          color: Colors.black12,
+                                          child: const Center(
+                                            child: Icon(Icons.broken_image, color: Colors.grey),
+                                          ),
+                                        ),
                                       ),
                                     ),
+                                  )
+                              else
+                                Container(
+                                  height: 200,
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    Icons.image,
+                                    size: 50.sp,
+                                    color: Colors.grey,
+                                  ),
+                                ),
                               SizedBox(height: 12.h),
                               Row(
                                 children: [

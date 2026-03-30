@@ -1,4 +1,3 @@
-import '../../../../../data/models/community/post_model.dart';
 import '../../data/community/community_model.dart';
 
 class CommunityEntity {

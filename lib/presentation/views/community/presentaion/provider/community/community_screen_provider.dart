@@ -39,29 +39,38 @@ class CommunityScreenProvider extends ChangeNotifier {
 
   String? get errorMessage => _errorMessage;
 
-  File? _selectedImage;
+  File? _selectedMedia;
   bool _isPickingImage = false;
+  String _mediaType = 'TEXT';
 
-  File? get selectedImage => _selectedImage;
+  File? get selectedMedia => _selectedMedia;
   bool get isPickingImage => _isPickingImage;
+  String get mediaType => _mediaType;
 
-void setSelectedImage(File image) {
-  _selectedImage = image;
-  notifyListeners();
-}
+  void setSelectedMedia(File media, String type) {
+    _selectedMedia = media;
+    _mediaType = type;
+    notifyListeners();
+  }
 
-void setIsPickingImage(bool isPickingImage) {
-  _isPickingImage = isPickingImage;
-  notifyListeners();
-}
+  void setIsPickingImage(bool isPickingImage) {
+    _isPickingImage = isPickingImage;
+    notifyListeners();
+  }
 
-void removeImage() {
-  _selectedImage = null;
-  notifyListeners();
-}
+  void removeMedia() {
+    _selectedMedia = null;
+    _mediaType = 'TEXT';
+    notifyListeners();
+  }
 
-    
-    
+  String _privacy = 'PUBLIC';
+
+  String get privacy => _privacy;
+  void setPrivacy(String privacy) {
+    _privacy = privacy;
+    notifyListeners();
+  }
 
   /// ----------------- Fetch Feeds --------------------------------------------
   Future<void> fetchFeeds() async {
@@ -71,8 +80,10 @@ void removeImage() {
 
     try {
       final result = await getCommunityFeedsUseCase();
+      notifyListeners();
       _feeds = result;
     } catch (e) {
+      notifyListeners();
       _error = e.toString();
     }
 
@@ -81,47 +92,40 @@ void removeImage() {
   }
 
   /// ------------------- Create Post -----------------------------------------
-  Future<bool> createPost(String content, File? imageFile) async {
+  Future<dynamic> createPost(String content, File? mediaFile) async {
     _isLoading = true;
-    _errorMessage = null;
     notifyListeners();
 
     try {
-      final token = await _tokenStorage.getToken();
-      if (token == null) {
-        _errorMessage = "Please login again";
-        return false;
-      }
-
-      final fields = {
+      var fields = {
         'content': content,
-        'mediaType': 'PHOTO',
-        'visibility': 'PUBLIC',
+        'mediaType': _mediaType,
+        'visibility': _privacy,
       };
 
       ApiResponseModel response;
 
-      if (imageFile != null) {
+      if (mediaFile != null) {
         response = await _apiClient.postMultipart(
           ApiEndpoints.createPost,
           fields: fields,
           fileField: 'media',
-          filePath: imageFile.path,
+          filePath: mediaFile.path,
         );
       } else {
-        fields['mediaType'] = 'TEXT';
         response = await _apiClient.post(ApiEndpoints.createPost, body: fields);
       }
-
-      if (!response.success) {
-        _errorMessage = response.message;
-        return false;
+      
+      if (response.success) {
+        fetchFeeds();
       }
 
-      return true;
+      notifyListeners();
+      return response;
     } catch (e) {
-      _errorMessage = e.toString();
-      return false;
+      notifyListeners();
+      logger.e("Error creating post: $e");
+      return e.toString();
     } finally {
       _isLoading = false;
       notifyListeners();
