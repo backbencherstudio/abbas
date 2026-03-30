@@ -1,6 +1,7 @@
 import 'package:abbas/cors/theme/app_colors.dart';
 import 'package:abbas/presentation/views/community/presentaion/provider/community/community_screen_provider.dart';
 import 'package:abbas/presentation/widgets/secondary_appber.dart';
+import 'package:abbas/utils/app_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
@@ -22,8 +23,6 @@ class _CreatePostState extends State<CreatePost> {
   final ImagePicker _imagePicker = ImagePicker();
 
   bool _hasText = false;
-  File? _selectedImage;
-  bool _isPickingImage = false;
 
   @override
   void initState() {
@@ -39,36 +38,29 @@ class _CreatePostState extends State<CreatePost> {
 
   Future<void> _pickImage(ImageSource source) async {
     try {
-      setState(() {
-        _isPickingImage = true;
-      });
+      context.read<CommunityScreenProvider>().setIsPickingImage(true);
 
       final XFile? image = await _imagePicker.pickImage(
         source: source,
-        maxWidth: 1920,
-        maxHeight: 1080,
         imageQuality: 85,
       );
 
       if (image != null) {
-        setState(() {
-          _selectedImage = File(image.path);
-        });
+        context.read<CommunityScreenProvider>().setSelectedImage(
+          File(image.path),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error picking image: $e'),
-            backgroundColor: Colors.red,
-          ),
+        Utils.showToast(
+          msg: 'Error picking image: $e',
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
         );
       }
     } finally {
       if (mounted) {
-        setState(() {
-          _isPickingImage = false;
-        });
+        context.read<CommunityScreenProvider>().setIsPickingImage(false);
       }
     }
   }
@@ -114,18 +106,15 @@ class _CreatePostState extends State<CreatePost> {
   }
 
   void _removeImage() {
-    setState(() {
-      _selectedImage = null;
-    });
+    context.read<CommunityScreenProvider>().removeImage();
   }
 
   Future<void> _createPost(CommunityScreenProvider provider) async {
-    if (!_hasText && _selectedImage == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please add text or image to create a post'),
-          backgroundColor: Colors.orange,
-        ),
+    if (!_hasText && provider.selectedImage == null) {
+      Utils.showToast(
+        msg: 'Please add text and image',
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
       );
       return;
     }
@@ -133,23 +122,21 @@ class _CreatePostState extends State<CreatePost> {
     // Call the provider method
     final success = await provider.createPost(
       _goalsController.text.trim(),
-      _selectedImage,
+      provider.selectedImage,
     );
 
     if (success && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Post created successfully!'),
-          backgroundColor: Colors.green,
-        ),
+      Utils.showToast(
+        msg: 'Post created successfully!',
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
       );
       Navigator.pop(context, true); // Return true to indicate success
     } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(provider.errorMessage ?? 'Error creating post'),
-          backgroundColor: Colors.red,
-        ),
+      Utils.showToast(
+        msg: provider.errorMessage ?? 'Error creating post',
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
       );
     }
   }
@@ -181,6 +168,7 @@ class _CreatePostState extends State<CreatePost> {
                   child: Column(
                     children: [
                       SizedBox(height: 10.h),
+
                       /// ---------------- Author Info -------------------------
                       Row(
                         children: [
@@ -250,7 +238,7 @@ class _CreatePostState extends State<CreatePost> {
                         focusNode: _goalsFocus,
                       ),
 
-                      if (_selectedImage != null) ...[
+                      if (provider.selectedImage != null) ...[
                         SizedBox(height: 16.h),
                         Stack(
                           children: [
@@ -260,7 +248,7 @@ class _CreatePostState extends State<CreatePost> {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(12.r),
                                 image: DecorationImage(
-                                  image: FileImage(_selectedImage!),
+                                  image: FileImage(provider.selectedImage!),
                                   fit: BoxFit.cover,
                                 ),
                               ),
@@ -316,7 +304,7 @@ class _CreatePostState extends State<CreatePost> {
                               children: [
                                 ElevatedButton(
                                   onPressed:
-                                      (_hasText || _selectedImage != null) &&
+                                      (_hasText || provider.selectedImage != null) &&
                                           !provider.isLoading
                                       ? () => _createPost(provider)
                                       : null,
@@ -385,7 +373,7 @@ class _CreatePostState extends State<CreatePost> {
               ),
 
               // Loading overlay
-              if (provider.isLoading || _isPickingImage)
+              if (provider.isLoading || provider.isPickingImage)
                 Container(
                   color: Colors.black.withValues(alpha: 0.3),
                   child: Center(
@@ -406,7 +394,7 @@ class _CreatePostState extends State<CreatePost> {
                           ),
                           SizedBox(height: 16.h),
                           Text(
-                            _isPickingImage
+                            provider.isPickingImage
                                 ? 'Loading image...'
                                 : 'Creating post...',
                             style: TextStyle(

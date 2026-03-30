@@ -39,6 +39,30 @@ class CommunityScreenProvider extends ChangeNotifier {
 
   String? get errorMessage => _errorMessage;
 
+  File? _selectedImage;
+  bool _isPickingImage = false;
+
+  File? get selectedImage => _selectedImage;
+  bool get isPickingImage => _isPickingImage;
+
+void setSelectedImage(File image) {
+  _selectedImage = image;
+  notifyListeners();
+}
+
+void setIsPickingImage(bool isPickingImage) {
+  _isPickingImage = isPickingImage;
+  notifyListeners();
+}
+
+void removeImage() {
+  _selectedImage = null;
+  notifyListeners();
+}
+
+    
+    
+
   /// ----------------- Fetch Feeds --------------------------------------------
   Future<void> fetchFeeds() async {
     _isLoading = true;
