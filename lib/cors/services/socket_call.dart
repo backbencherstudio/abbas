@@ -6,15 +6,12 @@ class SocketCall with ChangeNotifier {
   SocketCall._internal();
   static final SocketCall instance = SocketCall._internal();
   factory SocketCall() => instance;
-
-  // ✅ FIX: base URL আলাদা রাখুন, namespace আলাদা যোগ করুন
   static const String _baseUrl =
       'https://occupations-love-routers-discovery.trycloudflare.com';
-  static const String _namespace = '/ws'; // ✅ Backend namespace match
+  static const String _namespace = '/ws';
 
   IO.Socket? _socket;
   final Logger logger = Logger(printer: PrettyPrinter(methodCount: 0));
-
   bool _isConnected = false;
   bool get isConnected => _isConnected;
   IO.Socket? get socket => _socket;
@@ -27,13 +24,11 @@ class SocketCall with ChangeNotifier {
   Function(String conversationId)? onConversationJoined;
 
   void connect(String token) {
-    // ✅ FIX: already connected হলে শুধু return না করে token check করুন
     if (_socket != null && _isConnected) {
-      logger.i("⚡ Socket already connected");
+      logger.i(" Socket already connected");
       return;
     }
 
-    // ✅ FIX: আগের socket থাকলে cleanup করুন
     if (_socket != null) {
       try {
         _socket!.dispose();
@@ -41,9 +36,8 @@ class SocketCall with ChangeNotifier {
       _socket = null;
     }
 
-    logger.i("🔌 Connecting socket to $_baseUrl$_namespace ...");
+    logger.i(" Connecting socket to $_baseUrl$_namespace ...");
 
-    // ✅ FIX: namespace সহ URL দিন
     _socket = IO.io(
       '$_baseUrl$_namespace',
       IO.OptionBuilder()
@@ -64,19 +58,19 @@ class SocketCall with ChangeNotifier {
   void _attachListeners() {
     _socket?.onConnect((_) {
       _isConnected = true;
-      logger.i("✅ Socket connected — id: ${_socket?.id}");
+      logger.i(" Socket connected — id: ${_socket?.id}");
       notifyListeners();
     });
 
     _socket?.onDisconnect((_) {
       _isConnected = false;
-      logger.w("🔌 Socket disconnected");
+      logger.w(" Socket disconnected");
       notifyListeners();
     });
 
     _socket?.onConnectError((err) {
       _isConnected = false;
-      logger.e("❌ Socket connect error: $err");
+      logger.e(" Socket connect error: $err");
       notifyListeners();
     });
 
@@ -85,23 +79,23 @@ class SocketCall with ChangeNotifier {
     });
 
     _socket?.on('connection:ok', (data) {
-      logger.i("✅ Server confirmed connection: $data");
+      logger.i(" Server confirmed connection: $data");
     });
 
     _socket?.on('connection:error', (data) {
-      logger.e("❌ Server rejected connection: $data");
+      logger.e(" Server rejected connection: $data");
       disconnect();
     });
 
     // ── Call events ──────────────────────────────────────────────────
     _socket?.on('call:incoming', (data) {
-      logger.i("📲 call:incoming → $data");
+      logger.i(" call:incoming → $data");
       final map = _toMap(data);
       if (map != null) onIncomingCall?.call(map);
     });
 
     _socket?.on('call:ended', (data) {
-      logger.i("📵 call:ended → $data");
+      logger.i(" call:ended → $data");
       final map = _toMap(data);
       if (map != null) onCallEnded?.call(map);
     });
@@ -123,7 +117,7 @@ class SocketCall with ChangeNotifier {
     });
 
     _socket?.on('conversation:joined', (data) {
-      logger.i("✅ conversation:joined → $data");
+      logger.i(" conversation:joined → $data");
       final map = _toMap(data);
       if (map != null) {
         onConversationJoined?.call(map['conversationId'] ?? '');
@@ -149,10 +143,10 @@ class SocketCall with ChangeNotifier {
 
   void _emit(String event, Map<String, dynamic> data) {
     if (!_isConnected || _socket == null) {
-      logger.w("⚠️ Cannot emit '$event' — socket not connected");
+      logger.w(" Cannot emit '$event' — socket not connected");
       return;
     }
-    logger.d("📤 emit '$event': $data");
+    logger.d(" emit '$event': $data");
     _socket!.emit(event, data);
   }
 
@@ -165,7 +159,6 @@ class SocketCall with ChangeNotifier {
     } finally {
       _socket = null;
       _isConnected = false;
-      // ✅ এই লাইনগুলো DELETE করুন:
       // onIncomingCall = null;
       // onCallEnded = null;
       // onNewMessage = null;
