@@ -1,11 +1,11 @@
 import 'dart:io';
+import 'package:abbas/presentation/views/community/model/get_comment_model.dart';
 import 'package:abbas/presentation/views/community/model/get_post_like_model.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import '../../../../../../cors/constants/api_endpoints.dart';
 import '../../../../../../cors/network/api_response_model.dart';
 import '../../../../../../cors/services/api_client.dart';
-import '../../../../../../cors/services/token_storage.dart';
 import '../../../domain/community/community_entity.dart';
 import '../../../domain/community/community_usecase.dart';
 
@@ -23,6 +23,36 @@ class CommunityScreenProvider extends ChangeNotifier {
 
   GetPostLikeModel? get getPostLikeModel => _getPostLikeModel;
 
+  /// --------------- Per-post Like Counts -------------------------------------
+  final Map<String, int> _postLikeCounts = {};
+
+  int getPostLikeCount(String postId, int initialCount) {
+    return _postLikeCounts[postId] ?? initialCount;
+  }
+
+  /// ---------------- Get Comment Model -------------------------------------
+  List<GetCommentModel> _comments = [];
+
+  List<GetCommentModel> get comments => _comments;
+
+  /// --------------- Per-post Reaction State ----------------------------------
+  /// Maps postId -> selected ReactionType label (e.g. 'Like', 'Love', 'Angry')
+  final Map<String, String> _postReactions = {};
+
+  String? getReaction(String postId) => _postReactions[postId];
+
+  void setReaction(String postId, String reactionLabel) {
+    _postReactions[postId] = reactionLabel;
+    notifyListeners();
+  }
+
+  bool _isSubmitting = false;
+  bool get isSubmitting => _isSubmitting;
+  void setIsSubmitting(bool isSubmitting) {
+    _isSubmitting = isSubmitting;
+    notifyListeners();
+  }
+
   bool _isLoading = false;
 
   bool get isLoading => _isLoading;
@@ -33,7 +63,6 @@ class CommunityScreenProvider extends ChangeNotifier {
 
   final ApiClient _apiClient = ApiClient();
   final Logger logger = Logger();
-  final TokenStorage _tokenStorage = TokenStorage();
 
   String? _errorMessage;
 
@@ -115,7 +144,7 @@ class CommunityScreenProvider extends ChangeNotifier {
       } else {
         response = await _apiClient.post(ApiEndpoints.createPost, body: fields);
       }
-      
+
       if (response.success) {
         fetchFeeds();
       }
@@ -137,15 +166,15 @@ class CommunityScreenProvider extends ChangeNotifier {
   Future<ApiResponseModel> createPostLike(String postId) async {
     var body = {'postId': postId};
     try {
-      final response = await _apiClient.post(
+      final ApiResponseModel response = await _apiClient.post(
         ApiEndpoints.createPostLike,
         body: body,
       );
-      if (response['success']) {
-        logger.d(response['message']);
-        return ApiResponseModel(success: true, message: response['message']);
+      if (response.success) {
+        logger.d(response.message);
+        return ApiResponseModel(success: true, message: response.message);
       } else {
-        return ApiResponseModel(success: false, message: response['message']);
+        return ApiResponseModel(success: false, message: response.message);
       }
     } catch (e) {
       return ApiResponseModel(success: false, message: e.toString());
@@ -155,13 +184,61 @@ class CommunityScreenProvider extends ChangeNotifier {
   /// ------------------- Get Post Like ---------------------------------------
   Future<void> getPostLike(String postId) async {
     try {
-      final response = await _apiClient.get(ApiEndpoints.getPostLike);
-      if (response) {
-        _getPostLikeModel = GetPostLikeModel.fromJson(response);
+      final ApiResponseModel response = await _apiClient.get(
+        ApiEndpoints.getPostLike(postId),
+      );
+      if (response.success && response.data != null) {
+        final model = GetPostLikeModel.fromJson(
+          response.data as Map<String, dynamic>,
+        );
+        _getPostLikeModel = model;
+        _postLikeCounts[postId] = model.likesCount ?? 0;
         notifyListeners();
       }
     } catch (e) {
-      _error = e.toString();
+      logger.e('getPostLike error: $e');
+    }
+  }
+
+  /// ------------------- Create Comment --------------------------------------
+  Future<ApiResponseModel> createComment(String postId, String comment) async {
+    var body = {'postId': postId, 'content': comment};
+    try {
+      final ApiResponseModel response = await _apiClient.post(
+        ApiEndpoints.createComment(postId),
+        body: body,
+      );
+      if (response.success) {
+        logger.d(response.message);
+        return ApiResponseModel(success: true, message: response.message);
+      }
+      return ApiResponseModel(success: false, message: response.message);
+    } catch (e) {
+      return ApiResponseModel(success: false, message: e.toString());
+    }
+  }
+
+  bool _isLoadingComments = false;
+  bool get isLoadingComments => _isLoadingComments;
+
+  /// ------------------- Get Comment --------------------------------------
+  Future<void> getComment(String postId) async {
+    _isLoadingComments = true;
+    _comments = [];
+    notifyListeners();
+    try {
+      final response = await _apiClient.get(
+        ApiEndpoints.getComment(postId),
+      );
+      final list = response.data as List<dynamic>;
+      _comments = list
+          .map((item) => GetCommentModel.fromJson(item as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      logger.e('getComment error: $e');
+    } finally {
+      _isLoadingComments = false;
+      notifyListeners();
     }
   }
 }

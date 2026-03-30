@@ -9,6 +9,8 @@ import '../../domain/community/community_entity.dart';
 import '../../widgets/create_post_widget.dart';
 import '../../widgets/community_video_widget.dart';
 import '../provider/community/community_screen_provider.dart';
+import '../../widgets/reaction_button.dart';
+import '../../widgets/comment_bottom_sheet.dart';
 
 class CommunityScreen extends StatefulWidget {
   const CommunityScreen({super.key});
@@ -27,7 +29,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
     });
   }
 
-  String timeAgo(String? dateTimeString) {
+  String _timeAgo(String? dateTimeString) {
     if (dateTimeString == null || dateTimeString.isEmpty) {
       return "N/A";
     }
@@ -66,18 +68,18 @@ class _CommunityScreenState extends State<CommunityScreen> {
         child: Column(
           children: [
             const CustomAppbar(title: "Community"),
-        
+
             Padding(
               padding: EdgeInsets.fromLTRB(16.w, 0.h, 16.w, 8.h),
               child: CreatePostWidget(),
             ),
-        
+
             Consumer<CommunityScreenProvider>(
               builder: (context, provider, child) {
                 if (provider.isLoading) {
                   return const Center(child: AnimatedLoading());
                 }
-            
+
                 if (provider.error != null) {
                   return Center(
                     child: Text(
@@ -90,7 +92,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                     ),
                   );
                 }
-            
+
                 if (provider.feeds.isEmpty) {
                   return Center(
                     child: Column(
@@ -121,7 +123,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   itemCount: provider.feeds.length,
                   itemBuilder: (context, index) {
                     final CommunityEntity feed = provider.feeds[index];
-            
+
                     return Padding(
                       padding: EdgeInsets.symmetric(
                         horizontal: 16.w,
@@ -142,18 +144,18 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                   GestureDetector(
                                     onTap: () async {
                                       final authorId = feed.authorId;
-            
+
                                       if (authorId != null &&
                                           authorId.isNotEmpty) {
                                         await profileProvider.getOtherProfile(
                                           authorId,
                                         );
-            
+
                                         Navigator.pushNamed(
                                           context,
                                           RouteNames.othersProfile,
                                         );
-            
+
                                         debugPrint("AuthorID: $authorId");
                                         debugPrint("PostID: ${feed.id}");
                                       }
@@ -190,7 +192,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                       ),
                                       SizedBox(height: 5.h),
                                       Text(
-                                        timeAgo(feed.createdAt ?? "N/A"),
+                                        _timeAgo(feed.createdAt ?? "N/A"),
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           color: Color(0xFFD2D2D5),
@@ -201,17 +203,18 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                   ),
                                 ],
                               ),
-            
+
                               SizedBox(height: 10.h),
-            
+
                               Text(
                                 feed.content ?? "N/A",
                                 style: TextStyle(color: Colors.white),
                               ),
-            
+
                               SizedBox(height: 10.h),
-            
-                              if (feed.mediaUrl != null && feed.mediaUrl!.isNotEmpty)
+
+                              if (feed.mediaUrl != null &&
+                                  feed.mediaUrl!.isNotEmpty)
                                 if (feed.mediaType == 'VIDEO')
                                   CommunityVideoWidget(videoUrl: feed.mediaUrl!)
                                 else
@@ -221,14 +224,19 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                       borderRadius: BorderRadius.circular(8.r),
                                       child: Image.network(
                                         feed.mediaUrl!,
-                                        errorBuilder: (context, error, stackTrace) => Container(
-                                          height: 200.h,
-                                          width: double.infinity,
-                                          color: Colors.black12,
-                                          child: const Center(
-                                            child: Icon(Icons.broken_image, color: Colors.grey),
-                                          ),
-                                        ),
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                Container(
+                                                  height: 200.h,
+                                                  width: double.infinity,
+                                                  color: Colors.black12,
+                                                  child: const Center(
+                                                    child: Icon(
+                                                      Icons.broken_image,
+                                                      color: Colors.grey,
+                                                    ),
+                                                  ),
+                                                ),
                                       ),
                                     ),
                                   )
@@ -249,29 +257,41 @@ class _CommunityScreenState extends State<CommunityScreen> {
                               SizedBox(height: 12.h),
                               Row(
                                 children: [
-                                  Row(
-                                    children: [
-                                      Image.asset(
-                                        "assets/icons/like_icon_red.png",
-                                        width: 24.w,
-                                        height: 24.h,
-                                      ),
-                                      TextButton(
-                                        onPressed: () async {
-                                          await provider.getPostLike(
-                                            feed.id ?? '',
-                                          );
-                                        },
-                                        child: Text(
-                                          '${provider.getPostLikeModel?.likesCount ?? 0}',
-                                          style: TextStyle(
-                                            fontSize: 14.sp,
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w500,
+                                  Consumer<CommunityScreenProvider>(
+                                    builder: (context, provider, _) {
+                                      final reactionLabel = provider
+                                          .getReaction(feed.id ?? '');
+                                      final reaction = reactionLabel != null
+                                          ? kReactions.firstWhere(
+                                              (r) => r.label == reactionLabel,
+                                              orElse: () => kReactions.first,
+                                            )
+                                          : kReactions.first;
+
+                                      return Row(
+                                        children: [
+                                          Text(
+                                            reaction.emoji,
+                                            style: TextStyle(fontSize: 16.sp),
                                           ),
-                                        ),
-                                      ),
-                                    ],
+                                          TextButton(
+                                            onPressed: () async {
+                                              await provider.getPostLike(
+                                                feed.id ?? '',
+                                              );
+                                            },
+                                            child: Text(
+                                              '${provider.getPostLikeCount(feed.id ?? '', feed.likeCount ?? 0)}',
+                                              style: TextStyle(
+                                                fontSize: 14.sp,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
                                   ),
                                   Expanded(
                                     child: Row(
@@ -337,22 +357,28 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
+                                  ReactionButton(postId: feed.id ?? ''),
                                   GestureDetector(
-                                    onTap: () async {
-                                      await provider.createPostLike(
-                                        feed.id ?? '',
+                                    onTap: () {
+                                      showModalBottomSheet(
+                                        context: context,
+                                        isScrollControlled: true,
+                                        backgroundColor: Colors.transparent,
+                                        builder: (ctx) => CommentBottomSheet(
+                                          postId: feed.id ?? '',
+                                        ),
                                       );
                                     },
                                     child: Row(
                                       children: [
                                         Image.asset(
-                                          "assets/icons/like_icon.png",
+                                          "assets/icons/comment_icon.png",
                                           width: 24.w,
                                           height: 24.h,
                                         ),
                                         SizedBox(width: 4.w),
                                         Text(
-                                          "Like",
+                                          "Comment",
                                           style: TextStyle(
                                             fontSize: 14.sp,
                                             color: Colors.white,
@@ -361,24 +387,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                         ),
                                       ],
                                     ),
-                                  ),
-                                  Row(
-                                    children: [
-                                      Image.asset(
-                                        "assets/icons/comment_icon.png",
-                                        width: 24.w,
-                                        height: 24.h,
-                                      ),
-                                      SizedBox(width: 4.w),
-                                      Text(
-                                        "Comment",
-                                        style: TextStyle(
-                                          fontSize: 14.sp,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
                                   ),
                                   Row(
                                     children: [
@@ -400,6 +408,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                   ),
                                 ],
                               ),
+
+                        
                             ],
                           ),
                         ),
