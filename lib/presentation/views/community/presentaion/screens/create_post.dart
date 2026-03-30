@@ -1,7 +1,7 @@
 import 'package:abbas/cors/theme/app_colors.dart';
+import 'package:abbas/cors/utils/app_utils.dart';
 import 'package:abbas/presentation/views/community/presentaion/provider/community/community_screen_provider.dart';
 import 'package:abbas/presentation/widgets/secondary_appber.dart';
-import 'package:abbas/utils/app_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';

@@ -1,7 +1,7 @@
 import 'package:abbas/cors/services/api_client.dart';
+import 'package:abbas/cors/utils/app_utils.dart';
 import 'package:abbas/presentation/views/course_screen/view_model/get_all_courses_provider.dart';
 import 'package:abbas/presentation/widgets/validator.dart';
-import 'package:abbas/utils/app_utils.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

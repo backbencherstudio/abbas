@@ -44,7 +44,7 @@ import '../../domain/usecases/community/get_feeds.dart';
 import '../../domain/usecases/course/get_courses.dart';
 import '../../domain/usecases/profile/edit_personal_info_usecase.dart';
 import '../../domain/usecases/profile/personal_info_usecase.dart';
-import '../../presentation/services/toast_service.dart';
+import '../services/toast_service.dart';
 import '../../presentation/viewmodels/auth/change_password/change_password_viewmodel.dart';
 import '../../presentation/viewmodels/auth/forgot_password/forgot_password_viewmodel.dart';
 import '../../presentation/viewmodels/auth/otp_verify/otp_verify_viewmodel.dart';
