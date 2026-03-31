@@ -14,6 +14,13 @@ class CommunityScreenProvider extends ChangeNotifier {
 
   CommunityScreenProvider({required this.getCommunityFeedsUseCase});
 
+  bool _isDeletePost = false;
+  bool get isDeletePost => _isDeletePost;
+  void setIsDeletePost(bool isDeletePost) {
+    _isDeletePost = isDeletePost;
+    notifyListeners();
+  }
+
   List<CommunityEntity> _feeds = [];
 
   List<CommunityEntity> get feeds => _feeds;
@@ -34,6 +41,10 @@ class CommunityScreenProvider extends ChangeNotifier {
   List<GetCommentModel> _comments = [];
 
   List<GetCommentModel> get comments => _comments;
+
+  List<Replies> _replies = [];
+
+  List<Replies> get replies => _replies;
 
   /// --------------- Per-post Reaction State ----------------------------------
   /// Maps postId -> selected ReactionType label (e.g. 'Like', 'Love', 'Angry')
@@ -68,6 +79,7 @@ class CommunityScreenProvider extends ChangeNotifier {
 
   String? get errorMessage => _errorMessage;
 
+  /// ----------------------- Create Post Method --------------------------------------
   File? _selectedMedia;
   bool _isPickingImage = false;
   String _mediaType = 'TEXT';
@@ -161,6 +173,55 @@ class CommunityScreenProvider extends ChangeNotifier {
     }
   }
 
+  /// ------------------- Update Post -----------------------------------------
+  Future<dynamic> updatePost(
+    String postId,
+    String content,
+    File? mediaFile,
+  ) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      var fields = {
+        'content': content,
+        'mediaType': _mediaType,
+        'visibility': _privacy,
+      };
+
+      ApiResponseModel response;
+
+      if (mediaFile != null) {
+        response = await _apiClient.patchMultipart(
+          ApiEndpoints.updatePost(postId),
+          fields: fields,
+          fileField: 'media',
+          filePath: mediaFile.path,
+        );
+      } else {
+        response = await _apiClient.patch(
+          ApiEndpoints.updatePost(postId),
+          body: fields,
+        );
+      }
+
+      logger.d("Update post data : ${response.data}");
+      if (response.success) {
+        fetchFeeds();
+      }
+
+      notifyListeners();
+      return response;
+    } catch (e) {
+      notifyListeners();
+      logger.e("Error updating post: $e");
+      return e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   /// ------------------ Create Post Like --------------------------------------
 
   Future<ApiResponseModel> createPostLike(String postId) async {
@@ -227,9 +288,7 @@ class CommunityScreenProvider extends ChangeNotifier {
     _comments = [];
     notifyListeners();
     try {
-      final response = await _apiClient.get(
-        ApiEndpoints.getComment(postId),
-      );
+      final response = await _apiClient.get(ApiEndpoints.getComment(postId));
       final list = response.data as List<dynamic>;
       _comments = list
           .map((item) => GetCommentModel.fromJson(item as Map<String, dynamic>))
@@ -239,6 +298,46 @@ class CommunityScreenProvider extends ChangeNotifier {
     } finally {
       _isLoadingComments = false;
       notifyListeners();
+    }
+  }
+
+  /// ------------------- Reply Comment --------------------------------------
+  Future<ApiResponseModel> replyComment(
+    String postId,
+    String replyId,
+    String content,
+  ) async {
+    var body = {'postId': postId, 'content': content};
+    try {
+      final ApiResponseModel response = await _apiClient.post(
+        ApiEndpoints.replyComment(replyId),
+        body: body,
+      );
+      if (response.success) {
+        logger.d(response.message);
+        return ApiResponseModel(success: true, message: response.message);
+      }
+      return ApiResponseModel(success: false, message: response.message);
+    } catch (e) {
+      logger.e('replyComment error: $e');
+      return ApiResponseModel(success: false, message: e.toString());
+    }
+  }
+
+  /// ------------------- Delete Post --------------------------------------
+  Future<ApiResponseModel> deletePost(String postId) async {
+    try {
+      final ApiResponseModel response = await _apiClient.delete(
+        ApiEndpoints.deletePost(postId),
+      );
+      if (response.success) {
+        logger.d(response.message);
+        return ApiResponseModel(success: true, message: response.message);
+      }
+      return ApiResponseModel(success: false, message: response.message);
+    } catch (e) {
+      logger.e('deletePost error: $e');
+      return ApiResponseModel(success: false, message: e.toString());
     }
   }
 }

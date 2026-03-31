@@ -1,3 +1,4 @@
+import 'package:abbas/cors/network/api_response_handle.dart';
 import 'package:abbas/presentation/views/profile/view_model/profil_screen_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -15,6 +16,10 @@ class CommentBottomSheet extends StatefulWidget {
 
 class _CommentBottomSheetState extends State<CommentBottomSheet> {
   final TextEditingController _commentController = TextEditingController();
+  final TextEditingController _replyController = TextEditingController();
+
+  String? _replyingToCommentId;
+  String? _replyingToUserName;
 
   @override
   void initState() {
@@ -27,15 +32,15 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
   @override
   void dispose() {
     _commentController.dispose();
+    _replyController.dispose();
     super.dispose();
   }
 
   /// ---------------------------- submit comment --------------------------
-  Future<void> _submitComment() async {
+  Future<void> _submitComment(CommunityScreenProvider provider) async {
     final text = _commentController.text.trim();
     if (text.isEmpty) return;
 
-    final provider = context.read<CommunityScreenProvider>();
     provider.setIsSubmitting(true);
 
     await provider.createComment(widget.postId, text);
@@ -45,6 +50,33 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
     if (mounted) {
       provider.setIsSubmitting(false);
     }
+  }
+
+  /// ---------------------------- submit reply --------------------------
+  Future<void> _submitReply(CommunityScreenProvider provider) async {
+    if (_replyingToCommentId == null) return;
+
+    final text = _commentController.text.trim();
+    if (text.isEmpty) return;
+
+    provider.setIsSubmitting(true);
+
+    await provider.replyComment(widget.postId, _replyingToCommentId!, text);
+    _commentController.clear();
+    _cancelReply();
+    await provider.getComment(widget.postId);
+
+    if (mounted) {
+      provider.setIsSubmitting(false);
+    }
+  }
+
+  /// ---------------------------- cancel reply --------------------------
+  void _cancelReply() {
+    setState(() {
+      _replyingToCommentId = null;
+      _replyingToUserName = null;
+    });
   }
 
   /// ---------------------------- time ago --------------------------
@@ -137,68 +169,214 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                     : ListView.separated(
                         shrinkWrap: true,
                         itemCount: comments.length,
-                        separatorBuilder: (_, __) => Divider(
+                        separatorBuilder: (_, _) => Divider(
                           color: const Color(0xFF202C43),
                           height: 1.h,
                         ),
                         itemBuilder: (context, index) {
                           final comment = comments[index];
-                          return Padding(
-                            padding: EdgeInsets.symmetric(vertical: 10.h),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CircleAvatar(
-                                  radius: 18.r,
-                                  backgroundImage:
-                                      (comment.user?.avatar != null &&
-                                          comment.user!.avatar!.isNotEmpty)
-                                      ? NetworkImage(comment.user!.avatar!)
-                                      : null,
-                                  backgroundColor: const Color(0xFF1E2D3D),
-                                  child:
-                                      (comment.user?.avatar == null ||
-                                          comment.user!.avatar!.isEmpty)
-                                      ? Icon(
-                                          Icons.person,
-                                          size: 18.sp,
-                                          color: Colors.grey,
-                                        )
-                                      : null,
-                                ),
-                                SizedBox(width: 10.w),
-                                Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              /// Main comment
+                              Padding(
+                                padding: EdgeInsets.symmetric(vertical: 10.h),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      comment.user?.name ?? 'Unknown',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 13.sp,
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                    CircleAvatar(
+                                      radius: 18.r,
+                                      backgroundImage:
+                                          (comment.user?.avatar != null &&
+                                              comment.user!.avatar!.isNotEmpty)
+                                          ? NetworkImage(comment.user!.avatar!)
+                                          : null,
+                                      backgroundColor: const Color(0xFF1E2D3D),
+                                      child:
+                                          (comment.user?.avatar == null ||
+                                              comment.user!.avatar!.isEmpty)
+                                          ? Icon(
+                                              Icons.person,
+                                              size: 18.sp,
+                                              color: Colors.grey,
+                                            )
+                                          : null,
                                     ),
-                                    SizedBox(height: 4.h),
+                                    SizedBox(width: 10.w),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          comment.user?.name ?? 'Unknown',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 13.sp,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        SizedBox(height: 4.h),
+                                        Text(
+                                          comment.content ?? '',
+                                          style: TextStyle(
+                                            color: const Color(0xFFD2D2D5),
+                                            fontSize: 13.sp,
+                                          ),
+                                        ),
+                                        SizedBox(height: 6.h),
+                                        Row(
+                                          children: [
+                                            TextButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  _replyingToCommentId =
+                                                      comment.id;
+                                                  _replyingToUserName =
+                                                      comment.user?.name ??
+                                                      'User';
+                                                });
+                                              },
+                                              style: TextButton.styleFrom(
+                                                padding: EdgeInsets.zero,
+                                                minimumSize: Size.zero,
+                                                tapTargetSize:
+                                                    MaterialTapTargetSize
+                                                        .shrinkWrap,
+                                              ),
+                                              child: Text(
+                                                "Reply",
+                                                style: TextStyle(
+                                                  color: Colors.blueAccent,
+                                                  fontSize: 12.sp,
+                                                ),
+                                              ),
+                                            ),
+                                            if (comment.replies != null &&
+                                                comment
+                                                    .replies!
+                                                    .isNotEmpty) ...[
+                                              SizedBox(width: 12.w),
+                                              Text(
+                                                '${comment.replies!.length} replies',
+                                                style: TextStyle(
+                                                  color: Colors.grey[500],
+                                                  fontSize: 11.sp,
+                                                ),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(width: 8.w),
                                     Text(
-                                      comment.content ?? '',
+                                      _timeAgo(comment.createdAt),
                                       style: TextStyle(
-                                        color: const Color(0xFFD2D2D5),
-                                        fontSize: 13.sp,
+                                        color: Colors.grey[500],
+                                        fontSize: 11.sp,
                                       ),
                                     ),
                                   ],
                                 ),
-                                SizedBox(width: 16.w),
-                                Text(
-                                  _timeAgo(comment.createdAt),
-                                  style: TextStyle(
-                                    color: Colors.grey[500],
-                                    fontSize: 11.sp,
+                              ),
+
+                              /// Replies section
+                              if (comment.replies != null &&
+                                  comment.replies!.isNotEmpty)
+                                Padding(
+                                  padding: EdgeInsets.only(left: 28.w),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: comment.replies!.map((reply) {
+                                      return Padding(
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: 8.h,
+                                        ),
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            CircleAvatar(
+                                              radius: 14.r,
+                                              backgroundImage:
+                                                  (reply.user?.avatar != null &&
+                                                      reply
+                                                          .user!
+                                                          .avatar!
+                                                          .isNotEmpty)
+                                                  ? NetworkImage(
+                                                      reply.user!.avatar!,
+                                                    )
+                                                  : null,
+                                              backgroundColor: const Color(
+                                                0xFF1E2D3D,
+                                              ),
+                                              child:
+                                                  (reply.user?.avatar == null ||
+                                                      reply
+                                                          .user!
+                                                          .avatar!
+                                                          .isEmpty)
+                                                  ? Icon(
+                                                      Icons.person,
+                                                      size: 14.sp,
+                                                      color: Colors.grey,
+                                                    )
+                                                  : null,
+                                            ),
+                                            SizedBox(width: 8.w),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Row(
+                                                    children: [
+                                                      Text(
+                                                        reply.user?.name ??
+                                                            'Unknown',
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 12.sp,
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                        ),
+                                                      ),
+                                                      SizedBox(width: 6.w),
+                                                      Text(
+                                                        _timeAgo(
+                                                          reply.createdAt,
+                                                        ),
+                                                        style: TextStyle(
+                                                          color:
+                                                              Colors.grey[500],
+                                                          fontSize: 10.sp,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  SizedBox(height: 4.h),
+                                                  Text(
+                                                    reply.content ?? '',
+                                                    style: TextStyle(
+                                                      color: const Color(
+                                                        0xFFD2D2D5,
+                                                      ),
+                                                      fontSize: 12.sp,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }).toList(),
                                   ),
                                 ),
-                              ],
-                            ),
+                            ],
                           );
                         },
                       ),
@@ -208,7 +386,7 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
               Divider(color: const Color(0xFF202C43), height: 1.h),
               SizedBox(height: 12.h),
 
-              // Input row
+              /// ------------------- Input row -------------------
               Row(
                 children: [
                   CircleAvatar(
@@ -229,11 +407,17 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                   Expanded(
                     child: TextField(
                       controller: _commentController,
-                      style: const TextStyle(color: Colors.white),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
                       minLines: 1,
                       maxLines: 4,
                       decoration: InputDecoration(
-                        hintText: 'Write a comment...',
+                        hintText: _replyingToUserName != null
+                            ? 'Reply to $_replyingToUserName...'
+                            : 'Write a comment...',
                         hintStyle: TextStyle(color: Colors.grey[400]),
                         filled: true,
                         fillColor: const Color(0xFF1E2D3D),
@@ -250,13 +434,17 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                   ),
                   SizedBox(width: 8.w),
                   GestureDetector(
-                    onTap: provider.isSubmitting ? null : _submitComment,
+                    onTap: provider.isSubmitting
+                        ? null
+                        : (_replyingToCommentId != null
+                              ? () => _submitReply(provider)
+                              : () => _submitComment(provider)),
                     child: Container(
                       alignment: Alignment.center,
                       padding: EdgeInsets.all(10.r),
                       decoration: BoxDecoration(
                         color: provider.isSubmitting
-                            ? Colors.blueAccent.withOpacity(0.5)
+                            ? Colors.blueAccent.withValues(alpha: 0.5)
                             : Colors.blueAccent,
                         shape: BoxShape.circle,
                       ),

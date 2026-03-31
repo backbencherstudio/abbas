@@ -93,7 +93,7 @@ class _DigitalContractSigningState
             ),
             SizedBox(height: 24.h),
             Container(
-              padding: EdgeInsets.all(16.w),
+              padding: EdgeInsets.all(16.r),
               decoration: BoxDecoration(
                 color: const Color(0xFF0A1A29),
                 borderRadius: BorderRadius.circular(12.r),
@@ -107,7 +107,7 @@ class _DigitalContractSigningState
                       Text(
                         'Course Enrollment Agreement',
                         style: TextStyle(
-                          fontSize: 20.sp,
+                          fontSize: 18.sp,
                           fontWeight: FontWeight.w500,
                           color: Colors.white,
                         ),
@@ -265,7 +265,7 @@ class _DigitalContractSigningState
                         Navigator.pushNamed(
                           context,
                           RouteNames.payment,
-                          arguments: widget.enrollmentId
+                          arguments: widget.enrollmentId,
                         );
                       }
                     } else {

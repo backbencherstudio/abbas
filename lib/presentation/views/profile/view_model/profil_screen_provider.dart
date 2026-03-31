@@ -118,7 +118,7 @@ class ProfileScreenProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _apiClient.postMultipart(
+      final response = await _apiClient.patchMultipart(
         ApiEndpoints.editProfile,
         fields: {
           "name": name,
