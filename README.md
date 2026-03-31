@@ -3,7 +3,19 @@
 ## Project Overview
 
 
-## Getting Started
+## Project Structure (MVVM Pattern)
+lib
+|------ cors
+|        |----- constants
+|        |        |------ api_endpoints
+|        |------ di
+|        |        |------ injection
+|------ data
+|
+|----- domain
+|
+|---- presentation
+
 
 This project is a starting point for a Flutter application.
 
