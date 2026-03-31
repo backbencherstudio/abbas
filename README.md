@@ -1,6 +1,7 @@
-# abbas
+# Acting Academy App
 
-A new Flutter project.
+## Project Overview
+
 
 ## Getting Started
 
