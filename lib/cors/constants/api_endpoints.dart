@@ -85,6 +85,8 @@ class ApiEndpoints {
       '$baseUrl/api/community/comment/$postId';
   static String getComment(String postId) =>
       '$baseUrl/api/community/comment/$postId';
+  static String replyComment(String postId) =>
+      '$baseUrl/api/community/comment/reply/$postId';
 
   // chat
 

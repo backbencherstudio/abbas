@@ -64,12 +64,12 @@ class _PaymentState extends State<Payment> {
             ),
             SizedBox(height: 10.h),
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _buildPaymentTypeRadio(
                   title: 'One-time',
                   value: PaymentType.oneTime,
                 ),
-                SizedBox(width: 20.w),
                 _buildPaymentTypeRadio(
                   title: 'Monthly Installments',
                   value: PaymentType.monthly,

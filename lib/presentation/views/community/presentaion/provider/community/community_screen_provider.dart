@@ -68,6 +68,7 @@ class CommunityScreenProvider extends ChangeNotifier {
 
   String? get errorMessage => _errorMessage;
 
+  /// ----------------------- Create Post Method --------------------------------------
   File? _selectedMedia;
   bool _isPickingImage = false;
   String _mediaType = 'TEXT';
@@ -227,9 +228,7 @@ class CommunityScreenProvider extends ChangeNotifier {
     _comments = [];
     notifyListeners();
     try {
-      final response = await _apiClient.get(
-        ApiEndpoints.getComment(postId),
-      );
+      final response = await _apiClient.get(ApiEndpoints.getComment(postId));
       final list = response.data as List<dynamic>;
       _comments = list
           .map((item) => GetCommentModel.fromJson(item as Map<String, dynamic>))
@@ -239,6 +238,25 @@ class CommunityScreenProvider extends ChangeNotifier {
     } finally {
       _isLoadingComments = false;
       notifyListeners();
+    }
+  }
+
+  /// ------------------- Reply Comment --------------------------------------
+  Future<ApiResponseModel> replyComment(String postId, String comment) async {
+    var body = {'postId': postId, 'content': comment};
+    try {
+      final ApiResponseModel response = await _apiClient.post(
+        ApiEndpoints.replyComment(postId),
+        body: body,
+      );
+      if (response.success) {
+        logger.d(response.message);
+        return ApiResponseModel(success: true, message: response.message);
+      }
+      return ApiResponseModel(success: false, message: response.message);
+    } catch (e) {
+      logger.e('replyComment error: $e');
+      return ApiResponseModel(success: false, message: e.toString());
     }
   }
 }

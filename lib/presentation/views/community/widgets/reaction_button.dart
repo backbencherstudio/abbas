@@ -207,13 +207,13 @@ class _ReactionOverlayState extends State<_ReactionOverlay>
               color: Colors.transparent,
               child: Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                    EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
                 decoration: BoxDecoration(
                   color: const Color(0xFF1E2D3D),
-                  borderRadius: BorderRadius.circular(32),
+                  borderRadius: BorderRadius.circular(32.r),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.35),
+                      color: Colors.black.withValues(alpha: 0.35),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -238,15 +238,15 @@ class _ReactionOverlayState extends State<_ReactionOverlay>
                         curve: Curves.easeOut,
                         transform: Matrix4.translationValues(
                             0, isHovered ? -12 : 0, 0),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 4),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 6.w, vertical: 4.h),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             AnimatedDefaultTextStyle(
                               duration: const Duration(milliseconds: 150),
                               style: TextStyle(
-                                fontSize: isHovered ? 34 : 26,
+                                fontSize: isHovered ? 34.sp : 26.sp,
                               ),
                               child: Text(r.emoji),
                             ),
@@ -256,7 +256,7 @@ class _ReactionOverlayState extends State<_ReactionOverlay>
                                 child: Text(
                                   r.label,
                                   style: TextStyle(
-                                    fontSize: 9,
+                                    fontSize: 9.sp,
                                     color: r.color,
                                     fontWeight: FontWeight.bold,
                                   ),

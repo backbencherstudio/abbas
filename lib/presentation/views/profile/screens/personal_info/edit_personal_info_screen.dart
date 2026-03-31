@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:abbas/cors/utils/app_utils.dart';
 import 'package:abbas/presentation/widgets/custom_button.dart';
 import 'package:abbas/presentation/widgets/custom_text_field.dart';
 import 'package:abbas/presentation/widgets/secondary_appber.dart';
@@ -26,14 +27,30 @@ class _EditPersonalInfoScreenState extends State<EditPersonalInfoScreen> {
 
   File? selectedImage;
 
-  Future<void> pickImage() async {
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(source: ImageSource.gallery);
+  bool _isPickingImage = false;
 
-    if (picked != null) {
-      setState(() {
-        selectedImage = File(picked.path);
-      });
+  Future<void> _pickImage() async {
+    if (_isPickingImage) return;
+
+    setState(() {
+      _isPickingImage = true;
+    });
+
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+        requestFullMetadata: false,
+      );
+
+      if (picked != null) {
+        setState(() {
+          selectedImage = File(picked.path);
+        });
+      }
+    } finally {
+      _isPickingImage = false;
     }
   }
 
@@ -55,7 +72,6 @@ class _EditPersonalInfoScreenState extends State<EditPersonalInfoScreen> {
         dobController.text = profile.data?.dateOfBirth ?? "";
         _experienceController.text = profile.data?.experienceLevel ?? "";
         goalController.text = profile.data?.actingGoals?.actingGoals ?? "";
-        selectedImage = (profile.data?.avatar ?? "") as File?;
       }
 
       setState(() {});
@@ -157,25 +173,19 @@ class _EditPersonalInfoScreenState extends State<EditPersonalInfoScreen> {
           SecondaryAppBar(title: "Edit Personal Info"),
           SizedBox(height: 16.h),
           GestureDetector(
-            onTap: pickImage,
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(100.r),
-                border: Border.all(color: Color(0xFF5F6CA0)),
-              ),
-              child: CircleAvatar(
-                radius: 32.r,
-                backgroundImage: selectedImage != null
-                    ? FileImage(selectedImage!) as ImageProvider
-                    : profileProvider.profile?.data?.avatar != null
-                    ? NetworkImage(profileProvider.profile!.data!.avatar!)
-                    : null,
-                child:
-                    selectedImage == null &&
-                        profileProvider.profile?.data?.avatar == null
-                    ? const Icon(Icons.camera_alt)
-                    : null,
-              ),
+            onTap: _pickImage,
+            child: CircleAvatar(
+              radius: 32.r,
+              backgroundImage: selectedImage != null
+                  ? FileImage(selectedImage!) as ImageProvider
+                  : profileProvider.profile?.data?.avatar != null
+                  ? NetworkImage(profileProvider.profile!.data!.avatar!)
+                  : null,
+              child:
+                  selectedImage == null &&
+                      profileProvider.profile?.data?.avatar == null
+                  ? const Icon(Icons.camera_alt)
+                  : null,
             ),
           ),
 
@@ -296,12 +306,11 @@ class _EditPersonalInfoScreenState extends State<EditPersonalInfoScreen> {
                           profileProvider.getProfile();
                           Navigator.pop(context);
                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
+                          Utils.showToast(
+                            msg:
                                 profileProvider.errorMessage ?? "Update failed",
-                              ),
-                            ),
+                            backgroundColor: Colors.red,
+                            textColor: Colors.white,
                           );
                         }
                       },

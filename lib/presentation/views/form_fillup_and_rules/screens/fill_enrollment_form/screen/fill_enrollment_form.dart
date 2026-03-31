@@ -25,6 +25,7 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _dateController = TextEditingController();
   final TextEditingController _goalsController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
@@ -86,24 +87,23 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
           // Only navigate if we're NOT on the current screen
           // If step is FORM_FILLING, stay on this screen (don't navigate)
           if (currentStep == 'RULES_SIGNING') {
-
             Navigator.pushReplacementNamed(
-                context,
-                RouteNames.rulesRegulations,
-                arguments: enrollmentId
+              context,
+              RouteNames.rulesRegulations,
+              arguments: enrollmentId,
             );
           } else if (currentStep == 'CONTRACT_SIGNING') {
             Navigator.pushReplacementNamed(
-                context,
-                RouteNames.digitalContractSigning,
-                arguments: enrollmentId
+              context,
+              RouteNames.digitalContractSigning,
+              arguments: enrollmentId,
             );
           } else if (currentStep == 'PAYMENT') {
-            CircularProgressIndicator(color: Colors.white,);
+            CircularProgressIndicator(color: Colors.white);
             Navigator.pushReplacementNamed(
-                context,
-                RouteNames.payment,
-                arguments: enrollmentId
+              context,
+              RouteNames.payment,
+              arguments: enrollmentId,
             );
           } else if (currentStep == 'COMPLETED') {
             Navigator.pushReplacementNamed(context, RouteNames.parentScreen);
@@ -119,12 +119,12 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
     setState(() {
       _isTextFieldFocused =
           _selectCourseFocus.hasFocus ||
-              _fullNameFocus.hasFocus ||
-              _emailFocus.hasFocus ||
-              _phoneFocus.hasFocus ||
-              _addressFocus.hasFocus ||
-              _dobFocus.hasFocus ||
-              _goalsFocus.hasFocus;
+          _fullNameFocus.hasFocus ||
+          _emailFocus.hasFocus ||
+          _phoneFocus.hasFocus ||
+          _addressFocus.hasFocus ||
+          _dobFocus.hasFocus ||
+          _goalsFocus.hasFocus;
     });
   }
 
@@ -157,32 +157,38 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
     if (pickedDate != null) {
       ref.read(selectedDateProvider.notifier).state = pickedDate;
       final formattedDate =
-          "${pickedDate.day.toString().padLeft(2, '0')}/${pickedDate.month.toString().padLeft(2, '0')}/${pickedDate.year}";
+          "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
       final dobController = ref.read(dobControllerProvider.notifier);
       dobController.state.text = formattedDate;
     }
   }
 
+  /// ------------------------- Convert Date to ISO ----------------------------
+  String convertToIso(String date) {
+    final parseDate = DateTime.parse(date);
+    return parseDate.toUtc().toIso8601String();
+  }
+
   /// ------------------------- Show Experience Level Popup --------------------
   void _showExperienceLevelPopup() {
     final RenderBox? renderBox =
-    _experienceFieldKey.currentContext?.findRenderObject() as RenderBox?;
+        _experienceFieldKey.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
 
     showMenu<String>(
       context: context,
       position:
-      RelativeRect.fromLTRB(
-        renderBox.size.width - 200.w,
-        renderBox.size.height + 5.h,
-        0,
-        0,
-      ).shift(
-        Offset(
-          renderBox.localToGlobal(Offset.zero).dx,
-          renderBox.localToGlobal(Offset.zero).dy,
-        ),
-      ),
+          RelativeRect.fromLTRB(
+            renderBox.size.width - 200.w,
+            renderBox.size.height + 5.h,
+            0,
+            0,
+          ).shift(
+            Offset(
+              renderBox.localToGlobal(Offset.zero).dx,
+              renderBox.localToGlobal(Offset.zero).dy,
+            ),
+          ),
       elevation: 8,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
       items: [
@@ -266,6 +272,11 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
             return const Center(child: Text("No courses available"));
           }
 
+          final targetCourse = courses.firstWhere(
+            (c) => c.id == widget.courseId,
+            orElse: () => courses.first,
+          );
+
           return SingleChildScrollView(
             child: Padding(
               padding: EdgeInsets.all(16.w),
@@ -303,13 +314,11 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
                       ),
                     ),
                     SizedBox(height: 8.h),
-                    ...courses.map(
-                          (value) => _buildTextField(
-                        'selected course',
-                        initialValue: value.title ?? 'N/A',
-                        readOnly: true,
-                      ),
-                    ).toList(),
+                    _buildTextField(
+                      'selected course',
+                      initialValue: targetCourse.title ?? 'N/A',
+                      readOnly: true,
+                    ),
 
                     /// ------------------ Full Name ---------------------------
                     _buildFormSection(
@@ -374,7 +383,7 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
                     SizedBox(height: 8.h),
                     _buildTextField(
                       'select date of birth',
-                      controller: ref.watch(dobControllerProvider),
+                      controller: _dateController,
                       readOnly: true,
                       validator: dateOfBirthValidator,
                       suffixIcon: GestureDetector(
@@ -430,109 +439,117 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
                       width: double.infinity,
                       height: 60.h,
                       child: ElevatedButton(
-                        onPressed: _isLoading ? null : () async {
-                          if (_formKey.currentState!.validate()) {
-                            setState(() => _isLoading = true);
+                        onPressed: _isLoading
+                            ? null
+                            : () async {
+                                if (_formKey.currentState!.validate()) {
+                                  setState(() => _isLoading = true);
 
-                            try {
-                              // Get the selected date from provider
-                              final selectedDate = ref.read(selectedDateProvider);
-                              final formattedDate = selectedDate != null
-                                  ? "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}"
-                                  : '';
+                                  try {
+                                    // Get the selected date from provider
+                                    final isDate = convertToIso(
+                                      _dateController.text,
+                                    );
 
-                              // Get the selected course title
-                              final courseTitle = courses.first.title ?? '';
+                                    // Get the selected course title
+                                    final courseTitle =
+                                        targetCourse.title ?? '';
 
-                              logger.d("Submitting enrollment data: ${{
-                                "course_type": courseTitle,
-                                "full_name": _fullNameController.text,
-                                "email": _emailController.text,
-                                "phone": _phoneController.text,
-                                "address": _addressController.text,
-                                "date_of_birth": formattedDate,
-                                "experience_level": experienceController.text,
-                                "acting_goals": _goalsController.text,
-                                "course_id": widget.courseId,
-                              }}");
+                                    logger.d(
+                                      "Submitting enrollment data: ${{"course_type": courseTitle, "full_name": _fullNameController.text, "email": _emailController.text, "phone": _phoneController.text, "address": _addressController.text, "date_of_birth": isDate, "experience_level": experienceController.text, "acting_goals": _goalsController.text, "course_id": widget.courseId}}",
+                                    );
 
-                              final result = await ref
-                                  .read(enrollPersonalInfoProvider.notifier)
-                                  .postEnrollPersonalInfo(
-                                courseType: courseTitle,
-                                fullName: _fullNameController.text.trim(),
-                                email: _emailController.text.trim(),
-                                phone: _phoneController.text.trim(),
-                                address: _addressController.text.trim(),
-                                dateOfBirth: formattedDate,
-                                experienceLevel: experienceController.text,
-                                actingGoals: _goalsController.text.trim(),
-                                enrollmentId: widget.courseId,
-                              );
+                                    final result = await ref
+                                        .read(
+                                          enrollPersonalInfoProvider.notifier,
+                                        )
+                                        .postEnrollPersonalInfo(
+                                          courseType: courseTitle,
+                                          fullName: _fullNameController.text
+                                              .trim(),
+                                          email: _emailController.text.trim(),
+                                          phone: _phoneController.text.trim(),
+                                          address: _addressController.text
+                                              .trim(),
+                                          dateOfBirth: isDate,
+                                          experienceLevel:
+                                              experienceController.text,
+                                          actingGoals: _goalsController.text
+                                              .trim(),
+                                          enrollmentId: widget.courseId,
+                                        );
 
-                              logger.d("Enrollment result: ${result.data?.id}");
+                                    logger.d(
+                                      "Enrollment result: ${result.data?.id}",
+                                    );
 
-                              if (result.success == true) {
-                                Utils.showToast(
-                                  msg: result.message ?? "Form submitted successfully!",
-                                  backgroundColor: Colors.green,
-                                  textColor: Colors.white,
-                                );
+                                    if (result.success == true) {
+                                      Utils.showToast(
+                                        msg:
+                                            result.message ??
+                                            "Form submitted successfully!",
+                                        backgroundColor: Colors.green,
+                                        textColor: Colors.white,
+                                      );
 
-                                if (context.mounted) {
-                                  // After successful submission, check current step again
-                                  await _checkCurrentStep();
+                                      if (context.mounted) {
+                                        // After successful submission, check current step again
+                                        await _checkCurrentStep();
+                                      }
+                                    } else {
+                                      Utils.showToast(
+                                        msg:
+                                            result.message ??
+                                            "Failed to submit form",
+                                        backgroundColor: Colors.red,
+                                        textColor: Colors.white,
+                                      );
+                                    }
+                                  } catch (e) {
+                                    logger.e("Error submitting form: $e");
+                                    Utils.showToast(
+                                      msg: "Error: ${e.toString()}",
+                                      backgroundColor: Colors.red,
+                                      textColor: Colors.white,
+                                    );
+                                  } finally {
+                                    if (mounted) {
+                                      setState(() => _isLoading = false);
+                                    }
+                                  }
                                 }
-                              } else {
-                                Utils.showToast(
-                                  msg: result.message ?? "Failed to submit form",
-                                  backgroundColor: Colors.red,
-                                  textColor: Colors.white,
-                                );
-                              }
-                            } catch (e) {
-                              logger.e("Error submitting form: $e");
-                              Utils.showToast(
-                                msg: "Error: ${e.toString()}",
-                                backgroundColor: Colors.red,
-                                textColor: Colors.white,
-                              );
-                            } finally {
-                              if (mounted) {
-                                setState(() => _isLoading = false);
-                              }
-                            }
-                          }
-                        },
+                              },
                         style: ElevatedButton.styleFrom(
                           foregroundColor: _isTextFieldFocused
                               ? Colors.white
                               : (_isLoading
-                              ? Colors.white
-                              : const Color(0xFF3D4566)),
+                                    ? Colors.white
+                                    : const Color(0xFF3D4566)),
                           backgroundColor: _isTextFieldFocused
                               ? const Color(0xFFE9201D)
                               : (_isLoading
-                              ? const Color(0xFFE9201D)
-                              : const Color(0xFF0A1A29)),
+                                    ? const Color(0xFFE9201D)
+                                    : const Color(0xFF0A1A29)),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16.r),
                           ),
                         ),
                         child: _isLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
+                            ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
                             : Text(
-                          'Save & Continue',
-                          style: TextStyle(
-                            fontSize: 16.sp,
-                            color: _isTextFieldFocused
-                                ? Colors.white
-                                : (_isLoading
-                                ? Colors.white
-                                : const Color(0xFF3D4566)),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+                                'Save & Continue',
+                                style: TextStyle(
+                                  fontSize: 16.sp,
+                                  color: _isTextFieldFocused
+                                      ? Colors.white
+                                      : (_isLoading
+                                            ? Colors.white
+                                            : const Color(0xFF3D4566)),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                       ),
                     ),
                     SizedBox(height: 20.h),
@@ -566,17 +583,17 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
   }
 
   Widget _buildTextField(
-      String hintText, {
-        int? maxLines,
-        TextInputType? keyboardType,
-        TextEditingController? controller,
-        FocusNode? focusNode,
-        String? Function(String?)? validator,
-        String? initialValue,
-        TextInputAction? textInputAction,
-        bool? readOnly,
-        Widget? suffixIcon,
-      }) {
+    String hintText, {
+    int? maxLines,
+    TextInputType? keyboardType,
+    TextEditingController? controller,
+    FocusNode? focusNode,
+    String? Function(String?)? validator,
+    String? initialValue,
+    TextInputAction? textInputAction,
+    bool? readOnly,
+    Widget? suffixIcon,
+  }) {
     return TextFormField(
       controller: controller,
       focusNode: focusNode,
