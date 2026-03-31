@@ -1,3 +1,4 @@
+import 'package:abbas/cors/network/api_response_handle.dart';
 import 'package:abbas/presentation/views/profile/view_model/profil_screen_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -16,7 +17,7 @@ class CommentBottomSheet extends StatefulWidget {
 class _CommentBottomSheetState extends State<CommentBottomSheet> {
   final TextEditingController _commentController = TextEditingController();
   final TextEditingController _replyController = TextEditingController();
-  
+
   String? _replyingToCommentId;
   String? _replyingToUserName;
 
@@ -36,11 +37,10 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
   }
 
   /// ---------------------------- submit comment --------------------------
-  Future<void> _submitComment() async {
+  Future<void> _submitComment(CommunityScreenProvider provider) async {
     final text = _commentController.text.trim();
     if (text.isEmpty) return;
 
-    final provider = context.read<CommunityScreenProvider>();
     provider.setIsSubmitting(true);
 
     await provider.createComment(widget.postId, text);
@@ -53,17 +53,16 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
   }
 
   /// ---------------------------- submit reply --------------------------
-  Future<void> _submitReply() async {
+  Future<void> _submitReply(CommunityScreenProvider provider) async {
     if (_replyingToCommentId == null) return;
-    
-    final text = _replyController.text.trim();
+
+    final text = _commentController.text.trim();
     if (text.isEmpty) return;
 
-    final provider = context.read<CommunityScreenProvider>();
     provider.setIsSubmitting(true);
 
-    await provider.replyComment(widget.postId, text);
-    _replyController.clear();
+    await provider.replyComment(widget.postId, _replyingToCommentId!, text);
+    _commentController.clear();
     _cancelReply();
     await provider.getComment(widget.postId);
 
@@ -170,14 +169,13 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                     : ListView.separated(
                         shrinkWrap: true,
                         itemCount: comments.length,
-                        separatorBuilder: (_, __) => Divider(
+                        separatorBuilder: (_, _) => Divider(
                           color: const Color(0xFF202C43),
                           height: 1.h,
                         ),
                         itemBuilder: (context, index) {
                           final comment = comments[index];
-                          final isReplying = _replyingToCommentId == comment.parentId;
-                          
+
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -206,63 +204,70 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                           : null,
                                     ),
                                     SizedBox(width: 10.w),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            comment.user?.name ?? 'Unknown',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 13.sp,
-                                              fontWeight: FontWeight.w600,
-                                            ),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          comment.user?.name ?? 'Unknown',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 13.sp,
+                                            fontWeight: FontWeight.w600,
                                           ),
-                                          SizedBox(height: 4.h),
-                                          Text(
-                                            comment.content ?? '',
-                                            style: TextStyle(
-                                              color: const Color(0xFFD2D2D5),
-                                              fontSize: 13.sp,
-                                            ),
+                                        ),
+                                        SizedBox(height: 4.h),
+                                        Text(
+                                          comment.content ?? '',
+                                          style: TextStyle(
+                                            color: const Color(0xFFD2D2D5),
+                                            fontSize: 13.sp,
                                           ),
-                                          SizedBox(height: 6.h),
-                                          Row(
-                                            children: [
-                                              TextButton(
-                                                onPressed: () {
-                                                  setState(() {
-                                                    _replyingToCommentId = comment.postId;
-                                                    _replyingToUserName = comment.user?.name ?? 'User';
-                                                  });
-                                                },
-                                                style: TextButton.styleFrom(
-                                                  padding: EdgeInsets.zero,
-                                                  minimumSize: Size.zero,
-                                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                                ),
-                                                child: Text(
-                                                  "Reply",
-                                                  style: TextStyle(
-                                                    color: Colors.blueAccent,
-                                                    fontSize: 12.sp,
-                                                  ),
+                                        ),
+                                        SizedBox(height: 6.h),
+                                        Row(
+                                          children: [
+                                            TextButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  _replyingToCommentId =
+                                                      comment.id;
+                                                  _replyingToUserName =
+                                                      comment.user?.name ??
+                                                      'User';
+                                                });
+                                              },
+                                              style: TextButton.styleFrom(
+                                                padding: EdgeInsets.zero,
+                                                minimumSize: Size.zero,
+                                                tapTargetSize:
+                                                    MaterialTapTargetSize
+                                                        .shrinkWrap,
+                                              ),
+                                              child: Text(
+                                                "Reply",
+                                                style: TextStyle(
+                                                  color: Colors.blueAccent,
+                                                  fontSize: 12.sp,
                                                 ),
                                               ),
-                                              if (comment.replies != null && comment.replies!.isNotEmpty) ...[
-                                                SizedBox(width: 12.w),
-                                                Text(
-                                                  '${comment.replies!.length} replies',
-                                                  style: TextStyle(
-                                                    color: Colors.grey[500],
-                                                    fontSize: 11.sp,
-                                                  ),
+                                            ),
+                                            if (comment.replies != null &&
+                                                comment
+                                                    .replies!
+                                                    .isNotEmpty) ...[
+                                              SizedBox(width: 12.w),
+                                              Text(
+                                                '${comment.replies!.length} replies',
+                                                style: TextStyle(
+                                                  color: Colors.grey[500],
+                                                  fontSize: 11.sp,
                                                 ),
-                                              ],
+                                              ),
                                             ],
-                                          ),
-                                        ],
-                                      ),
+                                          ],
+                                        ),
+                                      ],
                                     ),
                                     SizedBox(width: 8.w),
                                     Text(
@@ -275,30 +280,45 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                   ],
                                 ),
                               ),
-                              
+
                               /// Replies section
-                              if (comment.replies != null && comment.replies!.isNotEmpty)
+                              if (comment.replies != null &&
+                                  comment.replies!.isNotEmpty)
                                 Padding(
                                   padding: EdgeInsets.only(left: 28.w),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: comment.replies!.map((reply) {
                                       return Padding(
-                                        padding: EdgeInsets.symmetric(vertical: 8.h),
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: 8.h,
+                                        ),
                                         child: Row(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             CircleAvatar(
                                               radius: 14.r,
                                               backgroundImage:
                                                   (reply.user?.avatar != null &&
-                                                      reply.user!.avatar!.isNotEmpty)
-                                                  ? NetworkImage(reply.user!.avatar!)
+                                                      reply
+                                                          .user!
+                                                          .avatar!
+                                                          .isNotEmpty)
+                                                  ? NetworkImage(
+                                                      reply.user!.avatar!,
+                                                    )
                                                   : null,
-                                              backgroundColor: const Color(0xFF1E2D3D),
+                                              backgroundColor: const Color(
+                                                0xFF1E2D3D,
+                                              ),
                                               child:
                                                   (reply.user?.avatar == null ||
-                                                      reply.user!.avatar!.isEmpty)
+                                                      reply
+                                                          .user!
+                                                          .avatar!
+                                                          .isEmpty)
                                                   ? Icon(
                                                       Icons.person,
                                                       size: 14.sp,
@@ -309,23 +329,29 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                             SizedBox(width: 8.w),
                                             Expanded(
                                               child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
                                                 children: [
                                                   Row(
                                                     children: [
                                                       Text(
-                                                        reply.user?.name ?? 'Unknown',
+                                                        reply.user?.name ??
+                                                            'Unknown',
                                                         style: TextStyle(
                                                           color: Colors.white,
                                                           fontSize: 12.sp,
-                                                          fontWeight: FontWeight.w600,
+                                                          fontWeight:
+                                                              FontWeight.w600,
                                                         ),
                                                       ),
                                                       SizedBox(width: 6.w),
                                                       Text(
-                                                        _timeAgo(reply.createdAt),
+                                                        _timeAgo(
+                                                          reply.createdAt,
+                                                        ),
                                                         style: TextStyle(
-                                                          color: Colors.grey[500],
+                                                          color:
+                                                              Colors.grey[500],
                                                           fontSize: 10.sp,
                                                         ),
                                                       ),
@@ -335,7 +361,9 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                                   Text(
                                                     reply.content ?? '',
                                                     style: TextStyle(
-                                                      color: const Color(0xFFD2D2D5),
+                                                      color: const Color(
+                                                        0xFFD2D2D5,
+                                                      ),
                                                       fontSize: 12.sp,
                                                     ),
                                                   ),
@@ -346,90 +374,6 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                         ),
                                       );
                                     }).toList(),
-                                  ),
-                                ),
-                              
-                              /// Reply input field (shown when replying to this comment)
-                              if (isReplying)
-                                Padding(
-                                  padding: EdgeInsets.only(left: 28.w, top: 8.h, bottom: 8.h),
-                                  child: Row(
-                                    children: [
-                                      CircleAvatar(
-                                        radius: 14.r,
-                                        backgroundImage:
-                                            (profileProvider.profile?.data?.avatar != null &&
-                                                profileProvider.profile!.data!.avatar!.isNotEmpty)
-                                            ? NetworkImage(profileProvider.profile!.data!.avatar!)
-                                            : null,
-                                        backgroundColor: const Color(0xFF1E2D3D),
-                                        child:
-                                            (profileProvider.profile?.data?.avatar == null ||
-                                                profileProvider.profile!.data!.avatar!.isEmpty)
-                                            ? Icon(Icons.person, size: 14.sp, color: Colors.grey)
-                                            : null,
-                                      ),
-                                      SizedBox(width: 8.w),
-                                      Expanded(
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFF1E2D3D),
-                                            borderRadius: BorderRadius.circular(20.r),
-                                          ),
-                                          child: TextField(
-                                            controller: _replyController,
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 13.sp,
-                                            ),
-                                            decoration: InputDecoration(
-                                              hintText: 'Reply to $_replyingToUserName...',
-                                              hintStyle: TextStyle(
-                                                color: Colors.grey[400],
-                                                fontSize: 12.sp,
-                                              ),
-                                              contentPadding: EdgeInsets.symmetric(
-                                                horizontal: 12.w,
-                                                vertical: 8.h,
-                                              ),
-                                              border: InputBorder.none,
-                                            ),
-                                            onSubmitted: (_) => _submitReply(),
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(width: 4.w),
-                                      IconButton(
-                                        onPressed: provider.isSubmitting ? null : _submitReply,
-                                        icon: provider.isSubmitting
-                                            ? SizedBox(
-                                                width: 16.w,
-                                                height: 16.w,
-                                                child: const CircularProgressIndicator(
-                                                  color: Colors.white,
-                                                  strokeWidth: 2,
-                                                ),
-                                              )
-                                            : Icon(
-                                                Icons.send,
-                                                color: Colors.blueAccent,
-                                                size: 18.sp,
-                                              ),
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(),
-                                      ),
-                                      SizedBox(width: 4.w),
-                                      IconButton(
-                                        onPressed: _cancelReply,
-                                        icon: Icon(
-                                          Icons.close,
-                                          color: Colors.grey[400],
-                                          size: 18.sp,
-                                        ),
-                                        padding: EdgeInsets.zero,
-                                        constraints: const BoxConstraints(),
-                                      ),
-                                    ],
                                   ),
                                 ),
                             ],
@@ -471,7 +415,9 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                       minLines: 1,
                       maxLines: 4,
                       decoration: InputDecoration(
-                        hintText: 'Write a comment...',
+                        hintText: _replyingToUserName != null
+                            ? 'Reply to $_replyingToUserName...'
+                            : 'Write a comment...',
                         hintStyle: TextStyle(color: Colors.grey[400]),
                         filled: true,
                         fillColor: const Color(0xFF1E2D3D),
@@ -488,7 +434,11 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                   ),
                   SizedBox(width: 8.w),
                   GestureDetector(
-                    onTap: provider.isSubmitting ? null : _submitComment,
+                    onTap: provider.isSubmitting
+                        ? null
+                        : (_replyingToCommentId != null
+                              ? () => _submitReply(provider)
+                              : () => _submitComment(provider)),
                     child: Container(
                       alignment: Alignment.center,
                       padding: EdgeInsets.all(10.r),

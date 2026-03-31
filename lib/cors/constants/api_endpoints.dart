@@ -78,6 +78,8 @@ class ApiEndpoints {
   /// -------------------- Community -------------------------------------------
   static const String getFeed = '$baseUrl/api/community/feed';
   static const String createPost = '$baseUrl/api/community/post';
+  static String updatePost(String postId) =>
+      '$baseUrl/api/community/post/$postId';
   static const String createPostLike = '$baseUrl/api/community/like';
   static String getPostLike(String postId) =>
       '$baseUrl/api/community/like/$postId';
@@ -87,6 +89,8 @@ class ApiEndpoints {
       '$baseUrl/api/community/comment/$postId';
   static String replyComment(String postId) =>
       '$baseUrl/api/community/comment/reply/$postId';
+  static String deletePost(String postId) =>
+      '$baseUrl/api/community/post/$postId';
 
   // chat
 

@@ -164,6 +164,40 @@ class ApiClient {
     }
   }
 
+  /// ----------------------- patch without file --------------------------------------
+  Future<ApiResponseModel> patch(
+    String endpoint, {
+    Map<String, String>? headers,
+    Map<String, dynamic>? body,
+  }) async {
+    try {
+      final builtHeaders = await _buildHeaders(headers);
+      final response = await http.patch(
+        Uri.parse(endpoint),
+        headers: builtHeaders,
+        body: body != null ? jsonEncode(body) : null,
+      );
+      return ApiResponseHandle.handleResponse(response);
+    } catch (e) {
+      final message = ApiErrorHandle.handleError(e);
+      logger.e(message);
+      throw Exception(message);
+    }
+  }
+
+  /// ------------------- Delete --------------------------------------
+  Future<dynamic> delete(String url, {Map<String, String>? headers}) async {
+    try {
+      final builtHeaders = await _buildHeaders(headers);
+      final response = await http.delete(Uri.parse(url), headers: builtHeaders);
+      return ApiResponseHandle.handleResponse(response);
+    } catch (e) {
+      final message = ApiErrorHandle.handleError(e);
+      logger.e(message);
+      throw Exception(message);
+    }
+  }
+
   String _getMimeType(String filePath) {
     String extension = filePath.split('.').last.toLowerCase();
     switch (extension) {

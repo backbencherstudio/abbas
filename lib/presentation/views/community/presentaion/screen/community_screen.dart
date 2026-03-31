@@ -1,4 +1,6 @@
+import 'package:abbas/cors/network/api_response_handle.dart';
 import 'package:abbas/cors/routes/route_names.dart';
+import 'package:abbas/cors/utils/app_utils.dart';
 import 'package:abbas/presentation/views/profile/view_model/profil_screen_provider.dart';
 import 'package:abbas/presentation/widgets/animated_loading.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +29,36 @@ class _CommunityScreenState extends State<CommunityScreen> {
     Future.microtask(() {
       context.read<CommunityScreenProvider>().fetchFeeds();
     });
+  }
+
+  Future<void> _deletePost(String postId) async {
+    final provider = context.read<CommunityScreenProvider>();
+    try {
+      provider.setIsDeletePost(true);
+      final response = await provider.deletePost(postId);
+      if (response.success) {
+        Utils.showToast(
+          msg: response.message,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+        );
+        provider.fetchFeeds();
+      } else {
+        Utils.showToast(
+          msg: response.message,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
+      }
+    } catch (e) {
+      Utils.showToast(
+        msg: e.toString(),
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+    } finally {
+      provider.setIsDeletePost(false);
+    }
   }
 
   String _timeAgo(String? dateTimeString) {
@@ -200,6 +232,78 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                         ),
                                       ),
                                     ],
+                                  ),
+                                  Spacer(),
+
+                                  PopupMenuButton(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12.r),
+                                    icon: Icon(
+                                      Icons.more_horiz,
+                                      color: Colors.white,
+                                      size: 24.sp,
+                                    ),
+                                    itemBuilder: (context) {
+                                      return [
+                                        PopupMenuItem(
+                                          value: "edit",
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              logger.d("edit post id: ${feed.id}");
+                                              Navigator.pushNamed(
+                                                context,
+                                                RouteNames.updatePost,
+                                                arguments: feed.id
+                                              );
+                                            },
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.edit,
+                                                  color: Color(0xFF0A1A29),
+                                                  size: 24.sp,
+                                                ),
+                                                SizedBox(width: 10.w),
+                                                Text(
+                                                  "Edit",
+                                                  style: TextStyle(
+                                                    color: Color(0xFF0A1A29),
+                                                    fontSize: 12.sp,
+                                                    fontWeight: FontWeight.w400,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        PopupMenuItem(
+                                          value: "delete",
+                                          child: Row(
+                                            children: [
+                                              Icon(
+                                                Icons.delete,
+                                                color: Colors.red,
+                                                size: 24.sp,
+                                              ),
+                                              SizedBox(width: 10.w),
+                                              Text(
+                                                "Delete",
+                                                style: TextStyle(
+                                                  color: Colors.red,
+                                                  fontSize: 12.sp,
+                                                  fontWeight: FontWeight.w400,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ];
+                                    },
+                                    onSelected: (value) {
+                                      if (value == "delete") {
+                                        _deletePost(feed.id ?? "");
+                                      }
+                                    },
                                   ),
                                 ],
                               ),
@@ -408,8 +512,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                   ),
                                 ],
                               ),
-
-                        
                             ],
                           ),
                         ),

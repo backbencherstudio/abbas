@@ -53,6 +53,7 @@ class RouteNames {
   static const String pushNotifications = '/pushNotifications';
   static const String commentScreen = '/commentScreen';
   static const String createPost = '/createPost';
+  static const String updatePost = '/updatePost';
   static const String createPool = '/createPool';
   static const String myProfilePublic = '/myProfilePublic';
   static const String myProfilePrivate = '/myProfilePrivate';
