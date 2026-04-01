@@ -1,13 +1,14 @@
+import 'dart:io';
 import 'package:abbas/cors/services/api_client.dart';
 import 'package:abbas/cors/utils/app_utils.dart';
 import 'package:abbas/presentation/views/course_screen/view_model/get_all_courses_provider.dart';
 import 'package:abbas/presentation/widgets/validator.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../../../../../../cors/routes/route_names.dart';
 import '../../../../../widgets/custom_text_field.dart';
@@ -52,28 +53,44 @@ class _DueAssignmentScreenState extends ConsumerState<DueAssignmentScreen> {
 
     try {
       final DateTime parsedDate = DateTime.parse(date);
-      return DateFormat('dd').format(parsedDate);
+      return DateFormat('yyyy-MM-dd').format(parsedDate);
     } catch (e) {
       return date;
     }
   }
 
   /// -------------------- Process Media Files --------------------------------------
-  final ImagePicker _picker = ImagePicker();
 
-  Future<void> pickMedia() async {
-    try {
-      final XFile? pickedFile = await _picker.pickImage(
-        source: ImageSource.gallery,
-      );
-      if (pickedFile != null) {
-        ref.read(selectedFileProvider.notifier).state = pickedFile;
-      }
-    } catch (e) {
-      // Handle any errors that occur during file picking
-      print('Error picking file: $e');
+
+  // Future<void> pickMedia() async {
+  //   try {
+  //     final XFile? pickedFile = await _picker.pickImage(
+  //       source: ImageSource.gallery,
+  //     );
+  //     if (pickedFile != null) {
+  //       ref.read(selectedFileProvider.notifier).state = File(pickedFile.path);
+  //     }
+  //   } catch (e) {
+  //     logger.e('Error picking file: $e');
+  //   }
+  // }
+
+  Future<void> pickPdf() async {
+  try {
+    // Open file picker for PDF files only
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
+
+    if (result != null && result.files.isNotEmpty) {
+      File pdfFile = File(result.files.single.path!);
+      ref.read(selectedFileProvider.notifier).state = pdfFile;
     }
+  } catch (e) {
+    logger.e('Error picking PDF file: $e');
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -137,7 +154,11 @@ class _DueAssignmentScreenState extends ConsumerState<DueAssignmentScreen> {
 
                       Text(
                         assignment?.data?.title ?? 'N/A',
-                        style: TextStyle(color: Color(0xffFFFFFF)),
+                        style: TextStyle(
+                          color: Color(0xffFFFFFF),
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
 
                       SizedBox(height: 12.h),
@@ -145,7 +166,7 @@ class _DueAssignmentScreenState extends ConsumerState<DueAssignmentScreen> {
                         assignment?.data?.description ?? 'N/A',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 13,
+                          fontSize: 14.sp,
                           fontWeight: FontWeight.w400,
                         ),
                       ),
@@ -211,89 +232,91 @@ class _DueAssignmentScreenState extends ConsumerState<DueAssignmentScreen> {
                                     validator: assignmentDescriptionValidator,
                                   ),
                                   SizedBox(height: 20),
-                                  DottedBorder(
-                                    borderType: BorderType.RRect,
-                                    radius: Radius.circular(16.r),
-                                    color: Color(0xFF3D4566),
-                                    strokeWidth: 1.5,
-                                    dashPattern: [6, 5],
-                                    child: Container(
-                                      width: double.infinity,
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 16
-                                            .w, // reduced horizontal padding to fit longer names
-                                        vertical: 30.h,
-                                      ),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          GestureDetector(
-                                            onTap: () async {
-                                              await pickMedia();
-                                            },
-                                            child: SvgPicture.asset(
+                                  GestureDetector(
+                                    onTap: () async {
+                                     // await pickMedia();
+                                     await pickPdf() ;
+                                    },
+                                    child: DottedBorder(
+                                      borderType: BorderType.RRect,
+                                      radius: Radius.circular(16.r),
+                                      color: Color(0xFF3D4566),
+                                      strokeWidth: 1.5,
+                                      dashPattern: [6, 5],
+                                      child: Container(
+                                        width: double.infinity,
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 16
+                                              .w, // reduced horizontal padding to fit longer names
+                                          vertical: 30.h,
+                                        ),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            SvgPicture.asset(
                                               "assets/icons/upload.svg",
                                               // ignore: deprecated_member_use
                                               color: Colors.white,
                                             ),
-                                          ),
-                                          SizedBox(height: 10.h),
+                                            SizedBox(height: 10.h),
 
-                                          // ── This is the dynamic part ────────────────────────────────
-                                          Consumer(
-                                            builder: (context, ref, child) {
-                                              final selectedFile = ref.watch(
-                                                selectedFileProvider,
-                                              );
+                                            // ── This is the dynamic part ────────────────────────────────
+                                            Consumer(
+                                              builder: (context, ref, child) {
+                                                final selectedFile = ref.watch(
+                                                  selectedFileProvider,
+                                                );
 
-                                              if (selectedFile == null) {
-                                                return Column(
-                                                  children: [
-                                                    Text(
-                                                      "Files upload here",
-                                                      style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 16.sp,
-                                                      ),
-                                                    ),
-                                                    SizedBox(height: 8.h),
-                                                    Text(
-                                                      "or drag & drop",
-                                                      style: TextStyle(
-                                                        color: Color(
-                                                          0xff8C9196,
+                                                if (selectedFile == null) {
+                                                  return Column(
+                                                    children: [
+                                                      Text(
+                                                        "Files upload here",
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 16.sp,
                                                         ),
-                                                        fontSize: 12.sp,
                                                       ),
-                                                    ),
-                                                  ],
-                                                );
-                                              } else {
-                                                return Column(
-                                                  children: [
-                                                    SizedBox(height: 8.h),
-                                                    Text(
-                                                      selectedFile
-                                                          .name, // ← shows "N_logo .png" or whatever the real name is
-                                                      style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 15.sp,
-                                                        fontWeight:
-                                                            FontWeight.w500,
+                                                      SizedBox(height: 8.h),
+                                                      Text(
+                                                        "or drag & drop",
+                                                        style: TextStyle(
+                                                          color: Color(
+                                                            0xff8C9196,
+                                                          ),
+                                                          fontSize: 12.sp,
+                                                        ),
                                                       ),
-                                                      textAlign:
-                                                          TextAlign.center,
-                                                      maxLines: 2,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                    SizedBox(height: 4.h),
-                                                  ],
-                                                );
-                                              }
-                                            },
-                                          ),
-                                        ],
+                                                    ],
+                                                  );
+                                                } else {
+                                                  return Column(
+                                                    children: [
+                                                      SizedBox(height: 8.h),
+                                                      Text(
+                                                        selectedFile.path
+                                                            .split('/')
+                                                            .last,
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 15.sp,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                        ),
+                                                        textAlign:
+                                                            TextAlign.center,
+                                                        maxLines: 2,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                      ),
+                                                      SizedBox(height: 4.h),
+                                                    ],
+                                                  );
+                                                }
+                                              },
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -321,17 +344,10 @@ class _DueAssignmentScreenState extends ConsumerState<DueAssignmentScreen> {
                                         title: _titleController.text.trim(),
                                         description: _descriptionController.text
                                             .trim(),
-                                        media:
-                                            ref
-                                                .read(selectedFileProvider)
-                                                ?.path ??
-                                            '',
+                                        media: ref.read(selectedFileProvider)!,
                                         assignmentId: widget.assignmentId,
                                       );
 
-                                  logger.d(
-                                    "Submit Assignment Result : $result",
-                                  );
                                   if (result.success) {
                                     Utils.showToast(
                                       msg: result.message,
@@ -342,6 +358,7 @@ class _DueAssignmentScreenState extends ConsumerState<DueAssignmentScreen> {
                                       Navigator.pushNamed(
                                         context,
                                         RouteNames.submittedAssignmentScreen,
+                                        arguments: widget.assignmentId,
                                       );
                                     }
                                   } else {
@@ -356,14 +373,18 @@ class _DueAssignmentScreenState extends ConsumerState<DueAssignmentScreen> {
                               color: Color(0xFFE9201D),
                               textColor: Colors.white,
                               icon: '',
-                              child: Text(
-                                "Submit",
-                                style: TextStyle(
-                                  fontSize: 16.sp,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
+                              child: ref.watch(submitAssignmentLoadingProvider)
+                                  ? const Center(
+                                      child: CircularProgressIndicator(),
+                                    )
+                                  : Text(
+                                      "Submit",
+                                      style: TextStyle(
+                                        fontSize: 16.sp,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
                             ),
                           ],
                         ),

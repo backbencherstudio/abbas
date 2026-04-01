@@ -121,8 +121,11 @@ class AppRoutes {
       final assignmentId = args is String ? args : '';
       return DueAssignmentScreen(assignmentId: assignmentId);
     },
-    RouteNames.submittedAssignmentScreen: (context) =>
-        const SubmittedAssignmentScreen(),
+    RouteNames.submittedAssignmentScreen: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments;
+      final assignmentId = args is String ? args : '';
+      return SubmittedAssignmentScreen(assignmentId: assignmentId);
+    },
     RouteNames.assetsScreen: (context) {
       final args = ModalRoute.of(context)!.settings.arguments;
       final courseId = args is String ? args : '';

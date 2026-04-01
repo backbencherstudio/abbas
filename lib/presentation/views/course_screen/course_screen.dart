@@ -34,8 +34,6 @@ class _CourseScreenState extends ConsumerState<CourseScreen> {
         children: [
           CustomAppbar(
             title: "Course",
-            image: "assets/icons/search.png",
-            image2: "assets/icons/notification.png",
           ),
           Expanded(
             child: ListView(

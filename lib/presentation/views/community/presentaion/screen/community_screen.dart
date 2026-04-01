@@ -31,6 +31,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
     });
   }
 
+  /// ---------------------------- delete post --------------------------
   Future<void> _deletePost(String postId) async {
     final provider = context.read<CommunityScreenProvider>();
     try {
@@ -42,7 +43,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
           backgroundColor: Colors.green,
           textColor: Colors.white,
         );
-        provider.fetchFeeds();
+        await provider.fetchFeeds();
       } else {
         Utils.showToast(
           msg: response.message,
@@ -61,6 +62,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
     }
   }
 
+  /// ---------------------------- time ago --------------------------
   String _timeAgo(String? dateTimeString) {
     if (dateTimeString == null || dateTimeString.isEmpty) {
       return "N/A";
@@ -183,13 +185,15 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                           authorId,
                                         );
 
-                                        Navigator.pushNamed(
-                                          context,
-                                          RouteNames.othersProfile,
-                                        );
+                                        if (context.mounted) {
+                                          Navigator.pushNamed(
+                                            context,
+                                            RouteNames.othersProfile,
+                                          );
+                                        }
 
-                                        debugPrint("AuthorID: $authorId");
-                                        debugPrint("PostID: ${feed.id}");
+                                        logger.d("AuthorID: $authorId");
+                                        logger.d("PostID: ${feed.id}");
                                       }
                                     },
                                     child: CircleAvatar(
@@ -249,11 +253,13 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                           value: "edit",
                                           child: GestureDetector(
                                             onTap: () {
-                                              logger.d("edit post id: ${feed.id}");
+                                              logger.d(
+                                                "edit post id: ${feed.id}",
+                                              );
                                               Navigator.pushNamed(
                                                 context,
                                                 RouteNames.updatePost,
-                                                arguments: feed.id
+                                                arguments: feed.id,
                                               );
                                             },
                                             child: Row(

@@ -71,13 +71,17 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen> {
                             ? AnimatedLoading()
                             : data?.data == null
                             ? Center(
-                                child: Text(
-                                  "No data available",
-                                  style: TextStyle(
-                                    fontSize: 16.sp,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      "No data available",
+                                      style: TextStyle(
+                                        fontSize: 16.sp,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               )
                             : ListView(

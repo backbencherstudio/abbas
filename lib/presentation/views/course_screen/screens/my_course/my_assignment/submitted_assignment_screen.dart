@@ -1,26 +1,61 @@
-
-import 'package:dotted_border/dotted_border.dart';
+import 'package:abbas/presentation/views/course_screen/view_model/get_all_courses_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
-
+import 'package:intl/intl.dart';
 import '../../../../../../cors/routes/route_names.dart';
 import '../../../../../../cors/theme/app_colors.dart';
 import '../../../../../widgets/secondary_appber.dart';
 import '../../../../profile/widgets/download_receipt_card.dart';
 
-class SubmittedAssignmentScreen extends StatelessWidget {
-  const SubmittedAssignmentScreen({super.key});
+class SubmittedAssignmentScreen extends ConsumerStatefulWidget {
+  final String assignmentId;
+  const SubmittedAssignmentScreen({super.key, required this.assignmentId});
+
+  @override
+  ConsumerState<SubmittedAssignmentScreen> createState() =>
+      _SubmittedAssignmentScreenState();
+}
+
+class _SubmittedAssignmentScreenState
+    extends ConsumerState<SubmittedAssignmentScreen> {
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref
+          .read(getAssignmentDetailsProvider.notifier)
+          .getAssignmentDetails(assignmentId: widget.assignmentId);
+    });
+    super.initState();
+  }
+
+  /// -------------------- Formatted Date --------------------------------------
+  String formattedDate(String? date) {
+    if (date == null || date.isEmpty) return 'N/A';
+
+    try {
+      final DateTime parsedDate = DateTime.parse(date);
+      return DateFormat('yyyy-MM-dd').format(parsedDate);
+    } catch (e) {
+      return date;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final assignmentDetails = ref.watch(getAssignmentDetailsProvider);
+    final assignmentDetailsState = assignmentDetails.value;
+    final attachmentUrls = assignmentDetailsState?.data?.attachmentUrl;
     return Scaffold(
       backgroundColor: Color(0xff030D15),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SecondaryAppBar(title: "Assignment 6"),
+            SecondaryAppBar(
+              title: assignmentDetailsState?.data?.title ?? 'N/A',
+            ),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10),
               child: Column(
@@ -28,7 +63,7 @@ class SubmittedAssignmentScreen extends StatelessWidget {
                 children: [
                   SizedBox(height: 15.h),
                   Text(
-                    "Class 3 : Scene Analysis Report",
+                    "${assignmentDetailsState?.data?.moduleClass?.classTitle ?? 'N/A'} : ${assignmentDetailsState?.data?.moduleClass?.className ?? 'N/A'}",
                     style: TextStyle(
                       color: Color(0xffFFFFFF),
                       fontWeight: FontWeight.w500,
@@ -37,7 +72,7 @@ class SubmittedAssignmentScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 6.h),
                   Text(
-                    "Module 1: Personal Development",
+                    "${assignmentDetailsState?.data?.moduleClass?.module?.moduleTitle ?? 'N/A'}: ${assignmentDetailsState?.data?.moduleClass?.module?.moduleName ?? 'N/A'}",
                     style: TextStyle(
                       color: Color(0xff8C9196),
                       fontWeight: FontWeight.w400,
@@ -51,25 +86,33 @@ class SubmittedAssignmentScreen extends StatelessWidget {
                       Icon(Icons.access_time, color: Colors.red),
                       SizedBox(width: 6.w),
                       Text(
-                        "Due : 2 days",
-                        style: TextStyle(color: Colors.white),
+                        "Due : ${formattedDate(assignmentDetailsState?.data?.dueDate)}",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w400,
+                        ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 10),
+                  SizedBox(height: 10.h),
                   Divider(thickness: 0.7, color: Color(0xff8C9196)),
 
                   Text(
-                    "Assignment",
-                    style: TextStyle(color: Color(0xffFFFFFF)),
+                    assignmentDetailsState?.data?.title ?? 'N/A',
+                    style: TextStyle(
+                      color: Color(0xffFFFFFF),
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
 
-                  SizedBox(height: 12),
+                  SizedBox(height: 12.h),
                   Text(
-                    "Write a 2-page analysis of your assigned scene focusing on character objectives, obstacles, and tactics. Include your personal approach to the character.",
+                    assignmentDetailsState?.data?.description ?? 'N/A',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 13,
+                      fontSize: 14.sp,
                       fontWeight: FontWeight.w400,
                     ),
                   ),
@@ -80,19 +123,40 @@ class SubmittedAssignmentScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: AppColors.containerColor,
                       borderRadius: BorderRadius.circular(12.r),
-                      border: Border.all(color: AppColors.subContainerColor, width: 1.5.w),
+                      border: Border.all(
+                        color: AppColors.subContainerColor,
+                        width: 1.5.w,
+                      ),
                     ),
                     child: Column(
                       spacing: 8.h,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Assignment Submitted', style: Theme.of(context).textTheme.titleLarge),
+                        Text(
+                          assignmentDetailsState?.data?.title ?? 'N/A',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
                         Divider(),
-                        Text('Science 1', style: Theme.of(context).textTheme.titleLarge),
-                        Text('This is assignment'),
+                        Text(
+                          assignmentDetailsState?.data?.title ?? 'N/A',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        Text(
+                          assignmentDetailsState?.data?.description ?? 'N/A',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
                         SizedBox(height: 8.h),
-                        LediKhadashProtiva(title: 'class-1-assignment.pdf', hasIcon: false,),
-
+                        if (attachmentUrls != null && attachmentUrls.isNotEmpty)
+                          ...attachmentUrls.map((url) {
+                            return LediKhadashProtiva(
+                              title: url.split('/').last,
+                              hasIcon: false,
+                            );
+                          }),
                       ],
                     ),
                   ),
@@ -100,12 +164,17 @@ class SubmittedAssignmentScreen extends StatelessWidget {
                   Align(
                     alignment: Alignment.center,
                     child: GestureDetector(
-                      onTap: () => Navigator.pushNamed(context, RouteNames.parentScreen),
+                      onTap: () =>
+                          Navigator.pushNamed(context, RouteNames.parentScreen),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          SvgPicture.asset('assets/icons/arrow_back.svg', height: 22.w, width: 22.w),
+                          SvgPicture.asset(
+                            'assets/icons/arrow_back.svg',
+                            height: 22.w,
+                            width: 22.w,
+                          ),
                           SizedBox(width: 7),
                           Text(
                             "Back to Home",

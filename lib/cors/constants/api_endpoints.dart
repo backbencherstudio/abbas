@@ -29,7 +29,7 @@ class ApiEndpoints {
 
   /// ------------------- Courses ----------------------------------------------
   static String submitAssignment(String assignmentId) =>
-      '$baseUrl/course/assignment/$assignmentId/submit';
+      '/api/course/assignment/$assignmentId/submit';
   static const String getAllCourses = '$baseUrl/api/course/all';
   static const String getMyCourses = '$baseUrl/api/course/my-courses';
 

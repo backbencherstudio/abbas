@@ -198,17 +198,16 @@ class _CreatePostState extends State<CreatePost> {
       builder: (context, provider, child) {
         return Scaffold(
           backgroundColor: AppColors.background,
-          body: Column(
-            children: [
-              SecondaryAppBar(title: 'Create Post'),
-              SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Padding(
+          body: SingleChildScrollView(
+            child: Column(
+              children: [
+                SecondaryAppBar(title: 'Create Post'),
+                Padding(
                   padding: EdgeInsets.all(16.w),
                   child: Column(
                     children: [
                       SizedBox(height: 10.h),
-
+                
                       /// ---------------- Author Info -------------------------
                       Row(
                         children: [
@@ -317,9 +316,9 @@ class _CreatePostState extends State<CreatePost> {
                           ),
                         ],
                       ),
-
+                
                       SizedBox(height: 16.h),
-
+                
                       /// ------------- Text input field -----------------------
                       _buildTextField(
                         "What's on your mind?",
@@ -327,7 +326,7 @@ class _CreatePostState extends State<CreatePost> {
                         maxLines: 8,
                         focusNode: _goalsFocus,
                       ),
-
+                
                       if (provider.selectedMedia != null) ...[
                         SizedBox(height: 16.h),
                         Stack(
@@ -383,9 +382,9 @@ class _CreatePostState extends State<CreatePost> {
                           ],
                         ),
                       ],
-
+                
                       SizedBox(height: 20.h),
-
+                
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -442,9 +441,9 @@ class _CreatePostState extends State<CreatePost> {
                           ),
                         ],
                       ),
-
+                
                       SizedBox(height: 20.h),
-
+                
                       // Show error message if any
                       if (provider.errorMessage != null) ...[
                         SizedBox(height: 16.h),
@@ -479,9 +478,9 @@ class _CreatePostState extends State<CreatePost> {
                     ],
                   ),
                 ),
-              ),
-
-            ],
+            
+              ],
+            ),
           ),
         );
       },

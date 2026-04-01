@@ -1,5 +1,5 @@
 import 'package:abbas/presentation/views/course_screen/view_model/get_all_courses_provider.dart';
-import 'package:abbas/presentation/widgets/shimmer_widget.dart';
+import 'package:abbas/presentation/widgets/animated_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -172,21 +172,14 @@ class _CourseModuleScreenState extends ConsumerState<CourseModuleScreen> {
 
                     SizedBox(height: 12.h),
                     if (modules.isLoading) ...[
-                      shimmerWidget(),
-                      SizedBox(height: 12.h),
-                      shimmerWidget(),
-                      SizedBox(height: 12.h),
-                      shimmerWidget(),
-                      SizedBox(height: 12.h),
-                      shimmerWidget(),
-                      SizedBox(height: 12.h),
+                      AnimatedLoading()
                     ] else if (modules.hasError) ...[
                       Center(
                         child: Column(
                           children: [
                             Icon(
                               Icons.error_outline,
-                              size: 24.sp,
+                              size: 48.sp,
                               color: Colors.white,
                             ),
                             SizedBox(height: 4.h),
