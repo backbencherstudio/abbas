@@ -1,7 +1,9 @@
 class ApiEndpoints {
   ApiEndpoints._();
 
-  static const String baseUrl = 'https://occupations-love-routers-discovery.trycloudflare.com';
+  static const String baseUrl =
+      'http://192.168.7.14:4000';
+  static const String socketUrl = "https://train-cnet-suit-reviews.trycloudflare.com";
   static const String register = '$baseUrl/api/auth/register';
   static const String login = '$baseUrl/api/auth/login';
   static const String refreshToken = '$baseUrl/api/auth/refresh-token';
@@ -78,17 +80,35 @@ class ApiEndpoints {
   /// -------------------- Community -------------------------------------------
   static const String getFeed = '$baseUrl/api/community/feed';
   static const String createPost = '$baseUrl/api/community/post';
+  static String updatePost(String postId) =>
+      '$baseUrl/api/community/post/$postId';
   static const String createPostLike = '$baseUrl/api/community/like';
-  static const String getPostLike = '$baseUrl/api/community/like';
+  static String getPostLike(String postId) =>
+      '$baseUrl/api/community/like/$postId';
+  static String createComment(String postId) =>
+      '$baseUrl/api/community/comment/$postId';
+  static String getComment(String postId) =>
+      '$baseUrl/api/community/comment/$postId';
+  static String replyComment(String postId) =>
+      '$baseUrl/api/community/comment/reply/$postId';
+  static String deletePost(String postId) =>
+      '$baseUrl/api/community/post/$postId';
 
   // chat
 
   static const String createConversation = '$baseUrl/api/conversations/dm';
   static const String allConversationList = '$baseUrl/api/conversations';
+  static String searchUser(String query) =>
+      '$baseUrl/api/users/suggest?q=$query';
+  static const String createGroupChat = '$baseUrl/api/conversations/group';
 
-  static String dmAllMessage(String conversationId, int cursor, int limit) =>
-      '$baseUrl/api/conversations/$conversationId/messages?cursor=&limit=$limit';
-
+  static String dmAllMessage(String conversationId, int take, String? cursor) {
+    if (cursor != null && cursor.isNotEmpty) {
+      return '$baseUrl/api/conversations/$conversationId/messages?take=$take&cursor=$cursor';
+    } else {
+      return '$baseUrl/api/conversations/$conversationId/messages?take=$take';
+    }
+  }
   static String dmSendMessage(String conversationId) =>
       '$baseUrl/api/conversations/$conversationId/messages';
 

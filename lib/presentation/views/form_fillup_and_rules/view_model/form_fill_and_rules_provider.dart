@@ -87,7 +87,9 @@ class EnrollPersonalInfoProvider
         body,
       );
       if (res['success']) {
-        return EnrollPersonalInfoModel.fromJson(res);
+        final model = EnrollPersonalInfoModel.fromJson(res);
+        state = model;
+        return EnrollPersonalInfoModel(success: true, message: res['message']);
       } else {
         return EnrollPersonalInfoModel(success: false, message: res['message']);
       }

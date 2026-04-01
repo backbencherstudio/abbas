@@ -11,14 +11,20 @@ import 'dart:io';
 import 'package:abbas/cors/network/api_response_model.dart';
 import '../../../profile/view_model/profil_screen_provider.dart';
 
-class CreatePost extends StatefulWidget {
-  const CreatePost({super.key});
+class UpdatePost extends StatefulWidget {
+  final String postId;
+  final String postContent;
+  const UpdatePost({
+    super.key,
+    required this.postId,
+    required this.postContent,
+  });
 
   @override
-  State<CreatePost> createState() => _CreatePostState();
+  State<UpdatePost> createState() => _UpdatePostState();
 }
 
-class _CreatePostState extends State<CreatePost> {
+class _UpdatePostState extends State<UpdatePost> {
   final TextEditingController _goalsController = TextEditingController();
   final FocusNode _goalsFocus = FocusNode();
   final ImagePicker _imagePicker = ImagePicker();
@@ -29,6 +35,7 @@ class _CreatePostState extends State<CreatePost> {
   void initState() {
     super.initState();
     _goalsController.addListener(_onTextChanged);
+    _goalsController.text = widget.postContent;
   }
 
   void _onTextChanged() {
@@ -71,9 +78,7 @@ class _CreatePostState extends State<CreatePost> {
     try {
       context.read<CommunityScreenProvider>().setIsPickingImage(true);
 
-      final XFile? video = await _imagePicker.pickVideo(
-        source: source,
-      );
+      final XFile? video = await _imagePicker.pickVideo(source: source);
 
       if (video != null) {
         context.read<CommunityScreenProvider>().setSelectedMedia(
@@ -96,51 +101,11 @@ class _CreatePostState extends State<CreatePost> {
     }
   }
 
-  // void _showImageSourceDialog() {
-  //   showModalBottomSheet(
-  //     context: context,
-  //     shape: RoundedRectangleBorder(
-  //       borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
-  //     ),
-  //     builder: (BuildContext context) {
-  //       return SafeArea(
-  //         child: Wrap(
-  //           children: [
-  //             ListTile(
-  //               leading: const Icon(Icons.photo_library),
-  //               title: const Text('Choose from Gallery'),
-  //               onTap: () {
-  //                 Navigator.pop(context);
-  //                 _pickImage(ImageSource.gallery);
-  //               },
-  //             ),
-  //             ListTile(
-  //               leading: const Icon(Icons.photo_camera),
-  //               title: const Text('Take a Photo'),
-  //               onTap: () {
-  //                 Navigator.pop(context);
-  //                 _pickImage(ImageSource.camera);
-  //               },
-  //             ),
-  //             ListTile(
-  //               leading: const Icon(Icons.cancel),
-  //               title: const Text('Cancel'),
-  //               onTap: () {
-  //                 Navigator.pop(context);
-  //               },
-  //             ),
-  //           ],
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
-
   void _removeMedia() {
     context.read<CommunityScreenProvider>().removeMedia();
   }
 
-  Future<void> _createPost(CommunityScreenProvider provider) async {
+  Future<void> _updatePost(CommunityScreenProvider provider) async {
     if (!_hasText && provider.selectedMedia == null) {
       Utils.showToast(
         msg: 'Please add text or media',
@@ -151,7 +116,8 @@ class _CreatePostState extends State<CreatePost> {
     }
 
     // Call the provider method
-    final response = await provider.createPost(
+    final response = await provider.updatePost(
+      widget.postId,
       _goalsController.text.trim(),
       provider.selectedMedia,
     );
@@ -163,7 +129,7 @@ class _CreatePostState extends State<CreatePost> {
           backgroundColor: Colors.green,
           textColor: Colors.white,
         );
-        Navigator.pop(context, true); 
+        Navigator.pop(context, true);
       } else {
         String msg = 'Failed to create post';
         if (response is ApiResponseModel) {
@@ -200,7 +166,7 @@ class _CreatePostState extends State<CreatePost> {
           backgroundColor: AppColors.background,
           body: Column(
             children: [
-              SecondaryAppBar(title: 'Create Post'),
+              SecondaryAppBar(title: 'Edit Post'),
               SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 child: Padding(
@@ -250,7 +216,7 @@ class _CreatePostState extends State<CreatePost> {
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 12.sp,
-                                        fontWeight: FontWeight.w400
+                                        fontWeight: FontWeight.w400,
                                       ),
                                     ),
                                   ),
@@ -261,7 +227,7 @@ class _CreatePostState extends State<CreatePost> {
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 12.sp,
-                                        fontWeight: FontWeight.w400
+                                        fontWeight: FontWeight.w400,
                                       ),
                                     ),
                                   ),
@@ -272,7 +238,7 @@ class _CreatePostState extends State<CreatePost> {
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 12.sp,
-                                        fontWeight: FontWeight.w400
+                                        fontWeight: FontWeight.w400,
                                       ),
                                     ),
                                   ),
@@ -355,9 +321,16 @@ class _CreatePostState extends State<CreatePost> {
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(Icons.video_file, color: Colors.white, size: 48),
+                                    Icon(
+                                      Icons.video_file,
+                                      color: Colors.white,
+                                      size: 48,
+                                    ),
                                     SizedBox(height: 8.h),
-                                    Text('Video Selected', style: TextStyle(color: Colors.white)),
+                                    Text(
+                                      'Video Selected',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -415,7 +388,7 @@ class _CreatePostState extends State<CreatePost> {
                                       (_hasText ||
                                               provider.selectedMedia != null) &&
                                           !provider.isLoading
-                                      ? () => _createPost(provider)
+                                      ? () => _updatePost(provider)
                                       : null,
                                   style: ElevatedButton.styleFrom(
                                     fixedSize: Size(95.w, 48.h),
@@ -480,7 +453,6 @@ class _CreatePostState extends State<CreatePost> {
                   ),
                 ),
               ),
-
             ],
           ),
         );

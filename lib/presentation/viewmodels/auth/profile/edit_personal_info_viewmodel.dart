@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../domain/entities/profile/personal_info_entity.dart';
 import '../../../../domain/usecases/profile/edit_personal_info_usecase.dart';
-import '../../../services/toast_service.dart';
+import '../../../../cors/services/toast_service.dart';
 
 class EditPersonalInfoViewModel with ChangeNotifier {
   final EditPersonalInfoUseCase editPersonalInfoUseCase;

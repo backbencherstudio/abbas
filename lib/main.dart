@@ -1,8 +1,6 @@
 import 'package:abbas/presentation/viewmodels/app_providers.dart';
 import 'package:abbas/presentation/views/course_screen/screens/my_class/pdf_viewer_screen.dart';
 import 'package:abbas/presentation/views/course_screen/screens/my_class/widget/pdf_widget.dart';
-import 'package:abbas/presentation/views/message/widget/camera_screen.dart';
-import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -18,6 +16,14 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light, 
+      statusBarBrightness: Brightness.dark, 
+    ),
+  );
 
  // cameras = await availableCameras();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);

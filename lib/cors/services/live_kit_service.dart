@@ -31,30 +31,23 @@ class LiveKitService with ChangeNotifier {
     try {
       if (_room != null) await disconnect();
 
-      // ✅ FIX: Room একবারই তৈরি করুন, RoomOptions সহ
       _room = Room(
-        roomOptions: const RoomOptions(
-          adaptiveStream: true,
-          dynacast: true,
-        ),
+        roomOptions: const RoomOptions(adaptiveStream: true, dynacast: true),
       );
 
-      // ✅ FIX: Room তৈরির পরেই listener লাগান, overwrite করবেন না
       _setupListeners();
 
       logger.i("Connecting to LiveKit room: $roomName at $url");
       await _room!.connect(url, token);
       _isConnected = true;
-      logger.i("✅ Connected to room");
+      logger.i(" Connected to room");
 
-      // Publish audio
       _audioTrack = await LocalAudioTrack.create();
       _audioPublication = await _room!.localParticipant!.publishAudioTrack(
         _audioTrack!,
       );
-      logger.i("🎙️ Audio track published");
+      logger.i(" Audio track published");
 
-      // Publish video (skip if audio-only)
       if (!audioOnly) {
         try {
           _videoTrack = await LocalVideoTrack.createCameraTrack(
@@ -64,7 +57,7 @@ class LiveKitService with ChangeNotifier {
             _videoTrack!,
           );
           _isFrontCamera = true;
-          logger.i("📹 Video track published");
+          logger.i(" Video track published");
         } catch (e) {
           logger.e("Video track failed (continuing audio-only): $e");
         }
@@ -72,7 +65,7 @@ class LiveKitService with ChangeNotifier {
 
       notifyListeners();
     } catch (e) {
-      logger.e("❌ LiveKit connection failed: $e");
+      logger.e(" LiveKit connection failed: $e");
       _isConnected = false;
       _room = null;
       rethrow;
@@ -82,24 +75,23 @@ class LiveKitService with ChangeNotifier {
   void _setupListeners() {
     _room?.events.listen((event) {
       if (event is ParticipantConnectedEvent) {
-        logger.i("👤 Participant joined: ${event.participant.identity}");
-        notifyListeners(); // ✅ UI update করুন
+        logger.i(" Participant joined: ${event.participant.identity}");
+        notifyListeners();
       }
 
       if (event is ParticipantDisconnectedEvent) {
-        logger.i("👤 Participant left: ${event.participant.identity}");
+        logger.i(" Participant left: ${event.participant.identity}");
         notifyListeners();
       }
 
       if (event is TrackSubscribedEvent) {
         if (event.track.kind == TrackType.VIDEO) {
           _remoteVideoTrack = event.track as VideoTrack;
-          logger.i("📺 Remote video subscribed");
+          logger.i(" Remote video subscribed");
           notifyListeners();
         }
-        // ✅ FIX: Audio track ও subscribe করুন
         if (event.track.kind == TrackType.AUDIO) {
-          logger.i("🔊 Remote audio subscribed");
+          logger.i(" Remote audio subscribed");
           notifyListeners();
         }
       }
@@ -107,13 +99,13 @@ class LiveKitService with ChangeNotifier {
       if (event is TrackUnsubscribedEvent) {
         if (event.track.kind == TrackType.VIDEO) {
           _remoteVideoTrack = null;
-          logger.i("📺 Remote video unsubscribed");
+          logger.i(" Remote video unsubscribed");
           notifyListeners();
         }
       }
 
       if (event is RoomDisconnectedEvent) {
-        logger.i("🔌 Room disconnected");
+        logger.i(" Room disconnected");
         _isConnected = false;
         _room = null;
         _remoteVideoTrack = null;
@@ -151,8 +143,9 @@ class LiveKitService with ChangeNotifier {
       } else if (_room?.localParticipant != null) {
         _videoTrack = await LocalVideoTrack.createCameraTrack(
           CameraCaptureOptions(
-            cameraPosition:
-            _isFrontCamera ? CameraPosition.front : CameraPosition.back,
+            cameraPosition: _isFrontCamera
+                ? CameraPosition.front
+                : CameraPosition.back,
           ),
         );
         _videoPublication = await _room!.localParticipant!.publishVideoTrack(
@@ -180,12 +173,13 @@ class LiveKitService with ChangeNotifier {
     try {
       if (_videoTrack == null) return;
       _isFrontCamera = !_isFrontCamera;
-      final newPosition =
-      _isFrontCamera ? CameraPosition.front : CameraPosition.back;
+      final newPosition = _isFrontCamera
+          ? CameraPosition.front
+          : CameraPosition.back;
       await _videoTrack!.restartTrack(
         CameraCaptureOptions(cameraPosition: newPosition),
       );
-      logger.i("🔄 Camera switched to ${newPosition.name}");
+      logger.i(" Camera switched to ${newPosition.name}");
       notifyListeners();
     } catch (e) {
       logger.e("Switch camera failed: $e");

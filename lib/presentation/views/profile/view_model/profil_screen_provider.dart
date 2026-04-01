@@ -1,8 +1,4 @@
-import 'dart:io';
-import 'dart:math';
-
 import 'package:abbas/cors/constants/api_endpoints.dart';
-import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:abbas/presentation/views/profile/model/other_profile_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:logger/logger.dart';
@@ -122,7 +118,7 @@ class ProfileScreenProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _apiClient.postMultipart(
+      final response = await _apiClient.patchMultipart(
         ApiEndpoints.editProfile,
         fields: {
           "name": name,

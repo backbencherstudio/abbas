@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../widgets/secondary_appber.dart';
-import '../../widgets/card_widget.dart';
 
 class SupportUser extends StatefulWidget {
   const SupportUser({super.key});
