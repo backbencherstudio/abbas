@@ -1,7 +1,9 @@
 class ApiEndpoints {
   ApiEndpoints._();
 
-  static const String baseUrl = 'https://occupations-love-routers-discovery.trycloudflare.com';
+  static const String baseUrl =
+      'http://192.168.7.14:4000';
+  static const String socketUrl = "https://train-cnet-suit-reviews.trycloudflare.com";
   static const String register = '$baseUrl/api/auth/register';
   static const String login = '$baseUrl/api/auth/login';
   static const String refreshToken = '$baseUrl/api/auth/refresh-token';
@@ -96,10 +98,17 @@ class ApiEndpoints {
 
   static const String createConversation = '$baseUrl/api/conversations/dm';
   static const String allConversationList = '$baseUrl/api/conversations';
+  static String searchUser(String query) =>
+      '$baseUrl/api/users/suggest?q=$query';
+  static const String createGroupChat = '$baseUrl/api/conversations/group';
 
-  static String dmAllMessage(String conversationId, int cursor, int limit) =>
-      '$baseUrl/api/conversations/$conversationId/messages?cursor=&limit=$limit';
-
+  static String dmAllMessage(String conversationId, int take, String? cursor) {
+    if (cursor != null && cursor.isNotEmpty) {
+      return '$baseUrl/api/conversations/$conversationId/messages?take=$take&cursor=$cursor';
+    } else {
+      return '$baseUrl/api/conversations/$conversationId/messages?take=$take';
+    }
+  }
   static String dmSendMessage(String conversationId) =>
       '$baseUrl/api/conversations/$conversationId/messages';
 

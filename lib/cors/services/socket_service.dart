@@ -33,7 +33,7 @@ class SocketService {
 
     _connectionCompleter = Completer<void>();
 
-    final uri = '${ApiEndpoints.baseUrl}/ws';
+    final uri = 'http://192.168.7.14:4000/ws';
 
     _socket = IO.io(
       uri,

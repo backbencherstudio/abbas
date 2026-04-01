@@ -1,3 +1,5 @@
+import 'package:abbas/cors/constants/api_endpoints.dart';
+import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
@@ -6,9 +8,8 @@ class SocketCall with ChangeNotifier {
   SocketCall._internal();
   static final SocketCall instance = SocketCall._internal();
   factory SocketCall() => instance;
-  static const String _baseUrl =
-      'https://occupations-love-routers-discovery.trycloudflare.com';
-  static const String _namespace = '/ws';
+  static const String _baseUrl ="http://192.168.7.14:4000/ws";
+ // static const String _namespace = '/ws';
 
   IO.Socket? _socket;
   final Logger logger = Logger(printer: PrettyPrinter(methodCount: 0));
@@ -35,11 +36,9 @@ class SocketCall with ChangeNotifier {
       } catch (_) {}
       _socket = null;
     }
-
-    logger.i(" Connecting socket to $_baseUrl$_namespace ...");
-
+    logger.i(" Connecting socket to $_baseUrl$_baseUrl ...");
     _socket = IO.io(
-      '$_baseUrl$_namespace',
+      '$_baseUrl',
       IO.OptionBuilder()
           .setTransports(['websocket'])
           .setAuth({'token': token})
