@@ -133,16 +133,16 @@ class _SubmittedAssignmentScreenState
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          assignmentDetailsState?.data?.title ?? 'N/A',
+                          "Assignment Submitted",
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         Divider(),
                         Text(
-                          assignmentDetailsState?.data?.title ?? 'N/A',
+                          assignmentDetailsState?.data?.submission?.title ?? 'N/A',
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         Text(
-                          assignmentDetailsState?.data?.description ?? 'N/A',
+                          assignmentDetailsState?.data?.submission?.description ?? 'N/A',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 14.sp,
@@ -150,13 +150,10 @@ class _SubmittedAssignmentScreenState
                           ),
                         ),
                         SizedBox(height: 8.h),
-                        if (attachmentUrls != null && attachmentUrls.isNotEmpty)
-                          ...attachmentUrls.map((url) {
-                            return LediKhadashProtiva(
-                              title: url.split('/').last,
-                              hasIcon: false,
-                            );
-                          }),
+                       LediKhadashProtiva(
+                        title: assignmentDetailsState?.data?.submission?.fileUrl?.split('/').last ?? 'N/A',
+                        hasIcon: false,
+                       )
                       ],
                     ),
                   ),

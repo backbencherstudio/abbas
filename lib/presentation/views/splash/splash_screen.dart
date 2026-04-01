@@ -95,7 +95,7 @@ class _SplashScreenState extends State<SplashScreen>
     await _cinCtController.forward();
 
     await Future.delayed(const Duration(milliseconds: 800));
-    setState(() => _showSubtitle = true);
+
     await _subtitleController.forward();
   }
 

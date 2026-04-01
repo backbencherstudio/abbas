@@ -172,7 +172,7 @@ class _CourseModuleScreenState extends ConsumerState<CourseModuleScreen> {
 
                     SizedBox(height: 12.h),
                     if (modules.isLoading) ...[
-                      AnimatedLoading()
+                      AnimatedLoading(),
                     ] else if (modules.hasError) ...[
                       Center(
                         child: Column(
@@ -185,7 +185,11 @@ class _CourseModuleScreenState extends ConsumerState<CourseModuleScreen> {
                             SizedBox(height: 4.h),
                             Text(
                               "Network error : Connection refused",
-                              style: TextStyle(fontSize: 16.sp, color: Colors.white, fontWeight: FontWeight.w500),
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ],
                         ),
@@ -221,45 +225,45 @@ class _CourseModuleScreenState extends ConsumerState<CourseModuleScreen> {
     required String subtitle,
     required VoidCallback onTap,
   }) {
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        border: Border(
-          left: BorderSide(color: Color(0xff8D9CDC), width: 3.w),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(16.w),
+        decoration: BoxDecoration(
+          border: Border(
+            left: BorderSide(color: Color(0xff8D9CDC), width: 3.w),
+          ),
+          color: Color(0xff0A1A2A),
+          borderRadius: BorderRadius.circular(12.r),
         ),
-        color: Color(0xff0A1A2A),
-        borderRadius: BorderRadius.circular(12.r),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  color: Color(0xff8D9CDC),
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w500,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: Color(0xff8D9CDC),
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-              Spacer(),
-              GestureDetector(
-                onTap: onTap,
-                child: Icon(Icons.arrow_forward_ios, color: Colors.white),
-              ),
-            ],
-          ),
-          SizedBox(height: 8),
-          Text(
-            subtitle,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16.sp,
-              fontWeight: FontWeight.w500,
+                Spacer(),
+                Icon(Icons.arrow_forward_ios, color: Colors.white),
+              ],
             ),
-          ),
-        ],
+            SizedBox(height: 8),
+            Text(
+              subtitle,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

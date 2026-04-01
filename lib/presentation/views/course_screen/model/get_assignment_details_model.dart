@@ -32,6 +32,7 @@ class Data {
   String? teacherId;
   String? moduleClassId;
   ModuleClass? moduleClass;
+  Submission? submission;
 
   Data({
     this.id,
@@ -135,6 +136,48 @@ class Module {
     data['module_title'] = moduleTitle;
     data['module_name'] = moduleName;
     data['createdAt'] = createdAt;
+    return data;
+  }
+}
+
+class Submission {
+  String? id;
+  String? title;
+  String? description;
+  String? fileUrl;
+  String? submitted;
+  String? submittedAt;
+  String? grade;
+
+  Submission({
+    this.id,
+    this.title,
+    this.description,
+    this.fileUrl,
+    this.submitted,
+    this.submittedAt,
+    this.grade,
+  });
+
+  Submission.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    title = json['title'];
+    description = json['description'];
+    fileUrl = json['fileUrl'];
+    submitted = json['submitted'];
+    submittedAt = json['submittedAt'];
+    grade = json['grade'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = {};
+    data['id'] = id;
+    data['title'] = title;
+    data['description'] = description;
+    data['fileUrl'] = fileUrl;
+    data['submitted'] = submitted;
+    data['submittedAt'] = submittedAt;
+    data['grade'] = grade;
     return data;
   }
 }
