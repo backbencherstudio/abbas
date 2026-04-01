@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 
-/// 🔹 PDF Viewer screen
 class PdfViewerScreen extends StatelessWidget {
   const PdfViewerScreen({
     super.key,
@@ -18,7 +17,7 @@ class PdfViewerScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor: AppColors.containerColor,
         automaticallyImplyLeading: false,
         leading: IconButton(
           onPressed: () => Navigator.pop(context),

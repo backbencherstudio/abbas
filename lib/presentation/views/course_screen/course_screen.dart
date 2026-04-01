@@ -65,11 +65,11 @@ class _CourseScreenState extends ConsumerState<CourseScreen> {
                       padding: EdgeInsets.symmetric(horizontal: 16.w),
                       child: Container(
                         padding: EdgeInsets.symmetric(
-                          horizontal: 19.w,
+                          horizontal: 20.w,
                           vertical: 14.h,
                         ),
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10.r),
+                          borderRadius: BorderRadius.circular(12.r),
                           gradient: const LinearGradient(
                             begin: Alignment.topRight,
                             end: Alignment.bottomLeft,

@@ -1,3 +1,4 @@
+import 'package:abbas/presentation/views/course_screen/view_model/get_all_courses_provider.dart';
 import 'package:abbas/presentation/views/home/view_model/get_home_data_provider.dart';
 import 'package:abbas/presentation/widgets/animated_loading.dart';
 import 'package:flutter/material.dart';
@@ -136,8 +137,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                   ),
 
-                  if(homeDataWatch.isLoading)
-                    AnimatedLoading(),
+                  if (homeDataWatch.isLoading) AnimatedLoading(),
+
                   /// ----------- Up Coming Class --------------------------
                   SizedBox(height: 12.h),
                   Container(
@@ -145,10 +146,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       gradient: RadialGradient(
                         center: Alignment(0.85, -1.8),
                         radius: 2,
-                        colors: [
-                          AppColors.splashRed,
-                          AppColors.cardBackground,
-                        ],
+                        colors: [AppColors.splashRed, AppColors.cardBackground],
                       ),
                       borderRadius: BorderRadius.circular(14.r),
                     ),
@@ -182,9 +180,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             ),
                             SizedBox(width: 6.w),
                             Text(
-                              formattedDate(
-                                upComingClassesValues?.startDate,
-                              ) ,
+                              formattedDate(upComingClassesValues?.startDate),
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 12.sp,
@@ -221,14 +217,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     width: 2,
                                   ),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      12.r,
-                                    ),
+                                    borderRadius: BorderRadius.circular(12.r),
                                   ),
                                 ),
                                 child: Row(
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     SvgPicture.asset(
@@ -261,14 +254,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   fixedSize: Size.fromHeight(48.h),
                                   backgroundColor: AppColors.splashRed,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      12.r,
-                                    ),
+                                    borderRadius: BorderRadius.circular(12.r),
                                   ),
                                 ),
                                 child: Row(
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     SvgPicture.asset(
@@ -305,7 +295,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "Assignments",
+                        "Upcoming Assignments",
                         style: TextStyle(
                           fontSize: 18.sp,
                           color: Colors.white,
@@ -327,10 +317,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     decoration: BoxDecoration(
                       color: AppColors.cardBackground,
                       borderRadius: BorderRadius.circular(14.r),
-                      border: Border.all(
-                        color: Color(0xFF0A1A29),
-                        width: 1.w,
-                      ),
+                      border: Border.all(color: Color(0xFF0A1A29), width: 1.w),
                     ),
                     padding: EdgeInsets.all(16.r),
                     child: Column(
@@ -402,7 +389,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           children: [
                             Expanded(
                               child: OutlinedButton(
-                                onPressed: () {},
+                                onPressed: () async {
+                                  await ref
+                                      .read(
+                                        getAssignmentDetailsProvider.notifier,
+                                      )
+                                      .getAssignmentDetails(
+                                        assignmentId:
+                                            upComingAssignmentsValues?.id ?? "",
+                                      );
+                                  Navigator.pushNamed(
+                                    context,
+                                    RouteNames.submittedAssignmentScreen,
+                                    arguments: upComingAssignmentsValues?.id,
+                                  );
+                                },
                                 style: OutlinedButton.styleFrom(
                                   fixedSize: Size.fromHeight(48.h),
                                   foregroundColor: Colors.white,
@@ -411,9 +412,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     width: 2.w,
                                   ),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      12.r,
-                                    ),
+                                    borderRadius: BorderRadius.circular(12.r),
                                   ),
                                 ),
                                 child: Text(
@@ -435,9 +434,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   fixedSize: Size.fromHeight(48.h),
                                   backgroundColor: AppColors.white,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      12.r,
-                                    ),
+                                    borderRadius: BorderRadius.circular(12.r),
                                   ),
                                 ),
                                 child: Text(
@@ -485,10 +482,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       gradient: RadialGradient(
                         center: Alignment(-0.85, -1.8),
                         radius: 1.5,
-                        colors: [
-                          AppColors.splashRed,
-                          AppColors.cardBackground,
-                        ],
+                        colors: [AppColors.splashRed, AppColors.cardBackground],
                       ),
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -577,9 +571,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     width: 2,
                                   ),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      12.r,
-                                    ),
+                                    borderRadius: BorderRadius.circular(12.r),
                                   ),
                                 ),
                                 child: Text(
@@ -605,14 +597,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   backgroundColor: AppColors.splashRed,
                                   foregroundColor: Colors.white,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      12.r,
-                                    ),
+                                    borderRadius: BorderRadius.circular(12.r),
                                   ),
                                 ),
                                 child: Row(
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     SvgPicture.asset(
