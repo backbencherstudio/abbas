@@ -23,6 +23,7 @@ class SocketCall with ChangeNotifier {
   Function(Map<String, dynamic>)? onPresenceUpdate;
   Function(String conversationId)? onConversationJoined;
 
+
   void connect(String token) {
     if (_socket != null && _isConnected) {
       logger.i(" Socket already connected");
@@ -35,9 +36,7 @@ class SocketCall with ChangeNotifier {
       } catch (_) {}
       _socket = null;
     }
-
     logger.i(" Connecting socket to $_baseUrl$_namespace ...");
-
     _socket = IO.io(
       '$_baseUrl$_namespace',
       IO.OptionBuilder()
