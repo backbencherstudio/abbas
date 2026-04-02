@@ -4,10 +4,12 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 
 import '../../cors/di/injection.dart';
+import '../../cors/services/socket_call.dart';
 import '../views/auth/login/presentaion/provider/LoginScreenProvider.dart';
 import '../views/community/presentaion/provider/community/community_screen_provider.dart';
 import '../views/message/provider/call_provider.dart';
 import '../views/message/provider/create_chat_provider.dart';
+import '../views/message/provider/create_group_provider.dart';
 import '../views/profile/view_model/profil_screen_provider.dart';
 import 'auth/forgot_password/forgot_password_viewmodel.dart';
 import 'auth/otp_verify/otp_verify_viewmodel.dart';
@@ -47,6 +49,7 @@ class AppProviders {
     ChangeNotifierProvider(create: (_) => getIt<CommunityScreenProvider>()),
     ChangeNotifierProvider(create: (_) => getIt<ProfileScreenProvider>()),
     ChangeNotifierProvider(create: (_) => getIt<CreateChatProvider>()),
-    ChangeNotifierProvider(create: (_) => getIt<CallProvider>()),
+    ChangeNotifierProvider(create: (_) => CallProvider()),  // Direct instantiation
+    ChangeNotifierProvider(create: (_) => CreateGroupProvider()),  // Direct instantiation
   ];
 }

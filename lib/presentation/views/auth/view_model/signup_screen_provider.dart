@@ -2,12 +2,17 @@ import 'dart:async';
 import 'package:abbas/cors/constants/api_endpoints.dart';
 import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:abbas/cors/services/dio_client.dart';
+import 'package:abbas/cors/services/socket_call.dart';
 import 'package:abbas/cors/services/token_storage.dart';
 import 'package:abbas/data/models/response_model.dart';
 import 'package:abbas/presentation/views/auth/model/auth_model.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../../cors/services/user_id_storage.dart';
+import '../../../../main.dart';
+import '../../message/provider/call_provider.dart';
 
 final authProvider = StateNotifierProvider<AuthProvider, AuthModel>(
   (ref) => AuthProvider(dioClient: DioClient()),
@@ -79,15 +84,16 @@ class AuthProvider extends StateNotifier<AuthModel> {
       final res = await dioClient.postHttp(ApiEndpoints.login, body);
       if (res['success']) {
         final token = res['authorization']['access_token'];
+        final refreshToken = res['authorization']['refresh_token'];
         final userId = res['userId'];
         if (token != null) {
+          SocketCall().connect(token);
+          await _tokenStorage.saveRefreshToken(refreshToken);
           await _tokenStorage.saveToken(token);
         }
         if (userId != null) {
           await _userIdStorage.saveUserId(userId);
         }
-        logger.d("User Id $userId");
-        logger.d("Login Token Save $token");
         return ResponseModel(success: true, message: res['message']);
       } else {
         return ResponseModel(success: false, message: res['message']);

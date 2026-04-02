@@ -42,6 +42,7 @@ Future<void> main() async {
   runApp( ProviderScope(child: const MyApp()));
 }
 
+// main.dart - Add this after MaterialApp
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -60,6 +61,13 @@ class MyApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             initialRoute: AppRoutes.initialRoute,
             routes: AppRoutes.routes,
+            builder: (context, child) {
+              // ✅ Ensure overlay is available
+              return MediaQuery(
+                data: MediaQuery.of(context),
+                child: child ?? const SizedBox.shrink(),
+              );
+            },
           );
         },
       ),

@@ -36,8 +36,11 @@ class CreateChatProvider extends ChangeNotifier {
   DmAllMessageModel? _dmAllMessageModel;
   DmAllMessageModel? get dmAllMessageModel => _dmAllMessageModel;
 
-  int _cursor = 0;
-  final int _limit = 100;
+  String? _cursor;
+  final int _limit = 40; // initial batch size
+  bool _hasMore = true;
+
+  bool get hasMore => _hasMore;
 
   String selectedFilter = 'All';
   String? statusValue = 'all';
@@ -121,30 +124,62 @@ class CreateChatProvider extends ChangeNotifier {
     }
   }
 
-  /// **Improved**: Now properly clears old messages when loading a new conversation
-  Future<void> getDmAllMessageRoom(String conversationId) async {
+  /// 🔹 Cursor-based message loader
+  Future<void> getDmAllMessageRoom(
+    String conversationId, {
+    bool isLoadMore = false,
+  }) async {
+    if (isLoadMore && !_hasMore) return;
+
     _errorMessage = null;
-    _isLoading = true;
+
+    if (!isLoadMore) {
+      _isLoading = true;
+      _cursor = null; // reset cursor
+    }
+
     notifyListeners();
 
     try {
       final ApiResponseModel response = await _apiClient.get(
-        ApiEndpoints.dmAllMessage(conversationId, _cursor, _limit),
+        ApiEndpoints.dmAllMessage(conversationId, _limit, _cursor),
       );
 
       if (response.success) {
         final newData = DmAllMessageModel.fromJson(response.data);
+        final newItems = newData.items ?? [];
 
-        // IMPORTANT: Replace messages instead of appending when loading a new chat
-        _dmAllMessageModel = newData;
-        _cursor = _limit; // Reset cursor for future pagination if needed
+        if (!isLoadMore) {
+          // ✅ Initial load
+          _dmAllMessageModel = newData;
+        } else {
+          // ✅ Pagination: prepend older messages (reverse:true)
+          final existingIds =
+              _dmAllMessageModel?.items?.map((e) => e.id).toSet() ?? <String>{};
+          final filteredNewItems = newItems
+              .where((e) => !existingIds.contains(e.id))
+              .toList();
+
+          _dmAllMessageModel?.items = [
+            ..._dmAllMessageModel!.items ?? [],
+            ...filteredNewItems,
+          ];
+        }
+
+        // ✅ Set cursor to oldest message id of this batch
+        if (newItems.isNotEmpty) {
+          _cursor = newItems.last.id;
+        } else {
+          _hasMore = false;
+        }
+
+        _hasMore = newData.nextCursor != null;
       } else {
-        _dmAllMessageModel = DmAllMessageModel(items: []);
+        _errorMessage = response.message;
       }
     } catch (error) {
       _errorMessage = error.toString();
-      logger.e("Get DM Messages Error: $error");
-      _dmAllMessageModel = DmAllMessageModel(items: []);
+      logger.e("Pagination Error: $error");
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -153,45 +188,40 @@ class CreateChatProvider extends ChangeNotifier {
 
   // ====================== REAL-TIME METHODS ======================
 
-  /// Initialize Real-time Socket + Join Room
   Future<void> initializeRealtime(String token, String conversationId) async {
     try {
       logger.i("Starting socket connection for conversation: $conversationId");
 
       await _socketService.connect(token);
 
-      // Join the specific conversation room
+      // Join conversation room
       _socketService.joinConversation(conversationId);
 
-      // Listen for new messages (only once)
+      // Listen for incoming messages
       _socketService.messageStream.listen((data) {
         _handleIncomingRealtimeMessage(data, conversationId);
       });
 
       logger.i(
-        "✅ Real-time chat initialized successfully for conversation: $conversationId",
+        "✅ Real-time chat initialized for conversation: $conversationId",
       );
     } catch (e) {
       logger.e("Failed to initialize real-time: $e");
     }
   }
 
-  /// Handle incoming real-time message
   void _handleIncomingRealtimeMessage(
     Map<String, dynamic> data,
     String currentConversationId,
   ) {
-    // Ignore messages from other conversations
-    if (data['conversationId'] != currentConversationId) {
-      return;
-    }
+    if (data['conversationId'] != currentConversationId) return;
 
     try {
       _dmAllMessageModel ??= DmAllMessageModel(items: []);
 
       final newMessage = Items.fromSocket(data);
 
-      // Insert at the beginning (newest first)
+      // Insert newest at bottom if reverse:true
       _dmAllMessageModel!.items?.insert(0, newMessage);
 
       notifyListeners();
@@ -201,14 +231,13 @@ class CreateChatProvider extends ChangeNotifier {
     }
   }
 
-  /// Send Message using WebSocket
   void sendMessageRealtime({
     required String conversationId,
     required String kind,
     required String text,
   }) {
     if (!_socketService.isConnected) {
-      logger.w("⚠️ Socket is not connected yet.");
+      logger.w("Socket not connected yet.");
       return;
     }
 
@@ -219,21 +248,19 @@ class CreateChatProvider extends ChangeNotifier {
     );
   }
 
-  /// Send Typing Event
   void sendTyping(String conversationId, bool isTyping) {
     _socketService.sendTyping(conversationId, isTyping);
   }
 
-  /// Leave conversation (Call this when user leaves the chat screen)
   void leaveConversation(String conversationId) {
     _socketService.leaveConversation(conversationId);
     logger.i("Left conversation: $conversationId");
   }
 
-  /// Clear current chat data (Very Important to prevent duplicate messages)
   void clearMessages() {
     _dmAllMessageModel = null;
-    _cursor = 0;
+    _cursor = null;
+    _hasMore = true;
     notifyListeners();
   }
 
@@ -274,8 +301,7 @@ class CreateChatProvider extends ChangeNotifier {
 
   @override
   void dispose() {
-    // Clean up if needed
-    _socketService.dispose(); // If your SocketService has dispose method
+    _socketService.dispose();
     super.dispose();
   }
 }

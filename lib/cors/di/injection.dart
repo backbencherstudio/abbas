@@ -44,6 +44,7 @@ import '../../domain/usecases/community/get_feeds.dart';
 import '../../domain/usecases/course/get_courses.dart';
 import '../../domain/usecases/profile/edit_personal_info_usecase.dart';
 import '../../domain/usecases/profile/personal_info_usecase.dart';
+import '../../presentation/views/message/provider/create_group_provider.dart';
 import '../services/toast_service.dart';
 import '../../presentation/viewmodels/auth/change_password/change_password_viewmodel.dart';
 import '../../presentation/viewmodels/auth/forgot_password/forgot_password_viewmodel.dart';
@@ -67,6 +68,7 @@ import '../../presentation/views/message/provider/create_chat_provider.dart';
 import '../../presentation/views/profile/view_model/profil_screen_provider.dart';
 import '../services/api_client.dart';
 import '../services/api_services.dart';
+import '../services/socket_call.dart';
 import '../services/token_storage.dart';
 
 final GetIt getIt = GetIt.instance;
@@ -320,4 +322,6 @@ Future<void> configureDependencies() async {
   getIt.registerFactory<ProfileScreenProvider>(() => ProfileScreenProvider());
   getIt.registerFactory<CreateChatProvider>(() => CreateChatProvider());
   getIt.registerFactory<CallProvider>(() => CallProvider());
+  getIt.registerFactory<SocketCall>(() => SocketCall());
+  getIt.registerFactory<CreateGroupProvider>(() => CreateGroupProvider());
 }

@@ -52,7 +52,7 @@ class _MessageScreensState extends State<MessageScreens> {
           CustomAppbar(
             title: "Message",
             image: "assets/icons/edit.png",
-            onTap: () => Navigator.pushNamed(context, RouteNames.newMessageScreens),
+            onTap: () => Navigator.pushNamed(context, RouteNames.addGroupMember),
           ),
 
           // Search
