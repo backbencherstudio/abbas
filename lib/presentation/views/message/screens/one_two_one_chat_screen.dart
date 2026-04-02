@@ -219,7 +219,6 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
                     },
                   ),
           ),
-
           // Message Input
           Padding(
             padding: EdgeInsets.only(bottom: 24.h, left: 6.w, right: 6.w),
