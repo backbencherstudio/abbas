@@ -27,7 +27,8 @@ class CreateChatProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   CreateConversationModel? _createConversationModel;
-  CreateConversationModel? get createConversationModel => _createConversationModel;
+  CreateConversationModel? get createConversationModel =>
+      _createConversationModel;
 
   List<AllConversationModel> _allConversationModel = [];
   List<AllConversationModel> get allConversationModel => _allConversationModel;
@@ -76,7 +77,9 @@ class CreateChatProvider extends ChangeNotifier {
       );
 
       if (response.success) {
-        _createConversationModel = CreateConversationModel.fromJson(response.data);
+        _createConversationModel = CreateConversationModel.fromJson(
+          response.data,
+        );
         return true;
       } else {
         _errorMessage = response.message;
@@ -98,11 +101,15 @@ class CreateChatProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final ApiResponseModel response = await _apiClient.get(ApiEndpoints.allConversationList);
+      final ApiResponseModel response = await _apiClient.get(
+        ApiEndpoints.allConversationList,
+      );
 
       if (response.success) {
         List data = response.data;
-        _allConversationModel = data.map((e) => AllConversationModel.fromJson(e)).toList();
+        _allConversationModel = data
+            .map((e) => AllConversationModel.fromJson(e))
+            .toList();
         return true;
       } else {
         _errorMessage = response.message;
@@ -119,9 +126,9 @@ class CreateChatProvider extends ChangeNotifier {
 
   /// 🔹 Cursor-based message loader
   Future<void> getDmAllMessageRoom(
-      String conversationId, {
-        bool isLoadMore = false,
-      }) async {
+    String conversationId, {
+    bool isLoadMore = false,
+  }) async {
     if (isLoadMore && !_hasMore) return;
 
     _errorMessage = null;
@@ -147,10 +154,16 @@ class CreateChatProvider extends ChangeNotifier {
           _dmAllMessageModel = newData;
         } else {
           // ✅ Pagination: prepend older messages (reverse:true)
-          final existingIds = _dmAllMessageModel?.items?.map((e) => e.id).toSet() ?? <String>{};
-          final filteredNewItems = newItems.where((e) => !existingIds.contains(e.id)).toList();
+          final existingIds =
+              _dmAllMessageModel?.items?.map((e) => e.id).toSet() ?? <String>{};
+          final filteredNewItems = newItems
+              .where((e) => !existingIds.contains(e.id))
+              .toList();
 
-          _dmAllMessageModel?.items = [..._dmAllMessageModel!.items ?? [], ...filteredNewItems];
+          _dmAllMessageModel?.items = [
+            ..._dmAllMessageModel!.items ?? [],
+            ...filteredNewItems,
+          ];
         }
 
         // ✅ Set cursor to oldest message id of this batch
@@ -189,13 +202,18 @@ class CreateChatProvider extends ChangeNotifier {
         _handleIncomingRealtimeMessage(data, conversationId);
       });
 
-      logger.i("✅ Real-time chat initialized for conversation: $conversationId");
+      logger.i(
+        "✅ Real-time chat initialized for conversation: $conversationId",
+      );
     } catch (e) {
       logger.e("Failed to initialize real-time: $e");
     }
   }
 
-  void _handleIncomingRealtimeMessage(Map<String, dynamic> data, String currentConversationId) {
+  void _handleIncomingRealtimeMessage(
+    Map<String, dynamic> data,
+    String currentConversationId,
+  ) {
     if (data['conversationId'] != currentConversationId) return;
 
     try {
@@ -256,10 +274,16 @@ class CreateChatProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    final body = {'kind': kind, 'content': {'text': text}};
+    final body = {
+      'kind': kind,
+      'content': {'text': text},
+    };
 
     try {
-      final response = await _apiClient.post(ApiEndpoints.dmSendMessage(conversationId), body: body);
+      final response = await _apiClient.post(
+        ApiEndpoints.dmSendMessage(conversationId),
+        body: body,
+      );
 
       if (response.success) {
         logger.i("Message sent via HTTP backup");

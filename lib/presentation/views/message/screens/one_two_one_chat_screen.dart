@@ -30,18 +30,15 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
   void initState() {
     super.initState();
     _initialize();
-
-    /// ✅ ADD SCROLL LISTENER
     _scrollController.addListener(_onScroll);
   }
 
-  /// 🔥 CURSOR PAGINATION SCROLL
+  /// 🔥 Load more when scroll to top (for pagination)
   void _onScroll() {
     if (!_scrollController.hasClients || conversationId == null) return;
 
     final provider = context.read<CreateChatProvider>();
 
-    // reverse:true → TOP = load more
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 100) {
       if (!provider.isLoading && provider.hasMore) {
@@ -71,18 +68,31 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
 
       final provider = context.read<CreateChatProvider>();
 
-      /// ✅ CLEAR OLD DATA
       provider.clearMessages();
 
-      /// ✅ FIRST LOAD (NO CURSOR)
+      // First load messages
       await provider.getDmAllMessageRoom(conversationId!);
 
       _setReceiverInfo(provider);
 
-      /// ✅ SOCKET INIT
+      // Initialize Socket
       final token = await TokenStorage().getToken();
       if (token != null && token.isNotEmpty) {
         await provider.initializeRealtime(token, conversationId!);
+      }
+    });
+  }
+
+  void _scrollToBottom() {
+    if (!_scrollController.hasClients) return;
+
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+        );
       }
     });
   }
@@ -102,7 +112,6 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
 
   void _setReceiverInfo(CreateChatProvider provider) {
     final messages = provider.dmAllMessageModel?.items ?? [];
-
     for (var msg in messages) {
       if (msg.senderId != currentUserId && msg.sender != null) {
         receiverName = msg.sender!.name;
@@ -133,9 +142,7 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
 
   @override
   void dispose() {
-    /// ✅ REMOVE LISTENER (IMPORTANT)
     _scrollController.removeListener(_onScroll);
-
     _typingTimer?.cancel();
     _messageController.dispose();
     _scrollController.dispose();
@@ -155,6 +162,7 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    // Sort messages by time (oldest to newest)
     final messages = (provider.dmAllMessageModel?.items ?? []).toList()
       ..sort((a, b) {
         final aTime = DateTime.tryParse(a.createdAt ?? '') ?? DateTime.now();
@@ -162,24 +170,22 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
         return aTime.compareTo(bTime);
       });
 
-    /// 🔥 AUTO SCROLL BOTTOM
-    if (messages.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_scrollController.hasClients) {
-          _scrollController.jumpTo(0);
-        }
-      });
-    }
+    // Auto scroll to bottom whenever messages update
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
 
     return Scaffold(
       body: Column(
         children: [
+          // AppBar
           ChatAppBer(
             title: receiverName ?? "Chat",
             image: receiverAvatar ?? "",
             conId: conversationId!,
           ),
 
+          // Messages List
           Expanded(
             child: provider.isLoading && messages.isEmpty
                 ? const Center(child: CircularProgressIndicator())
@@ -199,6 +205,7 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
                           ),
                         );
                       }
+
                       final msg = messages[index];
                       final isMe = msg.senderId == currentUserId;
 
@@ -213,7 +220,7 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
                   ),
           ),
 
-          /// INPUT
+          // Message Input
           Padding(
             padding: EdgeInsets.only(bottom: 24.h, left: 6.w, right: 6.w),
             child: Row(
@@ -292,12 +299,10 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
                 padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
                 margin: EdgeInsets.symmetric(horizontal: 6.w),
                 decoration: BoxDecoration(
-                  color: isSentByMe
-                      ? const Color(0xff4A5D83)
-                      : const Color(0xff0A1A2A),
+                  color: isSentByMe ? Color(0xff4A5D83) : Color(0xff0A1A2A),
                   borderRadius: BorderRadius.circular(12.r),
                 ),
-                child: Text(text, style: const TextStyle(color: Colors.white)),
+                child: Text(text, style: TextStyle(color: Colors.white)),
               ),
             ),
           ],
