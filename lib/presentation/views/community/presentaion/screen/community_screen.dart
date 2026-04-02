@@ -63,30 +63,66 @@ class _CommunityScreenState extends State<CommunityScreen> {
   }
 
   /// ---------------------------- time ago --------------------------
-  String _timeAgo(String? dateTimeString) {
-    if (dateTimeString == null || dateTimeString.isEmpty) {
-      return "N/A";
+  String _getTimeAgo(String? createdAt, String? updatedAt) {
+    // If no timestamps available
+    if ((createdAt == null || createdAt.isEmpty) &&
+        (updatedAt == null || updatedAt.isEmpty)) {
+      return "time : N/A";
     }
 
     try {
-      final dateTime = DateTime.parse(dateTimeString).toLocal();
-      final now = DateTime.now();
-      final diff = now.difference(dateTime);
+      // Parse dates
+      final DateTime? createdDateTime =
+          createdAt != null && createdAt.isNotEmpty
+          ? DateTime.parse(createdAt).toLocal()
+          : null;
+      final DateTime? updatedDateTime =
+          updatedAt != null && updatedAt.isNotEmpty
+          ? DateTime.parse(updatedAt).toLocal()
+          : null;
 
+      // Determine which time to show
+      DateTime displayTime;
+      bool isUpdated = false;
+
+      if (updatedDateTime != null && createdDateTime != null) {
+        // If updated time is different from created time (post was edited)
+        if (updatedDateTime.isAfter(createdDateTime)) {
+          displayTime = updatedDateTime;
+          isUpdated = true;
+        } else {
+          displayTime = createdDateTime;
+        }
+      } else if (updatedDateTime != null) {
+        displayTime = updatedDateTime;
+        isUpdated = true;
+      } else if (createdDateTime != null) {
+        displayTime = createdDateTime;
+      } else {
+        return "N/A";
+      }
+
+      final now = DateTime.now();
+      final diff = now.difference(displayTime);
+
+      String timeAgo;
       if (diff.inSeconds < 60) {
-        return "Just now";
+        timeAgo = "Just now";
       } else if (diff.inMinutes < 60) {
-        return "${diff.inMinutes} min${diff.inMinutes > 1 ? 's' : ''} ago.";
+        timeAgo = "${diff.inMinutes} min${diff.inMinutes > 1 ? 's' : ''} ago";
       } else if (diff.inHours < 24) {
-        return "${diff.inHours} hour${diff.inHours > 1 ? 's' : ''} ago.";
+        timeAgo = "${diff.inHours} hour${diff.inHours > 1 ? 's' : ''} ago";
       } else if (diff.inDays < 7) {
-        return "${diff.inDays} day${diff.inDays > 1 ? 's' : ''} ago.";
+        timeAgo = "${diff.inDays} day${diff.inDays > 1 ? 's' : ''} ago";
       } else if (diff.inDays < 30) {
         final weeks = (diff.inDays / 7).floor();
-        return "$weeks week${weeks > 1 ? 's' : ''} ago.";
+        timeAgo = "$weeks week${weeks > 1 ? 's' : ''} ago";
       } else {
-        return "${dateTime.day}/${dateTime.month}/${dateTime.year}";
+        timeAgo = "${displayTime.day}/${displayTime.month}/${displayTime.year}";
       }
+
+      // Add "(edited)" suffix if the post was updated
+      return isUpdated ? "$timeAgo (edited)" : timeAgo;
     } catch (e) {
       return "Invalid time";
     }
@@ -219,7 +255,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        profileName ?? "N/A",
+                                        profileName ?? "name : N/A",
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           color: Colors.white,
@@ -228,7 +264,10 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                       ),
                                       SizedBox(height: 5.h),
                                       Text(
-                                        _timeAgo(feed.createdAt ?? "N/A"),
+                                        _getTimeAgo(
+                                          feed.createdAt,
+                                          feed.updatedAt,
+                                        ),
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           color: Color(0xFFD2D2D5),
@@ -317,7 +356,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                               SizedBox(height: 10.h),
 
                               Text(
-                                feed.content ?? "N/A",
+                                feed.content ?? "content : N/A",
                                 style: TextStyle(color: Colors.white),
                               ),
 
@@ -327,7 +366,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                   feed.mediaUrl!.isNotEmpty)
                                 if (feed.mediaType == 'VIDEO')
                                   CommunityVideoWidget(videoUrl: feed.mediaUrl!)
-                                else
+                                else if (feed.postType == 'POST')
                                   GestureDetector(
                                     onTap: () {},
                                     child: ClipRRect(
@@ -350,20 +389,62 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                       ),
                                     ),
                                   )
-                              else
-                                Container(
-                                  height: 200,
-                                  width: double.infinity,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[200],
-                                    borderRadius: BorderRadius.circular(8),
+                                else if (feed.postType == 'POLL')
+                                  Column(
+                                    children: List.generate(
+                                      feed.pollOptions!.length,
+                                      (index) {
+                                        logger.d(
+                                          "Poll Options : ${feed.pollOptions}",
+                                        );
+                                        final option = feed.pollOptions![index];
+                                        return Padding(
+                                          padding: EdgeInsets.only(bottom: 8.h),
+                                          child: GestureDetector(
+                                            onTap: () {},
+                                            child: Container(
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 16.w,
+                                                vertical: 12.h,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey[800],
+                                                borderRadius:
+                                                    BorderRadius.circular(8.r),
+                                                border: Border.all(
+                                                  color: Colors.grey[600]!,
+                                                  width: 1.w,
+                                                ),
+                                              ),
+                                              child: ListTile(
+                                                title: Text(
+                                                  option.title ??
+                                                      "Option ${index + 1}",
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 14.sp,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
                                   ),
-                                  child: Icon(
-                                    Icons.image,
-                                    size: 50.sp,
-                                    color: Colors.grey,
-                                  ),
+                              Container(
+                                height: 200,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
+                                child: Icon(
+                                  Icons.image,
+                                  size: 50.sp,
+                                  color: Colors.grey,
+                                ),
+                              ),
                               SizedBox(height: 12.h),
                               Row(
                                 children: [
