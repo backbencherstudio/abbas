@@ -84,10 +84,11 @@ class AuthProvider extends StateNotifier<AuthModel> {
       final res = await dioClient.postHttp(ApiEndpoints.login, body);
       if (res['success']) {
         final token = res['authorization']['access_token'];
+        final refreshToken = res['authorization']['refresh_token'];
         final userId = res['userId'];
         if (token != null) {
-          // ✅ Socket connect করুন — এটাই যথেষ্ট
           SocketCall().connect(token);
+          await _tokenStorage.saveRefreshToken(refreshToken);
           await _tokenStorage.saveToken(token);
         }
         if (userId != null) {
