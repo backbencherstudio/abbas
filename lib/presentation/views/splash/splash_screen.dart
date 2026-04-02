@@ -101,7 +101,7 @@ class _SplashScreenState extends State<SplashScreen>
     await _cinCtController.forward();
 
     await Future.delayed(const Duration(milliseconds: 800));
-    setState(() => _showSubtitle = true);
+
     await _subtitleController.forward();
   }
 
@@ -116,6 +116,11 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      extendBodyBehindAppBar: true,
       body: TweenAnimationBuilder<Color?>(
         duration: const Duration(milliseconds: 2000),
         curve: Curves.easeInOut,

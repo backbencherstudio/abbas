@@ -290,44 +290,53 @@ class _CourseWidgetState extends ConsumerState<CourseWidget> {
         ),
         SizedBox(height: 16.h),
         ...modules.map((value) {
-          return Container(
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topRight,
-                end: Alignment.bottomLeft,
-                colors: [Color(0xff3D151E), Color(0xff071220)],
-              ),
-              borderRadius: BorderRadius.circular(6),
-              border: Border(
-                left: BorderSide(color: Color(0xffE9201D), width: 2),
-              ),
+          return GestureDetector(
+            onTap: () => Navigator.pushNamed(
+              context,
+              RouteNames.courseModuleScreen,
+              arguments: value.id,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      value.moduleTitle ?? 'N/A',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    Spacer(),
-                    IconButton(
-                      onPressed: () => Navigator.pushNamed(
-                        context,
-                        RouteNames.courseModuleScreen,
-                        arguments: value.id,
+            child: Container(
+              padding: EdgeInsets.all(16.r),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topRight,
+                  end: Alignment.bottomLeft,
+                  colors: [Color(0xff3D151E), Color(0xff071220)],
+                ),
+                borderRadius: BorderRadius.circular(6),
+                border: Border(
+                  left: BorderSide(color: Color(0xffE9201D), width: 2),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        value.moduleTitle ?? 'N/A',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                      icon: Icon(Icons.arrow_forward_ios, color: Colors.white),
+                      Spacer(),
+                      Icon(Icons.arrow_forward_ios, color: Colors.white),
+                    ],
+                  ),
+                  SizedBox(height: 6.h),
+                  Text(
+                    value.moduleName ?? 'N/A',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w400,
                     ),
-                  ],
-                ),
-                Text(
-                  value.moduleName ?? 'N/A',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
           );
         }),

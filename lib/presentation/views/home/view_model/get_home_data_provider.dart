@@ -1,4 +1,5 @@
 import 'package:abbas/cors/constants/api_endpoints.dart';
+import 'package:abbas/cors/network/api_response_handle.dart';
 import 'package:abbas/cors/services/dio_client.dart';
 import 'package:abbas/presentation/views/home/model/get_home_data_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,6 +21,7 @@ class GetHomeDataProvider extends StateNotifier<AsyncValue<GetHomeDataModel?>> {
       final model = GetHomeDataModel.fromJson(res);
       state = AsyncValue.data(model);
     } catch (e, stackTrace) {
+      logger.e("Error Fetching Home Data: $e");
       state = AsyncValue.error(e.toString(), stackTrace);
     }
   }
