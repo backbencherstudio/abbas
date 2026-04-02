@@ -2,6 +2,7 @@ import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:abbas/cors/routes/route_names.dart';
 import 'package:abbas/presentation/views/community/presentaion/screens/update_post.dart';
 import 'package:abbas/presentation/views/course_screen/screens/my_class/pdf_viewer_screen.dart';
+import 'package:abbas/presentation/views/home/screen/screens/all_assignments_screen.dart';
 import 'package:flutter/material.dart';
 import '../../presentation/views/auth/forgot_password/screen/forgot_password_screen.dart';
 import '../../presentation/views/auth/login/presentaion/screen/login_screen.dart';
@@ -97,6 +98,11 @@ class AppRoutes {
     },
     RouteNames.parentScreen: (context) => const ParentScreen(),
     RouteNames.scanner: (context) => const Scanner(),
+    RouteNames.allAssignmentsScreen: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final moduleId = args is String ? args : '';
+      return AllAssignmentsScreen(moduleId: moduleId);
+    },
     RouteNames.otherCourseScreen: (context) => const OtherCourseScreen(),
     RouteNames.myCourseScreen: (context) {
       final args = ModalRoute.of(context)?.settings.arguments;
@@ -222,6 +228,7 @@ class AppRoutes {
     RouteNames.updatePost: (context) {
       final args = ModalRoute.of(context)!.settings.arguments;
       final postId = args is Map ? args['id'] : '';
+      logger.d("App Routes : $postId");
       final postContent = args is Map ? args['content'] : '';
       return UpdatePost(postId: postId, postContent: postContent);
     },

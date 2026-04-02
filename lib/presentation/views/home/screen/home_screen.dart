@@ -8,7 +8,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 import '../../../../cors/routes/route_names.dart';
 import '../../../../cors/theme/app_colors.dart';
-import '../../../viewmodels/home/home_viewmodel.dart';
 import '../../../widgets/custom_appbar.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -19,8 +18,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  late final HomeViewModel vm;
-
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -291,26 +288,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   SizedBox(height: 24.h),
 
                   /// --------------- Assignments --------------------------
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Upcoming Assignments",
-                        style: TextStyle(
-                          fontSize: 18.sp,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Text(
-                        "View All",
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          color: Color(0xFFDFE1E7),
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    "Upcoming Assignments",
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                   SizedBox(height: 12.h),
                   Container(
@@ -398,11 +382,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                         assignmentId:
                                             upComingAssignmentsValues?.id ?? "",
                                       );
-                                  Navigator.pushNamed(
-                                    context,
-                                    RouteNames.submittedAssignmentScreen,
-                                    arguments: upComingAssignmentsValues?.id,
-                                  );
+                                  if (context.mounted) {
+                                    Navigator.pushNamed(
+                                      context,
+                                      RouteNames.dueAssignmentScreen,
+                                      arguments: upComingAssignmentsValues?.id,
+                                    );
+                                  }
                                 },
                                 style: OutlinedButton.styleFrom(
                                   fixedSize: Size.fromHeight(48.h),
@@ -426,23 +412,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               ),
                             ),
                             SizedBox(width: 14.w),
-                            SizedBox(
-                              width: 174.w,
-                              child: ElevatedButton(
-                                onPressed: () {},
-                                style: ElevatedButton.styleFrom(
-                                  fixedSize: Size.fromHeight(48.h),
-                                  backgroundColor: AppColors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12.r),
+                            Expanded(
+                              child: SizedBox(
+                                width: 174.w,
+                                child: ElevatedButton(
+                                  onPressed: () {},
+                                  style: ElevatedButton.styleFrom(
+                                    padding: EdgeInsets.zero,
+                                    fixedSize: Size.fromHeight(48.h),
+                                    backgroundColor: AppColors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12.r),
+                                    ),
                                   ),
-                                ),
-                                child: Text(
-                                  'Submit Assignment',
-                                  style: TextStyle(
-                                    fontSize: 14.sp,
-                                    color: Color(0xFF030C15),
-                                    fontWeight: FontWeight.w500,
+                                  child: Text(
+                                    'Submit Assignment',
+                                    style: TextStyle(
+                                      fontSize: 14.sp,
+                                      color: Color(0xFF030C15),
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -455,26 +444,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   SizedBox(height: 24.h),
 
                   /// ------------- Upcoming Events ------------------------
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Upcoming Events",
-                        style: TextStyle(
-                          fontSize: 18.sp,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Text(
-                        "View All",
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          color: Color(0xFFDFE1E7),
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    "Upcoming Events",
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                   SizedBox(height: 12.h),
                   Container(
@@ -677,7 +653,7 @@ class _QuickGrid extends StatelessWidget {
         Navigator.pushNamed(context, RouteNames.prosHome);
         break;
       case 'note':
-        Navigator.pushNamed(context, RouteNames.scanner);
+        Navigator.pushNamed(context, RouteNames.allAssignmentsScreen);
         break;
       case 'folder':
         Navigator.pushNamed(context, RouteNames.scanner);

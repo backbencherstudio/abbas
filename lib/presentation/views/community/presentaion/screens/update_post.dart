@@ -1,3 +1,4 @@
+import 'package:abbas/cors/services/api_client.dart';
 import 'package:abbas/cors/theme/app_colors.dart';
 import 'package:abbas/cors/utils/app_utils.dart';
 import 'package:abbas/presentation/views/community/presentaion/provider/community/community_screen_provider.dart';
@@ -115,6 +116,7 @@ class _UpdatePostState extends State<UpdatePost> {
       return;
     }
 
+    logger.d("Update Post : ${widget.postId}");
     // Call the provider method
     final response = await provider.updatePost(
       widget.postId,
@@ -125,13 +127,13 @@ class _UpdatePostState extends State<UpdatePost> {
     if (mounted) {
       if (response is ApiResponseModel && response.success) {
         Utils.showToast(
-          msg: 'Post created successfully',
+          msg: 'Post updated successfully',
           backgroundColor: Colors.green,
           textColor: Colors.white,
         );
         Navigator.pop(context, true);
       } else {
-        String msg = 'Failed to create post';
+        String msg = 'Failed to update post';
         if (response is ApiResponseModel) {
           msg = response.message;
         } else if (response is String) {

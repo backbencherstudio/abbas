@@ -228,7 +228,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                       ),
                                       SizedBox(height: 5.h),
                                       Text(
-                                        _timeAgo(feed.createdAt ?? "N/A"),
+                                        _timeAgo(feed.createdAt ?? "N/A" ),
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           color: Color(0xFFD2D2D5),
@@ -253,13 +253,13 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                           value: "edit",
                                           child: GestureDetector(
                                             onTap: () {
-                                              logger.d(
-                                                "edit post id: ${feed.id}",
-                                              );
                                               Navigator.pushNamed(
                                                 context,
                                                 RouteNames.updatePost,
-                                                arguments: feed.id,
+                                                arguments: {
+                                                  "id": feed.id,
+                                                  "content": feed.content,
+                                                },
                                               );
                                             },
                                             child: Row(

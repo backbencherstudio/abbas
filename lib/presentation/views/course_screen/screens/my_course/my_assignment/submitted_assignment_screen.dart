@@ -46,7 +46,12 @@ class _SubmittedAssignmentScreenState
   Widget build(BuildContext context) {
     final assignmentDetails = ref.watch(getAssignmentDetailsProvider);
     final assignmentDetailsState = assignmentDetails.value;
-    final attachmentUrls = assignmentDetailsState?.data?.attachmentUrl;
+    final title = assignmentDetailsState?.data?.submission?.title ?? 'N/A';
+    final description =
+        assignmentDetailsState?.data?.submission?.description ?? 'N/A';
+    final fileUrl =
+        assignmentDetailsState?.data?.submission?.fileUrl?.split('/').last ??
+        'N/A';
     return Scaffold(
       backgroundColor: Color(0xff030D15),
       body: SingleChildScrollView(
@@ -138,11 +143,11 @@ class _SubmittedAssignmentScreenState
                         ),
                         Divider(),
                         Text(
-                          assignmentDetailsState?.data?.submission?.title ?? 'N/A',
+                          title,
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         Text(
-                          assignmentDetailsState?.data?.submission?.description ?? 'N/A',
+                          description,
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 14.sp,
@@ -150,10 +155,7 @@ class _SubmittedAssignmentScreenState
                           ),
                         ),
                         SizedBox(height: 8.h),
-                       LediKhadashProtiva(
-                        title: assignmentDetailsState?.data?.submission?.fileUrl?.split('/').last ?? 'N/A',
-                        hasIcon: false,
-                       )
+                        LediKhadashProtiva(title: fileUrl, hasIcon: false),
                       ],
                     ),
                   ),

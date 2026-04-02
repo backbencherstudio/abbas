@@ -70,7 +70,23 @@ class _MyAssignmentWidgetState extends ConsumerState<MyAssignmentWidget> {
               ...?module.assignments?.map((value) {
                 return Padding(
                   padding: EdgeInsets.symmetric(vertical: 7.h),
-                  child: Container(
+                  child: InkWell(
+                    onTap: () {
+                      if (value.status == 'SUBMITTED') {
+                        Navigator.pushNamed(
+                          context,
+                          RouteNames.submittedAssignmentScreen,
+                          arguments: value.id,
+                        );
+                      } else {
+                        Navigator.pushNamed(
+                          context,
+                          RouteNames.dueAssignmentScreen,
+                          arguments: value.id,
+                        );
+                      }
+                    },
+                    child: Container(
                     padding: EdgeInsets.symmetric(
                       horizontal: 15.w,
                       vertical: 20.h,
@@ -96,23 +112,27 @@ class _MyAssignmentWidgetState extends ConsumerState<MyAssignmentWidget> {
                         ),
 
                         /// Due Label
-                        Expanded(
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 12.w,
-                              vertical: 3.h,
-                            ),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20.r),
-                              color: value.status == 'SUBMITTED' ? Color(0xFF1E273D) : Color(0xffF9C80E),
-                            ),
-                            child: Center(
-                              child: Text(
-                                                        value.status == 'SUBMITTED' ? 'Submitted' : value.dueLabel ?? 'N/A',
-                                style: TextStyle(
-                                  color: value.status == 'SUBMITTED' ? Colors.white : Colors.black,
-                                  fontSize: 12.sp,
-                                ),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12.w,
+                            vertical: 3.h,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20.r),
+                            color: value.status == 'SUBMITTED'
+                                ? Color(0xFF1E273D)
+                                : Color(0xffF9C80E),
+                          ),
+                          child: Center(
+                            child: Text(
+                              value.status == 'SUBMITTED'
+                                  ? 'Submitted'
+                                  : value.dueLabel ?? 'N/A',
+                              style: TextStyle(
+                                color: value.status == 'SUBMITTED'
+                                    ? Colors.white
+                                    : Colors.black,
+                                fontSize: 12.sp,
                               ),
                             ),
                           ),
@@ -121,33 +141,15 @@ class _MyAssignmentWidgetState extends ConsumerState<MyAssignmentWidget> {
                         SizedBox(width: 10.w),
 
                         /// Navigate Button
-                        Expanded(
-                          child: IconButton(
-                            onPressed: () {
-                              if (value.status == 'SUBMITTED') {
-                                Navigator.pushNamed(
-                                  context,
-                                  RouteNames.submittedAssignmentScreen,
-                                  arguments: value.id,
-                                );
-                              } else {
-                                Navigator.pushNamed(
-                                  context,
-                                  RouteNames.dueAssignmentScreen,
-                                  arguments: value.id,
-                                );
-                              }
-                            },
-                            icon: Icon(
-                              Icons.arrow_forward_ios,
-                              color: Colors.white,
-                              size: 16.sp,
-                            ),
-                          ),
+                        Icon(
+                          Icons.arrow_forward_ios,
+                          color: Colors.white,
+                          size: 16.sp,
                         ),
                       ],
                     ),
                   ),
+                  )
                 );
               }),
             ],

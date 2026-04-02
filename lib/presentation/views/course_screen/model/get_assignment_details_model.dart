@@ -66,6 +66,9 @@ class Data {
     moduleClass = json['moduleClass'] != null
         ? ModuleClass.fromJson(json['moduleClass'])
         : null;
+    submission = json['submission'] != null
+        ? Submission.fromJson(json['submission'])
+        : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -83,6 +86,9 @@ class Data {
     data['moduleClassId'] = moduleClassId;
     if (moduleClass != null) {
       data['moduleClass'] = moduleClass!.toJson();
+    }
+    if (submission != null) {
+      data['submission'] = submission!.toJson();
     }
     return data;
   }
@@ -145,9 +151,9 @@ class Submission {
   String? title;
   String? description;
   String? fileUrl;
-  String? submitted;
+  bool? submitted;
   String? submittedAt;
-  String? grade;
+  dynamic grade;
 
   Submission({
     this.id,
