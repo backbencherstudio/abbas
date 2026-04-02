@@ -228,7 +228,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                       ),
                                       SizedBox(height: 5.h),
                                       Text(
-                                        _timeAgo(feed.createdAt ?? "N/A" ),
+                                        _timeAgo(feed.createdAt ?? "N/A"),
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           color: Color(0xFFD2D2D5),
