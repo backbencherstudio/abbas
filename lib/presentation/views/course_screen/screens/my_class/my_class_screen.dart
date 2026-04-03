@@ -28,27 +28,32 @@ class _MyClassScreenState extends ConsumerState<MyClassScreen> {
   }
 
   /// ------------------- Format Created At ------------------------------------
-  String formatCreatedAt(String? createdAt){
-    if(createdAt == null) return 'N/A';
+  String formatCreatedAt(String? createdAt) {
+    if (createdAt == null) return 'N/A';
     final dateTime = DateTime.parse(createdAt);
     final formatted = DateFormat('dd-MM-yyyy').format(dateTime);
     return formatted;
   }
-  
+
   /// ------------------ Format Class Time -------------------------------------
-  String formatClassTime(String? classTime){
-    if(classTime == null) return 'N/A';
-    try{
+  String formatClassTime(String? classTime) {
+    if (classTime == null) return 'N/A';
+    try {
       final parts = classTime.split('_');
       final start = DateFormat('HH:mm').parse(parts[0]);
       final end = DateFormat('HH:mm').parse(parts[1]);
-      final formattedStart = DateFormat('h:mm a').format(start); /// 6.00 PM
-      final formattedEnd = DateFormat('h:mm a').format(end); /// 8.00 PM
+      final formattedStart = DateFormat('h:mm a').format(start);
+
+      /// 6.00 PM
+      final formattedEnd = DateFormat('h:mm a').format(end);
+
+      /// 8.00 PM
       return '$formattedStart - $formattedEnd';
-    }catch(e){
+    } catch (e) {
       return classTime;
     }
   }
+
   @override
   Widget build(BuildContext context) {
     final classes = ref.watch(getClassDetailsProvider);
@@ -201,84 +206,42 @@ class _MyClassScreenState extends ConsumerState<MyClassScreen> {
                             ],
                           ),
                           SizedBox(height: 17.h),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: OutlinedButton(
-                                  style: OutlinedButton.styleFrom(
-                                    side: BorderSide(
-                                      color: Color(0xff3D4466),
-                                      width: 1,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                  ),
-                                  onPressed: () {
-                                    Navigator.pushNamed(
-                                      context,
-                                      RouteNames.assetsScreen,
-                                    );
-                                  },
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-
-                                    children: [
-                                      SvgPicture.asset(
-                                        'assets/icons/folder.svg',
-                                      ),
-                                      SizedBox(width: 6.w),
-                                      Text(
-                                        "Assets",
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
+                          OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(
+                                color: Color(0xff3D4466),
+                                width: 1,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                            ),
+                            onPressed: () {
+                              Navigator.pushNamed(
+                                context,
+                                RouteNames.assetsScreen,
+                              );
+                            },
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                                                    
+                              children: [
+                                SvgPicture.asset(
+                                  'assets/icons/folder.svg',
+                                ),
+                                SizedBox(width: 6.w),
+                                Text(
+                                  "Assets",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                              ),
-                              if (assignments.isNotEmpty) SizedBox(width: 10),
-
-                              ...assignments.map((assignment) {
-                                return Expanded(
-                                  child: OutlinedButton(
-                                    style: OutlinedButton.styleFrom(
-                                      side: BorderSide(
-                                        color: Color(0xff3D4466),
-                                        width: 1,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                    ),
-                                    onPressed: () {},
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        SvgPicture.asset(
-                                          'assets/icons/doc.svg',
-                                        ),
-                                        SizedBox(width: 6.w),
-                                        Text(
-                                          assignment.title ?? 'N/A',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              }),
-                            ],
+                              ],
+                            ),
                           ),
+                          if (assignments.isNotEmpty) SizedBox(width: 10),
                         ],
                       ),
                     ),

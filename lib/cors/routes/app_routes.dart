@@ -1,6 +1,8 @@
 import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:abbas/cors/routes/route_names.dart';
+import 'package:abbas/presentation/views/community/presentaion/screens/update_post.dart';
 import 'package:abbas/presentation/views/course_screen/screens/my_class/pdf_viewer_screen.dart';
+import 'package:abbas/presentation/views/home/screen/screens/all_assignments_screen.dart';
 import 'package:flutter/material.dart';
 import '../../presentation/views/auth/forgot_password/screen/forgot_password_screen.dart';
 import '../../presentation/views/auth/login/presentaion/screen/login_screen.dart';
@@ -96,6 +98,11 @@ class AppRoutes {
     },
     RouteNames.parentScreen: (context) => const ParentScreen(),
     RouteNames.scanner: (context) => const Scanner(),
+    RouteNames.allAssignmentsScreen: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final moduleId = args is String ? args : '';
+      return AllAssignmentsScreen(moduleId: moduleId);
+    },
     RouteNames.otherCourseScreen: (context) => const OtherCourseScreen(),
     RouteNames.myCourseScreen: (context) {
       final args = ModalRoute.of(context)?.settings.arguments;
@@ -120,8 +127,11 @@ class AppRoutes {
       final assignmentId = args is String ? args : '';
       return DueAssignmentScreen(assignmentId: assignmentId);
     },
-    RouteNames.submittedAssignmentScreen: (context) =>
-        const SubmittedAssignmentScreen(),
+    RouteNames.submittedAssignmentScreen: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments;
+      final assignmentId = args is String ? args : '';
+      return SubmittedAssignmentScreen(assignmentId: assignmentId);
+    },
     RouteNames.assetsScreen: (context) {
       final args = ModalRoute.of(context)!.settings.arguments;
       final courseId = args is String ? args : '';
@@ -214,6 +224,13 @@ class AppRoutes {
       final filePath = args is Map ? args['asset_url'] : '';
       final title = args is Map ? args['file_name'] : '';
       return PdfViewerScreen(filePath: filePath, title: title);
+    },
+    RouteNames.updatePost: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments;
+      final postId = args is Map ? args['id'] : '';
+      logger.d("App Routes : $postId");
+      final postContent = args is Map ? args['content'] : '';
+      return UpdatePost(postId: postId, postContent: postContent);
     },
   };
 }

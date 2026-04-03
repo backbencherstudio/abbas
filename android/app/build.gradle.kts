@@ -26,7 +26,7 @@ android {
         applicationId = "com.example.abbas"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion  // আপডেট করুন: flutter_local_notifications এর জন্য 21 প্রয়োজন
+        minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

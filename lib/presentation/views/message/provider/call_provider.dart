@@ -1,378 +1,443 @@
-// call_provider.dart
+import 'dart:convert';
+import 'dart:core';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:logger/logger.dart';
-
 import '../../../../cors/constants/api_endpoints.dart';
-import '../../../../cors/network/api_response_model.dart';
 import '../../../../cors/services/api_client.dart';
 import '../../../../cors/services/live_kit_service.dart';
+import '../../../../cors/services/socket_call.dart';
+import '../../../../cors/services/token_storage.dart';
+import '../../../../main.dart';
+import '../screens/video_call_screen.dart';
 
 class CallProvider extends ChangeNotifier {
   CallProvider() {
-    checkHealth();
+    logger.i("🔥🔥🔥 CALLPROVIDER INITIALIZED! 🔥🔥🔥");
+
+    _init();
   }
 
   final ApiClient _apiClient = ApiClient();
-  final Logger logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 0,
-      errorMethodCount: 5,
-      lineLength: 100,
-      colors: true,
-      printEmojis: true,
-    ),
-  );
+  final Logger logger = Logger(printer: PrettyPrinter(methodCount: 0));
   final LiveKitService liveKitService = LiveKitService();
+  final SocketCall _socketService = SocketCall();
 
   bool _isLoading = false;
   String? _errorMessage;
   bool _isInCall = false;
   bool _isMuted = false;
+  bool _isVideoEnabled = true;
+
   String? _currentCallId;
   String? _currentRoomName;
-  String? _liveKitUrl;
+  String? _currentCallKind;
 
+  Map<String, dynamic>? _incomingCallData;
+  OverlayEntry? _overlayEntry;
+
+  bool get hasIncomingCall => _incomingCallData != null;
+  Map<String, dynamic>? get incomingCallData => _incomingCallData;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isInCall => _isInCall;
   bool get isMuted => _isMuted;
-  String? get currentCallId => _currentCallId;
-  String? get currentRoomName => _currentRoomName;
+  bool get isVideoEnabled => _isVideoEnabled;
+  String? get currentCallKind => _currentCallKind;
 
-  /// Start a new call
-  Future<bool> startCall(String conversationId, {String kind = "AUDIO"}) async {
-    _errorMessage = null;
-    _isLoading = true;
+  void _init() {
+    if (liveKitService.isConnected) {
+      liveKitService.disconnect();
+    }
+    _wireSocketCallbacks();
+    _tryAutoConnect();
+  }
+
+  Future<void> _tryAutoConnect() async {
+    try {
+      final token = await TokenStorage().getToken();
+      if (token != null && token.isNotEmpty) {
+        if (!_socketService.isConnected) {
+          logger.i("🔌 Auto-connecting socket on init...");
+          _socketService.connect(token);
+        }
+      }
+      _wireSocketCallbacks();
+    } catch (e) {
+      logger.e("Auto-connect failed: $e");
+    }
+  }
+
+  bool _isTokenExpired(String token) {
+    try {
+      final parts = token.split('.');
+      if (parts.length != 3) return true;
+      String normalized = parts[1];
+      while (normalized.length % 4 != 0) normalized += '=';
+      final decoded = utf8.decode(base64Url.decode(normalized));
+      final json = jsonDecode(decoded) as Map<String, dynamic>;
+      final exp = json['exp'] as int?;
+      if (exp == null) return true;
+      return DateTime.now().isAfter(DateTime.fromMillisecondsSinceEpoch(exp * 1000));
+    } catch (e) {
+      return true;
+    }
+  }
+
+  void _wireSocketCallbacks() {
+    logger.i("🔗 Wiring socket callbacks...");
+
+    // ✅ Direct assignment with explicit function
+    _socketService.onIncomingCall = (Map<String, dynamic> data) {
+      logger.i("🔥🔥🔥 CALLBACK TRIGGERED! Data: $data");
+      _handleIncomingCall(data);
+    };
+
+    _socketService.onCallEnded = (Map<String, dynamic> data) {
+      logger.i("📵 Call ended callback triggered");
+      _handleCallEnded(data);
+    };
+
+    logger.i("✅ Socket callbacks wired successfully");
+  }
+
+  void ensureSocketConnected(String token) {
+    if (!_socketService.isConnected) {
+      _socketService.connect(token);
+    }
+    _wireSocketCallbacks();
+  }
+
+  // ✅ Main incoming call handler
+  void _handleIncomingCall(Map<String, dynamic> data) {
+    logger.i("📲 Incoming call data received: $data");
+    logger.i("🔥🔥🔥 _handleIncomingCall IS EXECUTING! 🔥🔥🔥");
+
+    if (_isInCall) {
+      logger.w("⚠️ Already in a call, ignoring incoming call.");
+      return;
+    }
+
+    _incomingCallData = data;
     notifyListeners();
 
-    logger.i("📞 ===== STARTING CALL =====");
-    logger.i("   Conversation ID: $conversationId");
-    logger.i("   Call Kind: $kind");
+    // Vibrate phone
+    HapticFeedback.heavyImpact();
+
+    // Show dialog
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showCallDialog();
+    });
+  }
+// ✅ Fallback notification
+  void _showNotificationFallback() {
+    logger.i("📱 Showing fallback notification");
+
+    final ctx = navigatorKey.currentContext;
+    if (ctx == null) {
+      logger.e("❌ Cannot show notification - no context");
+      return;
+    }
+
+    ScaffoldMessenger.of(ctx).showSnackBar(
+      SnackBar(
+        content: Text("Incoming call from ${_incomingCallData!['fromUserId']}"),
+        duration: const Duration(seconds: 10),
+        action: SnackBarAction(
+          label: "Answer",
+          onPressed: () => acceptIncomingCall(),
+        ),
+      ),
+    );
+  }
+  // ✅ Direct dialog show method (simplest approach)
+// ✅ Direct dialog show method (simplest approach)
+  void _showCallDialog() {
+    logger.i("🎯 _showCallDialog called");
+
+    final ctx = navigatorKey.currentContext;
+    logger.i("📱 Context: ${ctx != null ? 'available' : 'NULL'}");
+
+    if (ctx == null) {
+      logger.e("❌ Context is null");
+      return;
+    }
+
+    final fromUserId = _incomingCallData!['fromUserId'] ?? 'Unknown';
+    final kind = (_incomingCallData!['kind'] ?? 'VIDEO').toUpperCase();
+    final conversationId = _incomingCallData!['conversationId'];
+
+    showDialog(
+      context: ctx,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: Text("Incoming ${kind} Call"),
+        content: Text("From: $fromUserId"),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              rejectIncomingCall();
+            },
+            child: Text("Decline", style: TextStyle(color: Colors.red)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              final success = await acceptIncomingCall();
+              if (success) {
+                Navigator.push(
+                  ctx,
+                  MaterialPageRoute(
+                    builder: (_) => VideoCallScreen(
+                      conversationId: conversationId,
+                      callKind: kind,
+                    ),
+                  ),
+                );
+              }
+            },
+            child: Text("Accept"),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  void _handleCallEnded(Map<String, dynamic> data) {
+    logger.i("📵 Call ended");
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+    _incomingCallData = null;
+    if (_isInCall) {
+      leaveCall(data['conversationId'] ?? '');
+    }
+    notifyListeners();
+  }
+
+  void clearIncomingCall() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+    _incomingCallData = null;
+    notifyListeners();
+  }
+
+  Future<bool> acceptIncomingCall() async {
+    if (_incomingCallData == null) return false;
+    final conversationId = _incomingCallData!['conversationId'];
+    final kind = (_incomingCallData!['kind'] ?? 'VIDEO').toUpperCase();
+    if (conversationId == null) return false;
+
+    _currentCallKind = kind;
+    clearIncomingCall();
+    return await joinCall(conversationId, kind: kind);
+  }
+
+  void rejectIncomingCall() {
+    clearIncomingCall();
+    logger.i("❌ Call rejected");
+  }
+
+  // ── Call Methods ──────────────────────────────────────────────────────
+
+  Future<bool> startCall(String conversationId, {String kind = "VIDEO"}) async {
+    _resetCallState();
+    _isLoading = true;
+    _currentCallKind = kind.toUpperCase();
+    notifyListeners();
 
     try {
-      // First, ensure any previous connection is cleaned up
-      if (liveKitService.isConnected) {
-        logger.i("🔄 Previous LiveKit connection found, disconnecting...");
-        liveKitService.leaveCall();
-        await Future.delayed(const Duration(milliseconds: 500));
-      }
+      if (liveKitService.isConnected) await liveKitService.disconnect();
 
-      // Step 1: Start the call
-      logger.i("📡 Calling start endpoint: ${ApiEndpoints.startCall(conversationId)}");
-
-      final ApiResponseModel startResponse = await _apiClient.post(
+      final startResponse = await _apiClient.post(
         ApiEndpoints.startCall(conversationId),
         body: {"kind": kind},
       );
 
-      logger.i("📨 Start Call Response: ${startResponse.data}");
-
-      if (startResponse.success && startResponse.data != null) {
-        // Store callId from response
-        _currentCallId = startResponse.data!['callId'] ?? startResponse.data!['data']?['callId'];
-
-        logger.i("✅ Call started successfully!");
-        logger.i("   Call ID: $_currentCallId");
-
-        // Step 2: Get LiveKit token
-        final tokenSuccess = await _getLiveKitToken(conversationId, kind);
-
-        if (tokenSuccess) {
-          _isInCall = true;
-          _isLoading = false;
-          notifyListeners();
-          logger.i("🎉 Call setup complete!");
-          return true;
-        } else {
-          _isLoading = false;
-          notifyListeners();
-          return false;
-        }
-      } else {
-        _errorMessage = startResponse.message ;
-        logger.e("❌ Start Call Failed: $_errorMessage");
+      if (!startResponse.success) {
+        _errorMessage = startResponse.message ?? "Failed to start call";
         _isLoading = false;
         notifyListeners();
         return false;
       }
-    } catch (error) {
-      _errorMessage = error.toString();
-      logger.e("💥 Start Call Exception: $error");
+
+      _currentCallId = startResponse.data?['callId'] ?? startResponse.data?['data']?['callId'];
+
+      final tokenSuccess = await _getLiveKitToken(conversationId, kind);
+      if (tokenSuccess) {
+        _isInCall = true;
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = e.toString();
       _isLoading = false;
       notifyListeners();
       return false;
     }
   }
 
-  /// Get LiveKit token from backend
-  Future<bool> _getLiveKitToken(String conversationId, String kind) async {
+  Future<bool> joinCall(String conversationId, {String kind = "VIDEO"}) async {
+    _resetCallState();
+    _isLoading = true;
+    _currentCallKind = kind.toUpperCase();
+    notifyListeners();
+
     try {
-      logger.i("🔑 ===== GETTING LIVEKIT TOKEN =====");
-      logger.i("   Conversation ID: $conversationId");
+      if (liveKitService.isConnected) await liveKitService.disconnect();
 
-      final ApiResponseModel tokenResponse = await _apiClient.post(
-        ApiEndpoints.getToken(conversationId),
-        body: {}, // Empty body as per docs
-      );
+      final response = await _apiClient.post(ApiEndpoints.joinCall(conversationId));
 
-      logger.i("📨 Token Response: ${tokenResponse.data}");
-
-      if (tokenResponse.success && tokenResponse.data != null) {
-        final tokenData = tokenResponse.data!['data'] ?? tokenResponse.data;
-
-        final token = tokenData['token'];
-        final roomName = tokenData['roomName'];
-        final url = tokenData['url'];
-        final audioOnlySuggested = tokenData['audioOnlySuggested'] ?? (kind == "AUDIO");
-
-        if (token != null && roomName != null && url != null) {
-          _currentRoomName = roomName;
-          _liveKitUrl = url;
-
-          logger.i("✅ Token received successfully!");
-          logger.i("   Room Name: $roomName");
-          logger.i("   LiveKit URL: $url");
-          logger.i("   Audio Only Suggested: $audioOnlySuggested");
-          logger.i("   Token: ${token.substring(0, 20)}... (truncated)");
-
-          // Connect to LiveKit
-          return await _connectToLiveKit(token, url, roomName, kind);
-        } else {
-          _errorMessage = "Invalid token response from server";
-          logger.e("❌ Invalid token data: $tokenData");
-          return false;
-        }
-      } else {
-        _errorMessage = tokenResponse.message ;
-        logger.e("❌ Token Error: $_errorMessage");
+      if (!response.success) {
+        _errorMessage = response.message ?? "Failed to join call";
+        _isLoading = false;
+        notifyListeners();
         return false;
       }
+
+      final success = await _getLiveKitToken(conversationId, kind);
+      if (success) {
+        _isInCall = true;
+      }
+      _isLoading = false;
+      notifyListeners();
+      return success;
     } catch (e) {
-      logger.e("❌ Error getting token: $e");
       _errorMessage = e.toString();
+      _isLoading = false;
+      notifyListeners();
       return false;
     }
   }
 
-  /// Connect to LiveKit room
+  Future<bool> _getLiveKitToken(String conversationId, String kind) async {
+    try {
+      final tokenResponse = await _apiClient.post(ApiEndpoints.getToken(conversationId));
+
+      if (!tokenResponse.success || tokenResponse.data == null) {
+        _errorMessage = tokenResponse.message ?? "Failed to get token";
+        return false;
+      }
+
+      final tokenData = tokenResponse.data!['data'] ?? tokenResponse.data;
+      final token = tokenData['token'];
+      final roomName = tokenData['roomName'];
+      final url = tokenData['url'];
+
+      if (token == null || roomName == null || url == null) {
+        _errorMessage = "Invalid token response";
+        return false;
+      }
+
+      _currentRoomName = roomName;
+      return await _connectToLiveKit(token, url, roomName, kind);
+    } catch (e) {
+      _errorMessage = "Token request failed";
+      logger.e("Token error: $e");
+      return false;
+    }
+  }
+
   Future<bool> _connectToLiveKit(String token, String url, String roomName, String kind) async {
     try {
-      logger.i("🔌 ===== CONNECTING TO LIVEKIT =====");
-      logger.i("   URL: $url");
-      logger.i("   Room: $roomName");
-      logger.i("   Audio Only: ${kind == "AUDIO"}");
-
+      final bool audioOnly = kind.toUpperCase() == "AUDIO";
       await liveKitService.connectToRoom(
         url: url,
         token: token,
         roomName: roomName,
-        audioOnly: kind == "AUDIO",
+        audioOnly: audioOnly,
       );
-
-      logger.i("✅ Successfully connected to LiveKit room!");
       return true;
     } catch (e) {
-      logger.e("❌ Failed to connect to LiveKit: $e");
-      _errorMessage = "Media connection failed";
+      _errorMessage = "Failed to connect to LiveKit";
+      logger.e("LiveKit connect error: $e");
       return false;
     }
   }
 
-  /// Join an existing active call
-  Future<bool> joinCall(String conversationId) async {
-    _errorMessage = null;
-    _isLoading = true;
-    notifyListeners();
-
-    logger.i("🔌 ===== JOINING CALL =====");
-    logger.i("   Conversation ID: $conversationId");
-
-    try {
-      // First, ensure any previous connection is cleaned up
-      if (liveKitService.isConnected) {
-        logger.i("🔄 Previous LiveKit connection found, disconnecting...");
-        liveKitService.leaveCall();
-        await Future.delayed(const Duration(milliseconds: 500));
-      }
-
-      // Step 1: Join the call
-      logger.i("📡 Calling join endpoint: ${ApiEndpoints.joinCall(conversationId)}");
-
-      final ApiResponseModel joinResponse = await _apiClient.post(
-        ApiEndpoints.joinCall(conversationId),
-        body: {},
-      );
-
-      logger.i("📨 Join Response: ${joinResponse.data}");
-
-      if (joinResponse.success) {
-        logger.i("✅ Successfully joined call");
-
-        // Step 2: Get LiveKit token
-        final tokenSuccess = await _getLiveKitToken(conversationId, "AUDIO");
-
-        if (tokenSuccess) {
-          _isInCall = true;
-          _isLoading = false;
-          notifyListeners();
-          logger.i("🎉 Successfully joined and connected to call!");
-          return true;
-        } else {
-          _isLoading = false;
-          notifyListeners();
-          return false;
-        }
-      } else {
-        _errorMessage = joinResponse.message ?? "Failed to join call";
-        logger.e("❌ Join Failed: ${_errorMessage}");
-        _isLoading = false;
-        notifyListeners();
-        return false;
-      }
-    } catch (error) {
-      _errorMessage = error.toString();
-      logger.e("💥 Join Call Exception: $error");
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    }
-  }
-
-  /// Leave call (participant leaves but call continues for others)
   Future<void> leaveCall(String conversationId) async {
-    logger.i("👋 ===== LEAVING CALL =====");
-    logger.i("   Conversation ID: $conversationId");
-    logger.i("   Call ID: $_currentCallId");
-
     try {
-      // Notify server that user is leaving
-      logger.i("📡 Calling leave endpoint: ${ApiEndpoints.leaveCall(conversationId)}");
-
-      final response = await _apiClient.post(
-        ApiEndpoints.leaveCall(conversationId),
-        body: {},
-      );
-
-      logger.i("📨 Leave Response: ${response.success}");
-      if (response.data != null) {
-        logger.i("   Response data: ${response.data}");
-      }
-
+      await _apiClient.post(ApiEndpoints.leaveCall(conversationId));
     } catch (e) {
-      logger.e("❌ Leave call API error: $e");
+      logger.e("Leave API error: $e");
     } finally {
-      // Disconnect from LiveKit
-      logger.i("🔌 Disconnecting from LiveKit...");
-      liveKitService.leaveCall();
-
+      await liveKitService.disconnect();
       _resetCallState();
-
-      logger.i("✅ Successfully left call");
     }
   }
 
-  /// End call (host ends call for everyone)
   Future<void> endCall(String conversationId) async {
-    logger.i("🛑 ===== ENDING CALL =====");
-    logger.i("   Conversation ID: $conversationId");
-    logger.i("   Call ID: $_currentCallId");
-
     try {
-      logger.i("📡 Calling end endpoint: ${ApiEndpoints.endCall(conversationId)}");
-
-      final response = await _apiClient.post(
-        ApiEndpoints.endCall(conversationId),
-        body: {},
-      );
-
-      logger.i("📨 End Response: ${response.success}");
-
-      if (response.data != null) {
-        logger.i("   Response data: ${response.data}");
-      }
-
-      logger.i("✅ End call API successful");
+      await _apiClient.post(ApiEndpoints.endCall(conversationId));
     } catch (e) {
-      logger.e("❌ End call error: $e");
+      logger.e("End call error: $e");
     } finally {
-      liveKitService.leaveCall();
+      await liveKitService.disconnect();
       _resetCallState();
     }
   }
 
-  /// Reset call state
-  void _resetCallState() {
-    _isInCall = false;
-    _isMuted = false;
-    _currentCallId = null;
-    _currentRoomName = null;
-    _liveKitUrl = null;
-    notifyListeners();
-  }
-
-  /// Toggle mute
   void toggleMute() {
     _isMuted = !_isMuted;
-    logger.i("🔊 Toggle mute: ${_isMuted ? 'Muted' : 'Unmuted'}");
-
     if (_isMuted) {
       liveKitService.disableAudio();
     } else {
       liveKitService.enableAudio();
     }
-
     notifyListeners();
   }
 
-  /// Check RTC health
-  Future<bool> checkHealth() async {
-    logger.i("🩺 ===== RTC HEALTH CHECK =====");
-
-    try {
-      final response = await _apiClient.get(ApiEndpoints.rtcHealth);
-
-      logger.i("✅ Health check successful!");
-
-      if (response.data != null) {
-        logger.i("📦 Health Check Details:");
-        response.data!.forEach((key, value) {
-          if (key == 'url') {
-            logger.i("   • $key: $value (LiveKit Server)");
-          } else if (key == 'tokenTtlSeconds') {
-            logger.i("   • $key: $value seconds (${value ~/ 60} minutes)");
-          } else {
-            logger.i("   • $key: $value");
-          }
-        });
-      }
-
-      return response.success;
-    } catch (e) {
-      logger.e("❌ Health check failed: $e");
-      return false;
+  void toggleVideo() {
+    _isVideoEnabled = !_isVideoEnabled;
+    if (_isVideoEnabled) {
+      liveKitService.enableVideo();
+    } else {
+      liveKitService.disableVideo();
     }
+    notifyListeners();
   }
 
-  /// Clear error
-  void clearError() {
-    if (_errorMessage != null) {
-      logger.i("🧹 Clearing error: $_errorMessage");
-      _errorMessage = null;
+  Future<void> switchCamera() async {
+    try {
+      await liveKitService.switchCamera();
+    } catch (e) {
+      logger.e("Switch camera error: $e");
+      _errorMessage = "Failed to switch camera";
       notifyListeners();
     }
   }
 
-  /// Print current state
-  void printState() {
-    logger.i("📱 ===== CALL PROVIDER STATE =====");
-    logger.i("   Loading: $_isLoading");
-    logger.i("   In Call: $_isInCall");
-    logger.i("   Muted: $_isMuted");
-    logger.i("   Call ID: $_currentCallId");
-    logger.i("   Room Name: $_currentRoomName");
-    logger.i("   LiveKit URL: $_liveKitUrl");
-    logger.i("   Error: $_errorMessage");
-    logger.i("   LiveKit Connected: ${liveKitService.isConnected}");
-    logger.i("=================================");
+  Future<bool> checkHealth() async {
+    try {
+      final response = await _apiClient.get(ApiEndpoints.rtcHealth);
+      return response.success;
+    } catch (e) {
+      logger.e("Health check failed: $e");
+      return false;
+    }
+  }
+
+  void _resetCallState() {
+    _isLoading = false;
+    _isInCall = false;
+    _isMuted = false;
+    _isVideoEnabled = true;
+    _errorMessage = null;
+    _currentCallId = null;
+    _currentRoomName = null;
+    _currentCallKind = null;
+    notifyListeners();
+  }
+
+  void clearError() {
+    _errorMessage = null;
+    notifyListeners();
   }
 }

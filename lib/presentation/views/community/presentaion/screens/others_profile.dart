@@ -186,7 +186,8 @@ class OthersProfile extends StatelessWidget {
       width: 280.w,
       child: ElevatedButton.icon(
         onPressed: () async {
-          if (userId != null && userId.isNotEmpty) {
+          if (userId.isNotEmpty) {
+            debugPrint("THe userId is for create conversation ${userId}");
             await provider.createConversation(userId);
           } else {}
           Navigator.pushNamed(context, RouteNames.oneTwoOneChatScreen);

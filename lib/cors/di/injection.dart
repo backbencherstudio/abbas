@@ -6,7 +6,6 @@ import 'package:abbas/presentation/views/community/data/community/community_repo
 import 'package:abbas/presentation/views/community/domain/community/community_repository.dart';
 import 'package:abbas/presentation/views/community/domain/community/community_usecase.dart';
 import 'package:abbas/presentation/views/community/presentaion/provider/community/community_screen_provider.dart';
-import 'package:abbas/presentation/views/community/presentaion/provider/post/create_post_provider.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import '../../data/datasources/auth/change_password_datasource.dart';
@@ -15,7 +14,6 @@ import '../../data/datasources/auth/refresh_token.dart';
 import '../../data/datasources/auth/register_datasource.dart';
 import '../../data/datasources/auth/set_new_password_datasource.dart';
 import '../../data/datasources/community/feed_remote_data_source.dart';
-import '../../data/datasources/community/post_local_data_source.dart';
 import '../../data/datasources/course/course_remote.dart';
 import '../../data/datasources/profile/edit_personal_info_data_source.dart';
 import '../../data/datasources/profile/personal_info_data_source.dart';
@@ -46,7 +44,8 @@ import '../../domain/usecases/community/get_feeds.dart';
 import '../../domain/usecases/course/get_courses.dart';
 import '../../domain/usecases/profile/edit_personal_info_usecase.dart';
 import '../../domain/usecases/profile/personal_info_usecase.dart';
-import '../../presentation/services/toast_service.dart';
+import '../../presentation/views/message/provider/create_group_provider.dart';
+import '../services/toast_service.dart';
 import '../../presentation/viewmodels/auth/change_password/change_password_viewmodel.dart';
 import '../../presentation/viewmodels/auth/forgot_password/forgot_password_viewmodel.dart';
 import '../../presentation/viewmodels/auth/otp_verify/otp_verify_viewmodel.dart';
@@ -69,6 +68,7 @@ import '../../presentation/views/message/provider/create_chat_provider.dart';
 import '../../presentation/views/profile/view_model/profil_screen_provider.dart';
 import '../services/api_client.dart';
 import '../services/api_services.dart';
+import '../services/socket_call.dart';
 import '../services/token_storage.dart';
 
 final GetIt getIt = GetIt.instance;
@@ -320,8 +320,8 @@ Future<void> configureDependencies() async {
 
   // PROFILE PROVIDER
   getIt.registerFactory<ProfileScreenProvider>(() => ProfileScreenProvider());
-
-  getIt.registerFactory<CreatePostProvider>(() => CreatePostProvider());
   getIt.registerFactory<CreateChatProvider>(() => CreateChatProvider());
   getIt.registerFactory<CallProvider>(() => CallProvider());
+  getIt.registerFactory<SocketCall>(() => SocketCall());
+  getIt.registerFactory<CreateGroupProvider>(() => CreateGroupProvider());
 }

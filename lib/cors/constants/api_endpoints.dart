@@ -1,7 +1,9 @@
 class ApiEndpoints {
   ApiEndpoints._();
 
-  static const String baseUrl = 'http://192.168.7.14:4000';
+  static const String baseUrl =
+      'http://192.168.7.14:4000';
+  static const String socketUrl = "https://train-cnet-suit-reviews.trycloudflare.com";
   static const String register = '$baseUrl/api/auth/register';
   static const String login = '$baseUrl/api/auth/login';
   static const String refreshToken = '$baseUrl/api/auth/refresh-token';
@@ -29,7 +31,7 @@ class ApiEndpoints {
 
   /// ------------------- Courses ----------------------------------------------
   static String submitAssignment(String assignmentId) =>
-      '$baseUrl/course/assignment/$assignmentId/submit';
+      '/api/course/assignment/$assignmentId/submit';
   static const String getAllCourses = '$baseUrl/api/course/all';
   static const String getMyCourses = '$baseUrl/api/course/my-courses';
 
@@ -73,20 +75,40 @@ class ApiEndpoints {
   /// -------------------- Events ----------------------------------------------
   static const String getAllEvents = '$baseUrl/api/events';
 
-  // community
-
   static String getEventById(String eventId) => '$baseUrl/api/events/$eventId';
 
+  /// -------------------- Community -------------------------------------------
   static const String getFeed = '$baseUrl/api/community/feed';
   static const String createPost = '$baseUrl/api/community/post';
+  static String updatePost(String postId) =>
+      '$baseUrl/api/community/post/$postId';
+  static const String createPostLike = '$baseUrl/api/community/like';
+  static String getPostLike(String postId) =>
+      '$baseUrl/api/community/like/$postId';
+  static String createComment(String postId) =>
+      '$baseUrl/api/community/comment/$postId';
+  static String getComment(String postId) =>
+      '$baseUrl/api/community/comment/$postId';
+  static String replyComment(String postId) =>
+      '$baseUrl/api/community/comment/reply/$postId';
+  static String deletePost(String postId) =>
+      '$baseUrl/api/community/post/$postId';
 
   // chat
 
   static const String createConversation = '$baseUrl/api/conversations/dm';
   static const String allConversationList = '$baseUrl/api/conversations';
-  static String dmAllMessage(String conversationId, int cursor, int limit) =>
-      '$baseUrl/api/conversations/$conversationId/messages?cursor=&limit=$limit';
+  static String searchUser(String query) =>
+      '$baseUrl/api/users/suggest?q=$query';
+  static const String createGroupChat = '$baseUrl/api/conversations/group';
 
+  static String dmAllMessage(String conversationId, int take, String? cursor) {
+    if (cursor != null && cursor.isNotEmpty) {
+      return '$baseUrl/api/conversations/$conversationId/messages?take=$take&cursor=$cursor';
+    } else {
+      return '$baseUrl/api/conversations/$conversationId/messages?take=$take';
+    }
+  }
   static String dmSendMessage(String conversationId) =>
       '$baseUrl/api/conversations/$conversationId/messages';
 
@@ -98,14 +120,12 @@ class ApiEndpoints {
       '$baseUrl/api/rtc/conversations/$conversationId/join';
 
   static String endCall(String conversationId) =>
-      '$baseUrl/api/rtc/conversations/$conversationId/join';
+      '$baseUrl/api/rtc/conversations/$conversationId/end';
 
   static String leaveCall(String conversationId) =>
       '$baseUrl/api/rtc/conversations/$conversationId/leave';
 
   static String getToken(String conversationId) =>
       '$baseUrl/api/rtc/conversations/$conversationId/token';
-  static const String rtcHealth =
-      '$baseUrl/api/rtc/health';
-
+  static const String rtcHealth = '$baseUrl/api/rtc/health';
 }

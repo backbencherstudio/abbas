@@ -1,211 +1,210 @@
+import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:logger/logger.dart';
 
-class LiveKitService {
-  // Make room nullable
+class LiveKitService with ChangeNotifier {
   Room? _room;
-  final Logger logger = Logger();
-  bool _isConnected = false;
+  LocalAudioTrack? _audioTrack;
+  LocalVideoTrack? _videoTrack;
 
-  // Track publications
   LocalTrackPublication? _audioPublication;
   LocalTrackPublication? _videoPublication;
 
-  bool get isConnected => _isConnected;
+  final Logger logger = Logger(printer: PrettyPrinter(methodCount: 0));
 
-  // Safe getter for room - returns null if not connected
-  Room? get roomInstance => _room;
+  bool _isConnected = false;
+  bool _isFrontCamera = true;
 
-  /// Connect to a LiveKit room
+  bool get isConnected => _isConnected && _room != null;
+  Room? get room => _room;
+
+  VideoTrack? get localVideoTrack => _videoTrack;
+  VideoTrack? get remoteVideoTrack => _remoteVideoTrack;
+  VideoTrack? _remoteVideoTrack;
+
   Future<void> connectToRoom({
     required String url,
     required String token,
     required String roomName,
-    bool audioOnly = true,
+    bool audioOnly = false,
   }) async {
     try {
-      // Initialize room
-      _room = Room();
+      if (_room != null) await disconnect();
 
-      // Set up event listeners
-      _setupEventListeners();
+      _room = Room(
+        roomOptions: const RoomOptions(adaptiveStream: true, dynacast: true),
+      );
 
-      // Connect to room
-      logger.i("Connecting to room: $roomName at $url");
+      _setupListeners();
+
+      logger.i("Connecting to LiveKit room: $roomName at $url");
       await _room!.connect(url, token);
       _isConnected = true;
+      logger.i(" Connected to room");
 
-      // Publish audio track
-      if (_room!.localParticipant != null) {
-        final audioTrack = await LocalAudioTrack.create();
-        _audioPublication = await _room!.localParticipant!.publishAudioTrack(audioTrack);
+      _audioTrack = await LocalAudioTrack.create();
+      _audioPublication = await _room!.localParticipant!.publishAudioTrack(
+        _audioTrack!,
+      );
+      logger.i(" Audio track published");
 
-        // Publish video if not audio only
-        if (!audioOnly) {
-          try {
-            final videoTrack = await LocalVideoTrack.createCameraTrack();
-            _videoPublication = await _room!.localParticipant!.publishVideoTrack(videoTrack);
-          } catch (e) {
-            logger.e("Failed to publish video: $e");
-          }
+      if (!audioOnly) {
+        try {
+          _videoTrack = await LocalVideoTrack.createCameraTrack(
+            const CameraCaptureOptions(cameraPosition: CameraPosition.front),
+          );
+          _videoPublication = await _room!.localParticipant!.publishVideoTrack(
+            _videoTrack!,
+          );
+          _isFrontCamera = true;
+          logger.i(" Video track published");
+        } catch (e) {
+          logger.e("Video track failed (continuing audio-only): $e");
         }
       }
 
-      logger.i("Successfully connected to room");
+      notifyListeners();
     } catch (e) {
-      logger.e("Failed to connect: $e");
+      logger.e(" LiveKit connection failed: $e");
       _isConnected = false;
       _room = null;
       rethrow;
     }
   }
 
-  void _setupEventListeners() {
+  void _setupListeners() {
     _room?.events.listen((event) {
       if (event is ParticipantConnectedEvent) {
-        logger.i("New participant joined: ${event.participant.identity}");
+        logger.i(" Participant joined: ${event.participant.identity}");
+        notifyListeners();
       }
 
       if (event is ParticipantDisconnectedEvent) {
-        logger.i("Participant left: ${event.participant.identity}");
+        logger.i(" Participant left: ${event.participant.identity}");
+        notifyListeners();
       }
 
       if (event is TrackSubscribedEvent) {
-        logger.i("New track subscribed from: ${event.participant.identity}");
+        if (event.track.kind == TrackType.VIDEO) {
+          _remoteVideoTrack = event.track as VideoTrack;
+          logger.i(" Remote video subscribed");
+          notifyListeners();
+        }
+        if (event.track.kind == TrackType.AUDIO) {
+          logger.i(" Remote audio subscribed");
+          notifyListeners();
+        }
       }
 
       if (event is TrackUnsubscribedEvent) {
-        logger.i("Track unsubscribed from: ${event.participant.identity}");
+        if (event.track.kind == TrackType.VIDEO) {
+          _remoteVideoTrack = null;
+          logger.i(" Remote video unsubscribed");
+          notifyListeners();
+        }
       }
 
       if (event is RoomDisconnectedEvent) {
-        logger.i("Disconnected from room: ${event.reason}");
+        logger.i(" Room disconnected");
         _isConnected = false;
         _room = null;
+        _remoteVideoTrack = null;
+        notifyListeners();
       }
     });
   }
 
-  /// Enable audio
   Future<void> enableAudio() async {
     try {
       if (_audioPublication != null) {
         await _audioPublication!.unmute();
-        logger.i("Audio unmuted");
+        notifyListeners();
       }
     } catch (e) {
-      logger.e("Failed to enable audio: $e");
+      logger.e("Enable audio failed: $e");
     }
   }
 
-  /// Disable audio
   Future<void> disableAudio() async {
     try {
       if (_audioPublication != null) {
         await _audioPublication!.mute();
-        logger.i("Audio muted");
+        notifyListeners();
       }
     } catch (e) {
-      logger.e("Failed to disable audio: $e");
+      logger.e("Disable audio failed: $e");
     }
   }
 
-  /// Toggle audio
-  Future<void> toggleAudio() async {
-    try {
-      if (_audioPublication != null) {
-        if (_audioPublication!.muted) {
-          await _audioPublication!.unmute();
-          logger.i("Audio unmuted");
-        } else {
-          await _audioPublication!.mute();
-          logger.i("Audio muted");
-        }
-      }
-    } catch (e) {
-      logger.e("Failed to toggle audio: $e");
-    }
-  }
-
-  /// Enable video
   Future<void> enableVideo() async {
     try {
-      if (_room?.localParticipant != null) {
-        if (_videoPublication == null) {
-          final videoTrack = await LocalVideoTrack.createCameraTrack();
-          _videoPublication = await _room!.localParticipant!.publishVideoTrack(videoTrack);
-          logger.i("Video track published");
-        } else {
-          await _videoPublication!.unmute();
-          logger.i("Video unmuted");
-        }
+      if (_videoPublication != null) {
+        await _videoPublication!.unmute();
+      } else if (_room?.localParticipant != null) {
+        _videoTrack = await LocalVideoTrack.createCameraTrack(
+          CameraCaptureOptions(
+            cameraPosition: _isFrontCamera
+                ? CameraPosition.front
+                : CameraPosition.back,
+          ),
+        );
+        _videoPublication = await _room!.localParticipant!.publishVideoTrack(
+          _videoTrack!,
+        );
       }
+      notifyListeners();
     } catch (e) {
-      logger.e("Failed to enable video: $e");
+      logger.e("Enable video failed: $e");
     }
   }
 
-  /// Disable video
   Future<void> disableVideo() async {
     try {
       if (_videoPublication != null) {
         await _videoPublication!.mute();
-        logger.i("Video muted");
+        notifyListeners();
       }
     } catch (e) {
-      logger.e("Failed to disable video: $e");
+      logger.e("Disable video failed: $e");
     }
   }
 
-  /// Toggle video
-  Future<void> toggleVideo() async {
+  Future<void> switchCamera() async {
     try {
-      if (_room?.localParticipant != null) {
-        if (_videoPublication == null) {
-          await enableVideo();
-        } else {
-          if (_videoPublication!.muted) {
-            await _videoPublication!.unmute();
-            logger.i("Video unmuted");
-          } else {
-            await _videoPublication!.mute();
-            logger.i("Video muted");
-          }
-        }
-      }
+      if (_videoTrack == null) return;
+      _isFrontCamera = !_isFrontCamera;
+      final newPosition = _isFrontCamera
+          ? CameraPosition.front
+          : CameraPosition.back;
+      await _videoTrack!.restartTrack(
+        CameraCaptureOptions(cameraPosition: newPosition),
+      );
+      logger.i(" Camera switched to ${newPosition.name}");
+      notifyListeners();
     } catch (e) {
-      logger.e("Failed to toggle video: $e");
+      logger.e("Switch camera failed: $e");
+      _isFrontCamera = !_isFrontCamera;
+      notifyListeners();
     }
   }
 
-  /// Check if audio is muted
-  bool isAudioMuted() {
-    return _audioPublication?.muted ?? true;
-  }
-
-  /// Check if video is muted
-  bool isVideoMuted() {
-    return _videoPublication?.muted ?? true;
-  }
-
-  /// Check if video is published
-  bool hasVideo() {
-    return _videoPublication != null;
-  }
-
-  /// Disconnect from room
-  void leaveCall() {
+  Future<void> disconnect() async {
     try {
-      if (_isConnected && _room != null) {
-        _room!.disconnect();
-        _isConnected = false;
-        _audioPublication = null;
-        _videoPublication = null;
-        _room = null;
-        logger.i("Disconnected from room");
-      }
+      await _room?.disconnect();
     } catch (e) {
-      logger.e("Error disconnecting: $e");
+      logger.e("Disconnect error: $e");
+    } finally {
+      await _videoTrack?.stop();
+      await _audioTrack?.stop();
+      _room = null;
+      _audioTrack = null;
+      _videoTrack = null;
+      _audioPublication = null;
+      _videoPublication = null;
+      _remoteVideoTrack = null;
+      _isConnected = false;
+      _isFrontCamera = true;
+      notifyListeners();
     }
   }
 }

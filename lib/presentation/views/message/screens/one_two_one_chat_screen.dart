@@ -1,8 +1,10 @@
-import 'package:abbas/cors/services/user_id_storage.dart';
+import 'dart:async';
+import 'package:abbas/presentation/views/message/provider/create_chat_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-import 'package:abbas/presentation/views/message/provider/create_chat_provider.dart';
+import '../../../../cors/services/token_storage.dart';
+import '../../../../cors/services/user_id_storage.dart';
 import '../../../widgets/chat_appber.dart';
 
 class OneTwoOneChatScreen extends StatefulWidget {
@@ -13,136 +15,225 @@ class OneTwoOneChatScreen extends StatefulWidget {
 }
 
 class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
-  final UserIdStorage _userIdStorage = UserIdStorage();
-
-  String? currentUserId;
-  late String conversationId;
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+
+  String? currentUserId;
+  String? conversationId;
+  String? receiverName;
+  String? receiverAvatar;
+
+  Timer? _typingTimer;
+  bool _isTyping = false;
 
   @override
   void initState() {
     super.initState();
     _initialize();
+    _scrollController.addListener(_onScroll);
   }
 
-  @override
-  void dispose() {
-    _messageController.dispose();
-    _scrollController.dispose();
-    super.dispose();
-  }
+  /// 🔥 Load more when scroll to top (for pagination)
+  void _onScroll() {
+    if (!_scrollController.hasClients || conversationId == null) return;
 
-  Future<void> _initialize() async {
-    currentUserId = await _userIdStorage.getUserId();
+    final provider = context.read<CreateChatProvider>();
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      conversationId = ModalRoute.of(context)!.settings.arguments as String;
-
-      debugPrint("CurrentUserId: $currentUserId");
-      debugPrint("ConversationId: $conversationId");
-
-      context.read<CreateChatProvider>().getDmAllMessageRoom(conversationId);
-    });
-
-    setState(() {});
-  }
-
-  /// ---------------- Format Time --------------------------------------------
-  String _formatTime(String? dateTime) {
-    if (dateTime == null || dateTime.isEmpty) return "";
-    try {
-      final dt = DateTime.parse(dateTime);
-
-      final localDt = dt.toLocal();
-      return "${localDt.hour.toString().padLeft(2, '0')}:${localDt.minute.toString().padLeft(2, '0')}";
-    } catch (e) {
-      return dateTime;
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 100) {
+      if (!provider.isLoading && provider.hasMore) {
+        provider.getDmAllMessageRoom(conversationId!, isLoadMore: true);
+      }
     }
   }
 
-  /// --------------- Auto-scroll to bottom when new message arrives -----------
+  Future<void> _initialize() async {
+    currentUserId = await UserIdStorage().getUserId();
+
+    if (!mounted) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final args = ModalRoute.of(context)?.settings.arguments;
+
+      if (args == null || args is! String || args.isEmpty) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Invalid conversation")));
+        return;
+      }
+
+      setState(() {
+        conversationId = args;
+      });
+
+      final provider = context.read<CreateChatProvider>();
+
+      provider.clearMessages();
+
+      // First load messages
+      await provider.getDmAllMessageRoom(conversationId!);
+
+      _setReceiverInfo(provider);
+
+      // Initialize Socket
+      final token = await TokenStorage().getToken();
+      if (token != null && token.isNotEmpty) {
+        await provider.initializeRealtime(token, conversationId!);
+      }
+    });
+  }
+
   void _scrollToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (!_scrollController.hasClients) return;
+
+    Future.delayed(const Duration(milliseconds: 100), () {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
-          0,
-          duration: const Duration(milliseconds: 300),
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 250),
           curve: Curves.easeOut,
         );
       }
     });
   }
 
+  void _sendMessage() {
+    final text = _messageController.text.trim();
+    if (text.isEmpty || conversationId == null) return;
+
+    context.read<CreateChatProvider>().sendMessageRealtime(
+      conversationId: conversationId!,
+      kind: "TEXT",
+      text: text,
+    );
+
+    _messageController.clear();
+  }
+
+  void _setReceiverInfo(CreateChatProvider provider) {
+    final messages = provider.dmAllMessageModel?.items ?? [];
+    for (var msg in messages) {
+      if (msg.senderId != currentUserId && msg.sender != null) {
+        receiverName = msg.sender!.name;
+        receiverAvatar = msg.sender!.avatar;
+        break;
+      }
+    }
+  }
+
+  void _onTextChanged(String value) {
+    if (conversationId == null) return;
+
+    final isTypingNow = value.trim().isNotEmpty;
+
+    if (isTypingNow != _isTyping) {
+      _isTyping = isTypingNow;
+      context.read<CreateChatProvider>().sendTyping(conversationId!, _isTyping);
+    }
+
+    _typingTimer?.cancel();
+    _typingTimer = Timer(const Duration(seconds: 2), () {
+      if (_isTyping && mounted) {
+        _isTyping = false;
+        context.read<CreateChatProvider>().sendTyping(conversationId!, false);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _typingTimer?.cancel();
+    _messageController.dispose();
+    _scrollController.dispose();
+
+    if (conversationId != null) {
+      context.read<CreateChatProvider>().leaveConversation(conversationId!);
+    }
+
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<CreateChatProvider>();
 
-    ///----------- Get messages and sort them chronologically (oldest first) ---
-    final messages = (provider.dmAllMessageModel?.items ?? []).toList()
-      ..sort((a, b) {
-        final aDate = DateTime.tryParse(a.createdAt ?? '');
-        final bDate = DateTime.tryParse(b.createdAt ?? '');
-        if (aDate == null || bDate == null) return 0;
-        return aDate.compareTo(bDate);
-      });
-
-    ///  Scroll to bottom when messages change
-    if (messages.isNotEmpty) {
-      _scrollToBottom();
+    if (conversationId == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    // Sort messages by time (oldest to newest)
+    final messages = (provider.dmAllMessageModel?.items ?? []).toList()
+      ..sort((a, b) {
+        final aTime = DateTime.tryParse(a.createdAt ?? '') ?? DateTime.now();
+        final bTime = DateTime.tryParse(b.createdAt ?? '') ?? DateTime.now();
+        return aTime.compareTo(bTime);
+      });
+
+    // Auto scroll to bottom whenever messages update
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToBottom();
+    });
+
     return Scaffold(
-      backgroundColor: const Color(0xff030D15),
       body: Column(
         children: [
-          ChatAppBer(title: "Chat", image: "", conId: conversationId),
+          // AppBar
+          ChatAppBer(
+            title: receiverName ?? "Chat",
+            image: receiverAvatar ?? "",
+            conId: conversationId!,
+          ),
+
+          // Messages List
           Expanded(
-            child: provider.isLoading
+            child: provider.isLoading && messages.isEmpty
                 ? const Center(child: CircularProgressIndicator())
                 : messages.isEmpty
-                ? Center(
-                    child: Text(
-                      "No messages yet",
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 24.sp,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  )
+                ? const Center(child: Text("No messages yet"))
                 : ListView.builder(
                     controller: _scrollController,
-                    reverse: true,
+                    reverse: false,
                     padding: EdgeInsets.all(16.w),
-                    itemCount: messages.length,
+                    itemCount: messages.length + (provider.hasMore ? 1 : 0),
                     itemBuilder: (context, index) {
-                      final msg = messages[messages.length - 1 - index];
-                      final isSentByMe = msg.senderId == currentUserId;
+                      if (index == messages.length) {
+                        return const Padding(
+                          padding: EdgeInsets.all(10),
+                          child: Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        );
+                      }
+
+                      final msg = messages[index];
+                      final isMe = msg.senderId == currentUserId;
+
                       return _buildMessage(
                         text: msg.content?.text ?? "",
                         time: _formatTime(msg.createdAt),
-                        isSentByMe: isSentByMe,
+                        isSentByMe: isMe,
                         avatarUrl: msg.sender?.avatar,
                         senderName: msg.sender?.name,
-                        isGroup: false,
                       );
                     },
                   ),
           ),
+
+          // Message Input
           Padding(
-            padding: EdgeInsets.all(16.w),
+            padding: EdgeInsets.only(bottom: 24.h, left: 6.w, right: 6.w),
             child: Row(
               children: [
                 Expanded(
                   child: TextFormField(
                     controller: _messageController,
+                    onChanged: _onTextChanged,
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
-                      hintText: "Type message...",
-                      hintStyle: const TextStyle(color: Colors.white54),
+                      hintText: "Type a message...",
                       filled: true,
-                      fillColor: const Color(0xff0A1A2A),
+                      fillColor: const Color(0XFF0A1A29),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30.r),
                         borderSide: BorderSide.none,
@@ -152,29 +243,11 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
                 ),
                 SizedBox(width: 10.w),
                 GestureDetector(
-                  onTap: () async {
-                    final text = _messageController.text.trim();
-                    if (text.isNotEmpty) {
-                      // Clear input immediately for better UX
-                      _messageController.clear();
-
-                      // Send message
-                      await context.read<CreateChatProvider>().dmSendMessage(
-                        kind: "TEXT",
-                        text: text,
-                        conversationId: conversationId,
-                      );
-
-                      // Refresh messages after sending
-                      context.read<CreateChatProvider>().getDmAllMessageRoom(
-                        conversationId,
-                      );
-                    }
-                  },
+                  onTap: _sendMessage,
                   child: Container(
-                    padding: EdgeInsets.all(10.r),
-                    decoration: BoxDecoration(
-                      color: const Color(0xffE9201D),
+                    padding: EdgeInsets.all(12.r),
+                    decoration: const BoxDecoration(
+                      color: Color(0xffE9201D),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(Icons.send, color: Colors.white),
@@ -188,13 +261,22 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
     );
   }
 
+  String _formatTime(String? dateTime) {
+    if (dateTime == null || dateTime.isEmpty) return "";
+    try {
+      final dt = DateTime.parse(dateTime).toLocal();
+      return "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+    } catch (_) {
+      return "";
+    }
+  }
+
   Widget _buildMessage({
     required String text,
     required String time,
     required bool isSentByMe,
     String? avatarUrl,
     String? senderName,
-    bool isGroup = false,
   }) {
     return Align(
       alignment: isSentByMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -204,62 +286,23 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
           mainAxisAlignment: isSentByMe
               ? MainAxisAlignment.end
               : MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             if (!isSentByMe)
-              Container(
-                margin: EdgeInsets.only(right: 8.w),
-                child: CircleAvatar(
-                  radius: 16.r,
-                  backgroundColor: Colors.grey[800],
-                  child: avatarUrl != null && avatarUrl.isNotEmpty
-                      ? ClipOval(
-                          child: Image.network(
-                            avatarUrl,
-                            height: 32.h,
-                            width: 32.w,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, _, _) => Icon(
-                              Icons.person,
-                              color: Colors.white,
-                              size: 20.r,
-                            ),
-                          ),
-                        )
-                      : Icon(Icons.person, color: Colors.white, size: 20.r),
-                ),
+              CircleAvatar(
+                radius: 16.r,
+                backgroundImage: avatarUrl != null
+                    ? NetworkImage(avatarUrl)
+                    : null,
               ),
             Flexible(
               child: Container(
                 padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+                margin: EdgeInsets.symmetric(horizontal: 6.w),
                 decoration: BoxDecoration(
-                  color: isSentByMe
-                      ? const Color(0xff4A5D83)
-                      : const Color(0xff0A1A2A),
+                  color: isSentByMe ? Color(0xff4A5D83) : Color(0xff0A1A2A),
                   borderRadius: BorderRadius.circular(12.r),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (!isSentByMe && isGroup && senderName != null)
-                      Text(
-                        senderName,
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 12.sp,
-                        ),
-                      ),
-                    Text(
-                      text,
-                      style: TextStyle(color: Colors.white, fontSize: 14.sp),
-                    ),
-                    SizedBox(height: 4.h),
-                    Text(
-                      time,
-                      style: TextStyle(fontSize: 10.sp, color: Colors.white70),
-                    ),
-                  ],
-                ),
+                child: Text(text, style: TextStyle(color: Colors.white)),
               ),
             ),
           ],

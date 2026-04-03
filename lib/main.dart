@@ -14,9 +14,18 @@ import 'cors/theme/app_theme.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light, 
+      statusBarBrightness: Brightness.dark, 
+    ),
+  );
+
+ // cameras = await availableCameras();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   await Hive.initFlutter();
@@ -33,6 +42,7 @@ void main() async {
   runApp( ProviderScope(child: const MyApp()));
 }
 
+// main.dart - Add this after MaterialApp
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -51,6 +61,13 @@ class MyApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             initialRoute: AppRoutes.initialRoute,
             routes: AppRoutes.routes,
+            builder: (context, child) {
+              // ✅ Ensure overlay is available
+              return MediaQuery(
+                data: MediaQuery.of(context),
+                child: child ?? const SizedBox.shrink(),
+              );
+            },
           );
         },
       ),

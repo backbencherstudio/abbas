@@ -4,6 +4,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../cors/di/injection.dart';
 import '../../../cors/routes/route_names.dart';
 import '../../../cors/services/refresh_token_storage.dart';
+import '../../../cors/services/socket_call.dart';
 import '../../../cors/services/token_storage.dart';
 import '../../../cors/theme/app_colors.dart';
 import '../../../domain/repositories/auth/refresh_token_repository.dart';
@@ -63,10 +64,15 @@ class _SplashScreenState extends State<SplashScreen>
       final token = await TokenStorage().getToken();
       logger.d("========== Splash Screen $token ===========");
       if (token != null) {
+        // ✅ এই line যোগ করুন
+        SocketCall().connect(token);
+
         Future.delayed(const Duration(milliseconds: 1500), () async {
+          if (!mounted) return;
           Navigator.pushReplacementNamed(context, RouteNames.parentScreen);
         });
       } else {
+        if (!mounted) return;
         Navigator.pushReplacementNamed(context, RouteNames.onBoardingScreen);
       }
     });
@@ -95,7 +101,7 @@ class _SplashScreenState extends State<SplashScreen>
     await _cinCtController.forward();
 
     await Future.delayed(const Duration(milliseconds: 800));
-    setState(() => _showSubtitle = true);
+
     await _subtitleController.forward();
   }
 
@@ -110,6 +116,11 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      extendBodyBehindAppBar: true,
       body: TweenAnimationBuilder<Color?>(
         duration: const Duration(milliseconds: 2000),
         curve: Curves.easeInOut,

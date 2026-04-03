@@ -16,6 +16,7 @@ class RouteNames {
   static const String myCourseScreen = '/myCourseScreen';
   static const String courseModuleScreen = '/courseModuleScreen';
   static const String startEnrollment = '/startEnrollment';
+  static const String allAssignmentsScreen = '/allAssignmentsScreen';
   static const String selectCourse = '/selectCourse';
   static const String courseModule = '/courseModule';
   static const String audioCallScreen = '/audioCallScreen';
@@ -53,7 +54,8 @@ class RouteNames {
   static const String pushNotifications = '/pushNotifications';
   static const String commentScreen = '/commentScreen';
   static const String createPost = '/createPost';
-  static const String createPool = '/createPool';
+  static const String updatePost = '/updatePost';
+  static const String createPool = '/createPool'; 
   static const String myProfilePublic = '/myProfilePublic';
   static const String myProfilePrivate = '/myProfilePrivate';
   static const String editProfile = '/editProfile';

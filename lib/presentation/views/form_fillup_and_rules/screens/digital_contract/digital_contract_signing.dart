@@ -1,3 +1,4 @@
+import 'package:abbas/cors/utils/app_utils.dart';
 import 'package:abbas/presentation/views/form_fillup_and_rules/view_model/form_fill_and_rules_provider.dart';
 import 'package:abbas/presentation/widgets/validator.dart';
 import 'package:flutter/material.dart';
@@ -5,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../../cors/network/api_error_handle.dart';
 import '../../../../../cors/routes/route_names.dart';
-import '../../../../../utils/app_utils.dart';
 import '../../../../widgets/primary_button.dart';
 
 class DigitalContractSigning extends ConsumerStatefulWidget {
@@ -93,7 +93,7 @@ class _DigitalContractSigningState
             ),
             SizedBox(height: 24.h),
             Container(
-              padding: EdgeInsets.all(16.w),
+              padding: EdgeInsets.all(16.r),
               decoration: BoxDecoration(
                 color: const Color(0xFF0A1A29),
                 borderRadius: BorderRadius.circular(12.r),
@@ -107,7 +107,7 @@ class _DigitalContractSigningState
                       Text(
                         'Course Enrollment Agreement',
                         style: TextStyle(
-                          fontSize: 20.sp,
+                          fontSize: 18.sp,
                           fontWeight: FontWeight.w500,
                           color: Colors.white,
                         ),
@@ -265,7 +265,7 @@ class _DigitalContractSigningState
                         Navigator.pushNamed(
                           context,
                           RouteNames.payment,
-                          arguments: widget.enrollmentId
+                          arguments: widget.enrollmentId,
                         );
                       }
                     } else {

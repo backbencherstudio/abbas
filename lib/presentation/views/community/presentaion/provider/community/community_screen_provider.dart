@@ -1,5 +1,6 @@
-import 'dart:math';
-
+import 'dart:io';
+import 'package:abbas/presentation/views/community/model/get_comment_model.dart';
+import 'package:abbas/presentation/views/community/model/get_post_like_model.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import '../../../../../../cors/constants/api_endpoints.dart';
@@ -13,30 +14,63 @@ class CommunityScreenProvider extends ChangeNotifier {
 
   CommunityScreenProvider({required this.getCommunityFeedsUseCase});
 
+  bool _isDeletePost = false;
+  bool get isDeletePost => _isDeletePost;
+  void setIsDeletePost(bool isDeletePost) {
+    _isDeletePost = isDeletePost;
+    notifyListeners();
+  }
+
   List<CommunityEntity> _feeds = [];
+
   List<CommunityEntity> get feeds => _feeds;
 
+  /// ---------------- Get Post Like Model -------------------------------------
+  GetPostLikeModel? _getPostLikeModel;
+
+  GetPostLikeModel? get getPostLikeModel => _getPostLikeModel;
+
+  /// --------------- Per-post Like Counts -------------------------------------
+  final Map<String, int> _postLikeCounts = {};
+
+  int getPostLikeCount(String postId, int initialCount) {
+    return _postLikeCounts[postId] ?? initialCount;
+  }
+
+  /// ---------------- Get Comment Model -------------------------------------
+  List<GetCommentModel> _comments = [];
+
+  List<GetCommentModel> get comments => _comments;
+
+  List<Replies> _replies = [];
+
+  List<Replies> get replies => _replies;
+
+  /// --------------- Per-post Reaction State ----------------------------------
+  /// Maps postId -> selected ReactionType label (e.g. 'Like', 'Love', 'Angry')
+  final Map<String, String> _postReactions = {};
+
+  String? getReaction(String postId) => _postReactions[postId];
+
+  void setReaction(String postId, String reactionLabel) {
+    _postReactions[postId] = reactionLabel;
+    notifyListeners();
+  }
+
+  bool _isSubmitting = false;
+  bool get isSubmitting => _isSubmitting;
+  void setIsSubmitting(bool isSubmitting) {
+    _isSubmitting = isSubmitting;
+    notifyListeners();
+  }
+
   bool _isLoading = false;
+
   bool get isLoading => _isLoading;
 
   String? _error;
+
   String? get error => _error;
-
-  Future<void> fetchFeeds() async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      final result = await getCommunityFeedsUseCase();
-      _feeds = result;
-    } catch (e) {
-      _error = e.toString();
-    }
-
-    _isLoading = false;
-    notifyListeners();
-  }
 
   final ApiClient _apiClient = ApiClient();
   final Logger logger = Logger();
@@ -45,44 +79,265 @@ class CommunityScreenProvider extends ChangeNotifier {
 
   String? get errorMessage => _errorMessage;
 
-  Future<void> createPost() async {
-    logger.i("========== PROFILE API START ==========");
+  /// ----------------------- Create Post Method --------------------------------------
+  File? _selectedMedia;
+  bool _isPickingImage = false;
+  String _mediaType = 'TEXT';
 
+  File? get selectedMedia => _selectedMedia;
+  bool get isPickingImage => _isPickingImage;
+  String get mediaType => _mediaType;
+
+  void setSelectedMedia(File media, String type) {
+    _selectedMedia = media;
+    _mediaType = type;
+    notifyListeners();
+  }
+
+  void setIsPickingImage(bool isPickingImage) {
+    _isPickingImage = isPickingImage;
+    notifyListeners();
+  }
+
+  void removeMedia() {
+    _selectedMedia = null;
+    _mediaType = 'TEXT';
+    notifyListeners();
+  }
+
+  String _privacy = 'PUBLIC';
+
+  String get privacy => _privacy;
+  void setPrivacy(String privacy) {
+    _privacy = privacy;
+    notifyListeners();
+  }
+
+  /// ----------------- Fetch Feeds --------------------------------------------
+  Future<void> fetchFeeds() async {
     _isLoading = true;
-    _errorMessage = null;
+    _error = null;
     notifyListeners();
 
     try {
-      final ApiResponseModel response = await _apiClient.post(
-        ApiEndpoints.createPost,
-      );
-
-      logger.i("API Success Status: ${response.success}");
-      logger.i("API Message: ${response.message}");
-      logger.d("Raw API Data: ${response.data}");
-
-      if (response.success) {
-        logger.i("Profile Parsed Successfully");
-        logger.d("User ID: ");
-        logger.d("User Email:");
-      } else {
-        _errorMessage = response.message;
-        logger.e("API Returned Error: $_errorMessage");
-      }
-    } catch (e, stackTrace) {
-      _errorMessage = e.toString();
-
-      logger.e("Exception Occurred");
-      logger.e(e);
-      logger.e(stackTrace);
+      final result = await getCommunityFeedsUseCase();
+      notifyListeners();
+      _feeds = result;
+    } catch (e) {
+      notifyListeners();
+      _error = e.toString();
     }
 
     _isLoading = false;
     notifyListeners();
-
-    logger.i("========== PROFILE API END ==========");
   }
 
+  /// ------------------- Create Post -----------------------------------------
+  Future<dynamic> createPost(String content, File? mediaFile) async {
+    _isLoading = true;
+    notifyListeners();
 
+    try {
+      var fields = {
+        'content': content,
+        'mediaType': _mediaType,
+        'visibility': _privacy,
+      };
 
+      ApiResponseModel response;
+
+      if (mediaFile != null) {
+        response = await _apiClient.postMultipart(
+          ApiEndpoints.createPost,
+          fields: fields,
+          fileField: 'media',
+          filePath: mediaFile.path,
+        );
+      } else {
+        response = await _apiClient.post(ApiEndpoints.createPost, body: fields);
+      }
+
+      if (response.success) {
+        fetchFeeds();
+      }
+
+      notifyListeners();
+      return response;
+    } catch (e) {
+      notifyListeners();
+      logger.e("Error creating post: $e");
+      return e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// ------------------- Update Post -----------------------------------------
+  Future<dynamic> updatePost(
+    String postId,
+    String content,
+    File? mediaFile,
+  ) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      var fields = {
+        'content': content,
+        'mediaType': _mediaType,
+        'visibility': _privacy,
+      };
+
+      ApiResponseModel response;
+
+      if (mediaFile != null) {
+        response = await _apiClient.patchMultipart(
+          ApiEndpoints.updatePost(postId),
+          fields: fields,
+          fileField: 'media',
+          filePath: mediaFile.path,
+        );
+      } else {
+        response = await _apiClient.patch(
+          ApiEndpoints.updatePost(postId),
+          body: fields,
+        );
+      }
+
+      logger.d("Update post data : ${response.data}");
+      if (response.success) {
+        fetchFeeds();
+      }
+
+      notifyListeners();
+      return response;
+    } catch (e) {
+      notifyListeners();
+      logger.e("Error updating post: $e");
+      return e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// ------------------ Create Post Like --------------------------------------
+
+  Future<ApiResponseModel> createPostLike(String postId) async {
+    var body = {'postId': postId};
+    try {
+      final ApiResponseModel response = await _apiClient.post(
+        ApiEndpoints.createPostLike,
+        body: body,
+      );
+      if (response.success) {
+        logger.d(response.message);
+        return ApiResponseModel(success: true, message: response.message);
+      } else {
+        return ApiResponseModel(success: false, message: response.message);
+      }
+    } catch (e) {
+      return ApiResponseModel(success: false, message: e.toString());
+    }
+  }
+
+  /// ------------------- Get Post Like ---------------------------------------
+  Future<void> getPostLike(String postId) async {
+    try {
+      final ApiResponseModel response = await _apiClient.get(
+        ApiEndpoints.getPostLike(postId),
+      );
+      if (response.success && response.data != null) {
+        final model = GetPostLikeModel.fromJson(
+          response.data as Map<String, dynamic>,
+        );
+        _getPostLikeModel = model;
+        _postLikeCounts[postId] = model.likesCount ?? 0;
+        notifyListeners();
+      }
+    } catch (e) {
+      logger.e('getPostLike error: $e');
+    }
+  }
+
+  /// ------------------- Create Comment --------------------------------------
+  Future<ApiResponseModel> createComment(String postId, String comment) async {
+    var body = {'postId': postId, 'content': comment};
+    try {
+      final ApiResponseModel response = await _apiClient.post(
+        ApiEndpoints.createComment(postId),
+        body: body,
+      );
+      if (response.success) {
+        logger.d(response.message);
+        return ApiResponseModel(success: true, message: response.message);
+      }
+      return ApiResponseModel(success: false, message: response.message);
+    } catch (e) {
+      return ApiResponseModel(success: false, message: e.toString());
+    }
+  }
+
+  bool _isLoadingComments = false;
+  bool get isLoadingComments => _isLoadingComments;
+
+  /// ------------------- Get Comment --------------------------------------
+  Future<void> getComment(String postId) async {
+    _isLoadingComments = true;
+    _comments = [];
+    notifyListeners();
+    try {
+      final response = await _apiClient.get(ApiEndpoints.getComment(postId));
+      final list = response.data as List<dynamic>;
+      _comments = list
+          .map((item) => GetCommentModel.fromJson(item as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      logger.e('getComment error: $e');
+    } finally {
+      _isLoadingComments = false;
+      notifyListeners();
+    }
+  }
+
+  /// ------------------- Reply Comment --------------------------------------
+  Future<ApiResponseModel> replyComment(
+    String postId,
+    String replyId,
+    String content,
+  ) async {
+    var body = {'postId': postId, 'content': content};
+    try {
+      final ApiResponseModel response = await _apiClient.post(
+        ApiEndpoints.replyComment(replyId),
+        body: body,
+      );
+      if (response.success) {
+        logger.d(response.message);
+        return ApiResponseModel(success: true, message: response.message);
+      }
+      return ApiResponseModel(success: false, message: response.message);
+    } catch (e) {
+      logger.e('replyComment error: $e');
+      return ApiResponseModel(success: false, message: e.toString());
+    }
+  }
+
+  /// ------------------- Delete Post --------------------------------------
+  Future<ApiResponseModel> deletePost(String postId) async {
+    try {
+      final ApiResponseModel response = await _apiClient.delete(
+        ApiEndpoints.deletePost(postId),
+      );
+      if (response.success) {
+        logger.d(response.message);
+        return ApiResponseModel(success: true, message: response.message);
+      }
+      return ApiResponseModel(success: false, message: response.message);
+    } catch (e) {
+      logger.e('deletePost error: $e');
+      return ApiResponseModel(success: false, message: e.toString());
+    }
+  }
 }

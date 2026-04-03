@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../../../cors/di/injection.dart';
 import '../../../../../cors/routes/route_names.dart';
 import '../../../../../domain/usecases/auth/change_password_usecase.dart';
-import '../../../../services/toast_service.dart';
+import '../../../../../cors/services/toast_service.dart';
 import '../../../../viewmodels/auth/change_password/change_password_viewmodel.dart';
 import '../../../../widgets/secondary_appber.dart';
 
