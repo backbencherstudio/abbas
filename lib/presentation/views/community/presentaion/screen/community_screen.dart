@@ -2,7 +2,6 @@ import 'package:abbas/cors/routes/route_names.dart';
 import 'package:abbas/presentation/views/profile/view_model/profil_screen_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../../../widgets/custom_appbar.dart';
 import '../../domain/community/community_entity.dart';
 import '../../widgets/create_post_widget.dart';
