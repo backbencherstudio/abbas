@@ -73,6 +73,7 @@ class RouteNames {
   static const String completePayment = '/completePayment';
   static const String prosHome = '/prosHome';
   static const String myCourse = '/myCourse';
+  static const String courseScreen = '/courseScreen';
   static const String courseModules = '/courseModules';
   static const String parentScreenTwo = '/parentScreenTwo';
   static const String allEvents = '/allEvents';

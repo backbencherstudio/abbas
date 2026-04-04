@@ -431,20 +431,21 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                         );
                                       },
                                     ),
+                                  )
+                                else
+                                  Container(
+                                    height: 200,
+                                    width: double.infinity,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[200],
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Icon(
+                                      Icons.image,
+                                      size: 50.sp,
+                                      color: Colors.grey,
+                                    ),
                                   ),
-                              Container(
-                                height: 200,
-                                width: double.infinity,
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[200],
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Icon(
-                                  Icons.image,
-                                  size: 50.sp,
-                                  color: Colors.grey,
-                                ),
-                              ),
                               SizedBox(height: 12.h),
                               Row(
                                 children: [

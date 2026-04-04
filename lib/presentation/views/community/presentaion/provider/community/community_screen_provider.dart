@@ -42,7 +42,7 @@ class CommunityScreenProvider extends ChangeNotifier {
 
   List<GetCommentModel> get comments => _comments;
 
-  List<Replies> _replies = [];
+  final List<Replies> _replies = [];
 
   List<Replies> get replies => _replies;
 
