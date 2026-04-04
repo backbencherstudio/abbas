@@ -93,6 +93,7 @@ class ApiEndpoints {
       '$baseUrl/api/community/comment/reply/$postId';
   static String deletePost(String postId) =>
       '$baseUrl/api/community/post/$postId';
+  static const String createPoll = '$baseUrl/api/community/post';
 
   // chat
 

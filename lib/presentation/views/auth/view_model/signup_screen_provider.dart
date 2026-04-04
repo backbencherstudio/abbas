@@ -6,13 +6,10 @@ import 'package:abbas/cors/services/socket_call.dart';
 import 'package:abbas/cors/services/token_storage.dart';
 import 'package:abbas/data/models/response_model.dart';
 import 'package:abbas/presentation/views/auth/model/auth_model.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../../cors/services/user_id_storage.dart';
-import '../../../../main.dart';
-import '../../message/provider/call_provider.dart';
+
 
 final authProvider = StateNotifierProvider<AuthProvider, AuthModel>(
   (ref) => AuthProvider(dioClient: DioClient()),
