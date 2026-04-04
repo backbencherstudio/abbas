@@ -1,5 +1,5 @@
+import 'package:abbas/cors/routes/route_names.dart';
 import 'package:flutter/material.dart';
-
 
 class OnboardingViewModel extends ChangeNotifier {
   final PageController pageController = PageController();
@@ -23,10 +23,14 @@ class OnboardingViewModel extends ChangeNotifier {
   }
 
   void skip(BuildContext context) {
-    if (currentPage == totalPages - 1) {
-      // Navigator.pushReplacementNamed(context, LoginPage.name);
+    if (currentPage < totalPages - 1) {
+      pageController.animateToPage(
+       currentPage + 1,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.ease,
+      );
     } else {
-      nextPage();
+      Navigator.pushReplacementNamed(context, RouteNames.loginAndSignUpScreen);
     }
   }
 

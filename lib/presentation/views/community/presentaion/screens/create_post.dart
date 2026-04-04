@@ -41,14 +41,11 @@ class _CreatePostState extends State<CreatePost> {
     try {
       context.read<CommunityScreenProvider>().setIsPickingImage(true);
 
-      final XFile? image = await _imagePicker.pickImage(
-        source: source,
-        imageQuality: 85,
-      );
+      final List<XFile>? image = await _imagePicker.pickMultiImage();
 
       if (image != null) {
         context.read<CommunityScreenProvider>().setSelectedMedia(
-          File(image.path),
+          File(image.first.path),
           'PHOTO',
         );
       }

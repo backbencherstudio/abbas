@@ -42,7 +42,7 @@ class CommunityScreenProvider extends ChangeNotifier {
 
   List<GetCommentModel> get comments => _comments;
 
-  List<Replies> _replies = [];
+  final List<Replies> _replies = [];
 
   List<Replies> get replies => _replies;
 
@@ -338,6 +338,47 @@ class CommunityScreenProvider extends ChangeNotifier {
     } catch (e) {
       logger.e('deletePost error: $e');
       return ApiResponseModel(success: false, message: e.toString());
+    }
+  }
+
+  /// ------------------- Create Poll --------------------------------------
+  Future<bool> createPoll(String content, List<String> pollOptions) async {
+    _isLoading = true;
+    notifyListeners();
+
+    var body = {
+      'postType': 'POLL',
+      'content': content,
+      'pollOptions': pollOptions,
+      'visibility': _privacy,
+    };
+
+    try {
+      final response = await _apiClient.post(
+        ApiEndpoints.createPoll,
+        body: body,
+      );
+
+      logger.d("Create poll response: ${response.success}");
+      logger.d("Create poll data: ${response.data}");
+
+      if (response.success) {
+        // Refresh the feed to show the new poll
+        await fetchFeeds();
+        return true;
+      } else {
+        _errorMessage = response.message;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      logger.e('createPoll error: $e');
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 }

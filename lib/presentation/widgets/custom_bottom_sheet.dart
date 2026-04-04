@@ -78,11 +78,19 @@ class CustomBottomSheet extends StatelessWidget {
           SizedBox(height: 16.h),
           Text(title, style: Theme.of(context).textTheme.headlineSmall),
           SizedBox(height: 16.h),
-          Text(description, textAlign: TextAlign.center),
+          Text(
+            description,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: Colors.white,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
           SizedBox(height: 16.h),
           const Spacer(),
           CustomButton(
-            title:buttonTitle,
+            title: buttonTitle,
             hasIcon: true,
             iconWidget: SvgPicture.asset(
               buttonIconPath,
