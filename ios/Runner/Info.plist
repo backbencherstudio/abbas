@@ -6,6 +6,8 @@
     <string>Camera access for video calls</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>Microphone access for audio calls</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+    <string>This app needs photos access to get QR code from photo library</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

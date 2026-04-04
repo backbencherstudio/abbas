@@ -32,27 +32,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _submitLogin() async {
-    final res = await ref
-        .read(authProvider.notifier)
-        .login(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
+    if (!_formKey.currentState!.validate()) {
+
+      final res = await ref
+          .read(authProvider.notifier)
+          .login(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+          );
+      if (res.success) {
+        Utils.showToast(
+          msg: res.message,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
         );
-    if (res.success) {
-      Utils.showToast(
-        msg: res.message,
-        backgroundColor: Colors.green,
-        textColor: Colors.white,
-      );
-      if (context.mounted) {
-        Navigator.pushNamed(context, RouteNames.startEnrollment);
+        if (context.mounted) {
+          Navigator.pushNamed(context, RouteNames.startEnrollment);
+        }
+      } else {
+        Utils.showToast(
+          msg: res.message,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
       }
-    } else {
-      Utils.showToast(
-        msg: res.message,
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-      );
     }
   }
 
