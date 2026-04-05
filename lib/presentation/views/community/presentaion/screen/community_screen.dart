@@ -389,49 +389,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                       ),
                                     ),
                                   )
-                                else if (feed.postType == 'POLL')
-                                  Column(
-                                    children: List.generate(
-                                      feed.pollOptions!.length,
-                                      (index) {
-                                        logger.d(
-                                          "Poll Options : ${feed.pollOptions}",
-                                        );
-                                        final option = feed.pollOptions![index];
-                                        return Padding(
-                                          padding: EdgeInsets.only(bottom: 8.h),
-                                          child: GestureDetector(
-                                            onTap: () {},
-                                            child: Container(
-                                              padding: EdgeInsets.symmetric(
-                                                horizontal: 16.w,
-                                                vertical: 12.h,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color: Colors.grey[800],
-                                                borderRadius:
-                                                    BorderRadius.circular(8.r),
-                                                border: Border.all(
-                                                  color: Colors.grey[600]!,
-                                                  width: 1.w,
-                                                ),
-                                              ),
-                                              child: ListTile(
-                                                title: Text(
-                                                  option.title ??
-                                                      "Option ${index + 1}",
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 14.sp,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  )
                                 else
                                   Container(
                                     height: 200,
@@ -445,7 +402,49 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                       size: 50.sp,
                                       color: Colors.grey,
                                     ),
+                                  )
+                              else if (feed.postType == 'POLL' &&
+                                  feed.pollOptions != null &&
+                                  feed.pollOptions!.isNotEmpty)
+                                Column(
+                                  children: List.generate(
+                                    feed.pollOptions!.length,
+                                    (index) {
+                                      logger.d(
+                                        "Poll Options : ${feed.pollOptions}",
+                                      );
+                                      final option = feed.pollOptions![index];
+                                      return Padding(
+                                        padding: EdgeInsets.only(bottom: 8.h),
+                                        child: Container(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 12.w,
+                                            vertical: 8.h,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(
+                                              12.r,
+                                            ),
+                                            border: Border.all(
+                                              color: Colors.white,
+                                              width: 1.w,
+                                            ),
+                                          ),
+                                          child: ListTile(
+                                            title: Text(
+                                              option.title ??
+                                                  "Option ${index + 1}",
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 14.sp,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    },
                                   ),
+                                ),
                               SizedBox(height: 12.h),
                               Row(
                                 children: [
