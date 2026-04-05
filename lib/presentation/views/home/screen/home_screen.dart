@@ -84,10 +84,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             subtitle: "Welcome back!",
           ),
 
+          SizedBox(height: 24.h),
           Expanded(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: ListView(
+                padding: EdgeInsets.zero,
                 children: [
                   Text(
                     "Quick Access",
@@ -108,9 +110,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       QuickAction(
                         icon: 'book',
                         label: 'My Course',
-                        onTap: () {
-                          Navigator.pushNamed(context, RouteNames.prosHome);
-                        },
+                        onTap: () {},
                       ),
                       QuickAction(
                         icon: 'note',
@@ -124,7 +124,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 24.h),
+                  SizedBox(height: 16.h),
                   Text(
                     "Upcoming Class",
                     style: TextStyle(
@@ -285,7 +285,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ],
                     ),
                   ),
-                  SizedBox(height: 24.h),
+                  SizedBox(height: 16.h),
 
                   /// --------------- Assignments --------------------------
                   Text(
@@ -441,7 +441,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ],
                     ),
                   ),
-                  SizedBox(height: 24.h),
+                  SizedBox(height: 16.h),
 
                   /// ------------- Upcoming Events ------------------------
                   Text(
@@ -606,6 +606,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ],
                     ),
                   ),
+                  SizedBox(height: 16.h),
                 ],
               ),
             ),
@@ -666,6 +667,7 @@ class _QuickGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
+      padding: EdgeInsets.zero,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
