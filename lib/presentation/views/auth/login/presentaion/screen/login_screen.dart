@@ -33,7 +33,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _submitLogin() async {
     if (_formKey.currentState!.validate()) {
-
       final res = await ref
           .read(authProvider.notifier)
           .login(

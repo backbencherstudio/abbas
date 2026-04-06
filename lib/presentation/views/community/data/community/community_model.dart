@@ -42,8 +42,6 @@ class GetFeedModel {
   });
 
   factory GetFeedModel.fromJson(Map<String, dynamic> json) {
-    // ডিবাগ করার জন্য JSON এর keys প্রিন্ট করুন
-    print('GetFeedModel JSON keys: ${json.keys}');
 
     return GetFeedModel(
       id: json['id']?.toString(),
@@ -130,7 +128,7 @@ class AuthorModel {
   AuthorModel({this.id, this.name, this.username, this.avatar});
 
   factory AuthorModel.fromJson(Map<String, dynamic> json) {
-    print('AuthorModel JSON keys: ${json.keys}');
+
 
     return AuthorModel(
       id: json['id']?.toString(),
@@ -159,7 +157,6 @@ class LikeModel {
   LikeModel({this.id, this.postId, this.userId, this.createdAt});
 
   factory LikeModel.fromJson(Map<String, dynamic> json) {
-    print('LikeModel JSON keys: ${json.keys}');
 
     return LikeModel(
       id: json['id']?.toString(),
@@ -197,8 +194,7 @@ class CommentModel {
   });
 
   factory CommentModel.fromJson(Map<String, dynamic> json) {
-    print('CommentModel JSON keys: ${json.keys}');
-
+   
     return CommentModel(
       id: json['id']?.toString(),
       postId: json['postId']?.toString(),
@@ -259,8 +255,7 @@ class PollOptionModel {
   PollOptionModel({this.id, this.postId, this.title, this.votes});
 
   factory PollOptionModel.fromJson(Map<String, dynamic> json) {
-    print('PollOptionModel JSON keys: ${json.keys}');
-
+  
     return PollOptionModel(
       id: json['id']?.toString(),
       postId: json['postId']?.toString(),
