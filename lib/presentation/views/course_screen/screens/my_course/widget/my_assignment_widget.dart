@@ -31,12 +31,10 @@ class _MyAssignmentWidgetState extends ConsumerState<MyAssignmentWidget> {
     final assignmentsData = assignmentsProvider.value;
     final modules = assignmentsData?.data ?? [];
 
-    /// -------- Loading --------
     if (assignmentsProvider.isLoading) {
       return Center(child: AnimatedLoading());
     }
 
-    /// -------- Error --------
     if (assignmentsProvider.hasError) {
       return Center(
         child: Text(
@@ -46,47 +44,43 @@ class _MyAssignmentWidgetState extends ConsumerState<MyAssignmentWidget> {
       );
     }
 
-    /// -------- Data UI --------
     return ListView(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
-      children: [
-        ...modules.map((module) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              /// Module Title
-              Text(
-                "${module.moduleTitle ?? ''} : ${module.moduleName ?? ''}",
-                style: TextStyle(
-                  color: Color(0xff8C9196),
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w500,
-                ),
+      children: modules.map((module) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            dividerColor: Colors.transparent,
+            iconTheme: const IconThemeData(color: Colors.white),
+          ),
+          child: ExpansionTile(
+            title: Text(
+              "${module.moduleTitle ?? ''} : ${module.moduleName ?? ''}",
+              style: TextStyle(
+                color: Color(0xff8C9196),
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w500,
               ),
-
-              SizedBox(height: 10.h),
-
-              /// Assignments List
-              ...?module.assignments?.map((value) {
-                return Padding(
-                  padding: EdgeInsets.symmetric(vertical: 7.h),
-                  child: InkWell(
-                    onTap: () {
-                      if (value.status == 'SUBMITTED') {
-                        Navigator.pushNamed(
-                          context,
-                          RouteNames.submittedAssignmentScreen,
-                          arguments: value.id,
-                        );
-                      } else {
-                        Navigator.pushNamed(
-                          context,
-                          RouteNames.dueAssignmentScreen,
-                          arguments: value.id,
-                        );
-                      }
-                    },
-                    child: Container(
+            ),
+            children: (module.assignments ?? []).map((value) {
+              return Padding(
+                padding: EdgeInsets.symmetric(vertical: 7.h),
+                child: InkWell(
+                  onTap: () {
+                    if (value.status == 'SUBMITTED') {
+                      Navigator.pushNamed(
+                        context,
+                        RouteNames.submittedAssignmentScreen,
+                        arguments: value.id,
+                      );
+                    } else {
+                      Navigator.pushNamed(
+                        context,
+                        RouteNames.dueAssignmentScreen,
+                        arguments: value.id,
+                      );
+                    }
+                  },
+                  child: Container(
                     padding: EdgeInsets.symmetric(
                       horizontal: 15.w,
                       vertical: 20.h,
@@ -100,7 +94,6 @@ class _MyAssignmentWidgetState extends ConsumerState<MyAssignmentWidget> {
                     ),
                     child: Row(
                       children: [
-                        /// Assignment Title
                         Expanded(
                           child: Text(
                             value.title ?? 'N/A',
@@ -110,8 +103,6 @@ class _MyAssignmentWidgetState extends ConsumerState<MyAssignmentWidget> {
                             ),
                           ),
                         ),
-
-                        /// Due Label
                         Container(
                           padding: EdgeInsets.symmetric(
                             horizontal: 12.w,
@@ -137,10 +128,7 @@ class _MyAssignmentWidgetState extends ConsumerState<MyAssignmentWidget> {
                             ),
                           ),
                         ),
-
                         SizedBox(width: 10.w),
-
-                        /// Navigate Button
                         Icon(
                           Icons.arrow_forward_ios,
                           color: Colors.white,
@@ -149,13 +137,12 @@ class _MyAssignmentWidgetState extends ConsumerState<MyAssignmentWidget> {
                       ],
                     ),
                   ),
-                  )
-                );
-              }),
-            ],
-          );
-        }),
-      ],
+                ),
+              );
+            }).toList(),
+          ),
+        );
+      }).toList(),
     );
   }
 }

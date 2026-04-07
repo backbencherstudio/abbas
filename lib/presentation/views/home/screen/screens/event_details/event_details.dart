@@ -1,4 +1,5 @@
 import 'package:abbas/presentation/views/home/view_model/events_provider.dart';
+import 'package:abbas/presentation/widgets/animated_loading.dart';
 import 'package:abbas/presentation/widgets/shimmer_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -39,15 +40,7 @@ class _EventDetailsState extends ConsumerState<EventDetails> {
     final eventDetailsProvider = ref.watch(getEventByIdProvider);
     final eventDetails = eventDetailsProvider.value;
     if (eventDetailsProvider.isLoading) {
-      return ListView(
-        children: [
-          shimmerWidget(),
-          SizedBox(height: 12.h),
-          shimmerWidget(),
-          SizedBox(height: 12.h),
-          shimmerWidget(),
-        ],
-      );
+      return AnimatedLoading();
     }
     return Scaffold(
       backgroundColor: Color(0xff030D15),
@@ -106,7 +99,6 @@ class _EventDetailsState extends ConsumerState<EventDetails> {
                         ),
                         SizedBox(width: 10.w),
                         Text(
-
                           eventDetails?.location ?? 'N/A',
                           style: TextStyle(
                             color: Color(0xffE9E9EA),
@@ -312,7 +304,14 @@ class _EventDetailsState extends ConsumerState<EventDetails> {
                 color: Color(0xFFE9201D),
                 textColor: Colors.white,
                 icon: '',
-                child: Text("Get Ticket"),
+                child: Text(
+                  "Get Ticket",
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
               ),
             ),
             SizedBox(height: 25.h),

@@ -37,14 +37,20 @@ class CommunityRemoteDataSource {
 
           return data
               .map((e) {
-            try {
-              return GetFeedModel.fromJson(e as Map<String, dynamic>);
-            } catch (e) {
-              log('Error parsing item: $e');
-              log('Problematic item: $e');
-              return null;
-            }
-          })
+                try {
+                  final model = GetFeedModel.fromJson(
+                    e as Map<String, dynamic>,
+                  );
+                  print(
+                    'Parsed model postType: ${model.postType}, pollOptions: ${model.pollOptions?.map((p) => p.title).toList()}',
+                  );
+                  return model;
+                } catch (e) {
+                  log('Error parsing item: $e');
+                  log('Problematic item: $e');
+                  return null;
+                }
+              })
               .whereType<GetFeedModel>() // null গুলো বাদ দিন
               .toList();
         } else if (data is Map<String, dynamic>) {
@@ -52,7 +58,9 @@ class CommunityRemoteDataSource {
 
           // যদি API data ফিল্ডের মধ্যে List পাঠায়
           if (data.containsKey('data') && data['data'] is List) {
-            log('Found data field with list length: ${(data['data'] as List).length}');
+            log(
+              'Found data field with list length: ${(data['data'] as List).length}',
+            );
 
             return (data['data'] as List)
                 .map((e) => GetFeedModel.fromJson(e as Map<String, dynamic>))

@@ -72,7 +72,7 @@ class _ScannerState extends State<Scanner> {
           const SecondaryAppBar(title: 'Attendance'),
 
           SizedBox(height: 24.h),
-          Image.asset("assets/icons/qr.png",scale:2.4,),
+          Image.asset("assets/icons/qr.png", scale: 2.4),
           SizedBox(height: 12.h),
           Text(
             "Scan QR code",
@@ -168,69 +168,79 @@ class _ScannerState extends State<Scanner> {
             ),
           ),
           SizedBox(height: 20.h),
-          GestureDetector(onTap:() {
-            showDialog(
-              context: context,
-              barrierDismissible: false, // user must tap Back to Home
-              builder: (context) {
-                return Dialog(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  backgroundColor: const Color(0xff8D9CDC), // dark background
-                  child: Container(
-                    padding: EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0A0E17),
+          GestureDetector(
+            onTap: () {
+              showDialog(
+                context: context,
+                barrierDismissible: false, // user must tap Back to Home
+                builder: (context) {
+                  return Dialog(
+                    shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Circle with check
-                        Image.asset('assets/images/Frame.png', scale: 3,),
-                        const SizedBox(height: 20),
+                    backgroundColor: const Color(0xff8D9CDC), // dark background
+                    child: Container(
+                      padding: EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0A0E17),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Circle with check
+                          Image.asset('assets/images/Frame.png', scale: 3),
+                          const SizedBox(height: 20),
 
-                        // Text
-                        const Text(
-                          "Attendance Successful",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
+                          // Text
+                          const Text(
+                            "Attendance Successful",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                        ),
 
-                        const SizedBox(height: 20),
+                          const SizedBox(height: 20),
 
-                        // Back to Home button
-                        TextButton.icon(
-                          onPressed: () {
-                            Navigator.pushNamed(
-                                context, RouteNames.parentScreen);
-                          },
-                          icon: Image.asset(
-                            'assets/icons/back_arrow.png', scale: 3,),
-                          label: const Text(
-                            "Back to Home",
-                            style: TextStyle(color: Color(0xff8D9CDC),
+                          // Back to Home button
+                          TextButton.icon(
+                            onPressed: () {
+                              Navigator.pushNamed(
+                                context,
+                                RouteNames.parentScreen,
+                              );
+                            },
+                            icon: Image.asset(
+                              'assets/icons/back_arrow.png',
+                              scale: 3,
+                            ),
+                            label: const Text(
+                              "Back to Home",
+                              style: TextStyle(
+                                color: Color(0xff8D9CDC),
                                 fontWeight: FontWeight.w500,
-                                fontSize: 16),
+                                fontSize: 16,
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
-            );
-          },
+                  );
+                },
+              );
+            },
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 24.w),
               child: Text(
                 "Align the QR within the frame to scan automatically.",
                 textAlign: TextAlign.center,
-                style: TextStyle(color: const Color(0xff8C9196), fontSize: 12.sp),
+                style: TextStyle(
+                  color: const Color(0xff8C9196),
+                  fontSize: 12.sp,
+                ),
               ),
             ),
           ),

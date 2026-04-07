@@ -68,9 +68,7 @@ class _CreatePostState extends State<CreatePost> {
     try {
       context.read<CommunityScreenProvider>().setIsPickingImage(true);
 
-      final XFile? video = await _imagePicker.pickVideo(
-        source: source,
-      );
+      final XFile? video = await _imagePicker.pickVideo(source: source);
 
       if (video != null) {
         context.read<CommunityScreenProvider>().setSelectedMedia(
@@ -160,7 +158,7 @@ class _CreatePostState extends State<CreatePost> {
           backgroundColor: Colors.green,
           textColor: Colors.white,
         );
-        Navigator.pop(context, true); 
+        Navigator.pop(context, true);
       } else {
         String msg = 'Failed to create post';
         if (response is ApiResponseModel) {
@@ -204,7 +202,7 @@ class _CreatePostState extends State<CreatePost> {
                   child: Column(
                     children: [
                       SizedBox(height: 10.h),
-                
+
                       /// ---------------- Author Info -------------------------
                       Row(
                         children: [
@@ -246,29 +244,18 @@ class _CreatePostState extends State<CreatePost> {
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 12.sp,
-                                        fontWeight: FontWeight.w400
+                                        fontWeight: FontWeight.w400,
                                       ),
                                     ),
                                   ),
                                   PopupMenuItem<String>(
-                                    value: 'FRIENDS',
+                                    value: 'PRIVATE',
                                     child: Text(
-                                      'FRIENDS',
+                                      'PRIVATE',
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 12.sp,
-                                        fontWeight: FontWeight.w400
-                                      ),
-                                    ),
-                                  ),
-                                  PopupMenuItem<String>(
-                                    value: 'ONLY ME',
-                                    child: Text(
-                                      'ONLY ME',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12.sp,
-                                        fontWeight: FontWeight.w400
+                                        fontWeight: FontWeight.w400,
                                       ),
                                     ),
                                   ),
@@ -287,8 +274,6 @@ class _CreatePostState extends State<CreatePost> {
                                   Icon(
                                     provider.privacy == 'PUBLIC'
                                         ? Icons.public
-                                        : provider.privacy == 'FRIENDS'
-                                        ? Icons.group
                                         : Icons.lock,
                                     color: Colors.white,
                                     size: 16.sp,
@@ -313,9 +298,9 @@ class _CreatePostState extends State<CreatePost> {
                           ),
                         ],
                       ),
-                
+
                       SizedBox(height: 16.h),
-                
+
                       /// ------------- Text input field -----------------------
                       _buildTextField(
                         "What's on your mind?",
@@ -323,7 +308,7 @@ class _CreatePostState extends State<CreatePost> {
                         maxLines: 8,
                         focusNode: _goalsFocus,
                       ),
-                
+
                       if (provider.selectedMedia != null) ...[
                         SizedBox(height: 16.h),
                         Stack(
@@ -351,9 +336,16 @@ class _CreatePostState extends State<CreatePost> {
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(Icons.video_file, color: Colors.white, size: 48),
+                                    Icon(
+                                      Icons.video_file,
+                                      color: Colors.white,
+                                      size: 48,
+                                    ),
                                     SizedBox(height: 8.h),
-                                    Text('Video Selected', style: TextStyle(color: Colors.white)),
+                                    Text(
+                                      'Video Selected',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -379,9 +371,9 @@ class _CreatePostState extends State<CreatePost> {
                           ],
                         ),
                       ],
-                
+
                       SizedBox(height: 20.h),
-                
+
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -438,9 +430,9 @@ class _CreatePostState extends State<CreatePost> {
                           ),
                         ],
                       ),
-                
+
                       SizedBox(height: 20.h),
-                
+
                       // Show error message if any
                       if (provider.errorMessage != null) ...[
                         SizedBox(height: 16.h),
@@ -475,7 +467,6 @@ class _CreatePostState extends State<CreatePost> {
                     ],
                   ),
                 ),
-            
               ],
             ),
           ),

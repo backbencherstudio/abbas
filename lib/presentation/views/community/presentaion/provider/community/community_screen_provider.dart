@@ -122,6 +122,18 @@ class CommunityScreenProvider extends ChangeNotifier {
     try {
       final result = await getCommunityFeedsUseCase();
       notifyListeners();
+      result.sort((a, b) {
+        final aDate = a.createdAt != null
+            ? DateTime.tryParse(a.createdAt!)
+            : null;
+        final bDate = b.createdAt != null
+            ? DateTime.tryParse(b.createdAt!)
+            : null;
+        if (aDate == null && bDate == null) return 0;
+        if (aDate == null) return 1;
+        if (bDate == null) return -1;
+        return bDate.compareTo(aDate);
+      });
       _feeds = result;
     } catch (e) {
       notifyListeners();

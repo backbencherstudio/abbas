@@ -21,7 +21,7 @@ class MyCoursesModel {
 
 class Data {
   List<MyCourses>? myCourses;
-  List<Null>? otherCourses;
+  List<OtherCourses>? otherCourses;
 
   Data({this.myCourses, this.otherCourses});
 
@@ -33,10 +33,10 @@ class Data {
       });
     }
     if (json['otherCourses'] != null) {
-      otherCourses = <Null>[];
-      // json['otherCourses'].forEach((v) {
-      //   otherCourses!.add(Null.fromJson(v));
-      // });
+      otherCourses = <OtherCourses>[];
+      json['otherCourses'].forEach((v) {
+        otherCourses!.add(OtherCourses.fromJson(v));
+      });
     }
   }
 
@@ -45,9 +45,9 @@ class Data {
     if (myCourses != null) {
       data['myCourses'] = myCourses!.map((v) => v.toJson()).toList();
     }
-    // if (otherCourses != null) {
-    //   data['otherCourses'] = otherCourses!.map((v) => v.toJson()).toList();
-    // }
+    if (otherCourses != null) {
+      data['otherCourses'] = otherCourses!.map((v) => v.toJson()).toList();
+    }
     return data;
   }
 }
@@ -97,6 +97,40 @@ class MyCourses {
     data['attendedClasses'] = attendedClasses;
     data['progressPercent'] = progressPercent;
     data['progressLabel'] = progressLabel;
+    data['infoLine'] = infoLine;
+    return data;
+  }
+}
+
+class OtherCourses {
+  String? id;
+  String? title;
+  String? courseOverview;
+  int? modulesCount;
+  String? infoLine;
+
+  OtherCourses({
+    this.id,
+    this.title,
+    this.courseOverview,
+    this.modulesCount,
+    this.infoLine,
+  });
+
+  OtherCourses.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    title = json['title'];
+    courseOverview = json['course_overview'];
+    modulesCount = json['modulesCount'];
+    infoLine = json['infoLine'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = {};
+    data['id'] = id;
+    data['title'] = title;
+    data['course_overview'] = courseOverview;
+    data['modulesCount'] = modulesCount;
     data['infoLine'] = infoLine;
     return data;
   }
