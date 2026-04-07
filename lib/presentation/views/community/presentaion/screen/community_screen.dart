@@ -143,6 +143,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
+              /// ------------------- Community App Bar ------------------------
               const CustomAppbar(title: "Community"),
 
               Padding(

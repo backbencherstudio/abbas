@@ -20,12 +20,14 @@ class _CourseScreenState extends ConsumerState<CourseScreen> {
     super.initState();
     Future.microtask(() {
       ref.read(myCourseProvider.notifier).getMyCourse();
+      ref.read(getAllCoursesProvider.notifier).getAllCourses();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final myCourses = ref.watch(myCourseProvider);
+    final allCourses = ref.watch(getAllCoursesProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -157,7 +159,7 @@ class _CourseScreenState extends ConsumerState<CourseScreen> {
 
                 SizedBox(height: 12.h),
 
-                /// Other Courses
+                /// ------------------- Other Courses --------------------------
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
                   child: const Text(
@@ -226,6 +228,79 @@ class _CourseScreenState extends ConsumerState<CourseScreen> {
                                       fontSize: 12.sp,
                                       fontWeight: FontWeight.w400,
                                     ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList()),
+
+                SizedBox(height: 12.h),
+
+                /// --------------- All Courses --------------------------------
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w),
+                  child: const Text(
+                    "All Courses",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ),
+
+                /// Loading
+                if (allCourses.isLoading) const AnimatedLoading(),
+                ...((allCourses.value?.data ?? []).map((course) {
+                  return InkWell(
+                    onTap: () {},
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.w),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12.w,
+                          vertical: 16.h,
+                        ),
+                        margin: EdgeInsets.symmetric(vertical: 10.h),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12.r),
+                          color: const Color(0xFF0A1A29),
+                          border: Border.all(color: const Color(0xFF3D4566)),
+                        ),
+
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Image.asset('assets/images/face.png'),
+                            SizedBox(width: 12.w),
+
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          course.title ?? "N/A",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 18.sp,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      Icon(
+                                        Icons.arrow_forward_ios,
+                                        color: Colors.white,
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),

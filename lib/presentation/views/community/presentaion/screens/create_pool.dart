@@ -1,3 +1,4 @@
+import 'package:abbas/cors/network/api_response_handle.dart';
 import 'package:abbas/cors/utils/app_utils.dart';
 import 'package:abbas/presentation/views/community/presentaion/provider/community/community_screen_provider.dart';
 import 'package:abbas/presentation/views/profile/view_model/profil_screen_provider.dart';
@@ -23,7 +24,7 @@ class _CreatePoolState extends State<CreatePool> {
 
   final FocusNode _questionFocusNode = FocusNode();
   final List<FocusNode> _optionFocusNodes = [];
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   Color _postButtonColor = const Color(0xFF0A1A29);
   Color _postTextColor = const Color(0xFF3D4566);
@@ -76,7 +77,7 @@ class _CreatePoolState extends State<CreatePool> {
   }
 
   /// --------------------- Create Poll --------------
-  Future<void> createPoll() async {
+  Future<void> _createPoll() async {
     if (_questionController.text.isEmpty) {
       Utils.showToast(
         msg: 'Please enter a question',
@@ -107,7 +108,10 @@ class _CreatePoolState extends State<CreatePool> {
         backgroundColor: Colors.green,
         textColor: Colors.white,
       );
-      Navigator.pop(context);
+      await Future.delayed(const Duration(milliseconds: 1000));
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
     } else {
       Utils.showToast(
         msg: 'Failed to create poll',
@@ -311,10 +315,10 @@ class _CreatePoolState extends State<CreatePool> {
                                     .map((controller) => controller.text)
                                     .toList();
 
-                                debugPrint("Poll Question submitted!");
-                                debugPrint("Options: $finalOptions");
+                                logger.d("Poll Question submitted!");
+                                logger.d("Options: $finalOptions");
 
-                                await createPoll();
+                                await _createPoll();
                               },
 
                               color: _postButtonColor,

@@ -11,8 +11,8 @@ class CommunityRepositoryImpl implements CommunityRepository {
   @override
   Future<List<CommunityEntity>> getFeeds() async {
     try {
-      final List<GetFeedModel> models =
-      await remoteDataSource.getCommunityFeeds();
+      final List<GetFeedModel> models = await remoteDataSource
+          .getCommunityFeeds();
 
       return models.map((model) {
         // Author convert
@@ -30,12 +30,14 @@ class CommunityRepositoryImpl implements CommunityRepository {
         List<LikeEntity>? likeEntities;
         if (model.likes != null) {
           likeEntities = model.likes!
-              .map((like) => LikeEntity(
-            id: like.id,
-            postId: like.postId,
-            userId: like.userId,
-            createdAt: like.createdAt,
-          ))
+              .map(
+                (like) => LikeEntity(
+                  id: like.id,
+                  postId: like.postId,
+                  userId: like.userId,
+                  createdAt: like.createdAt,
+                ),
+              )
               .toList();
         }
 
@@ -43,22 +45,24 @@ class CommunityRepositoryImpl implements CommunityRepository {
         List<CommentEntity>? commentEntities;
         if (model.comments != null) {
           commentEntities = model.comments!
-              .map((comment) => CommentEntity(
-            id: comment.id,
-            postId: comment.postId,
-            userId: comment.userId,
-            content: comment.content,
-            createdAt: comment.createdAt,
-            // যদি comment এ user থাকে তাহলে
-            user: comment.user != null
-                ? UserEntity(
-              id: comment.user!.id,
-              name: comment.user!.name,
-              username: comment.user!.username,
-              avatar: comment.user!.avatar,
-            )
-                : null,
-          ))
+              .map(
+                (comment) => CommentEntity(
+                  id: comment.id,
+                  postId: comment.postId,
+                  userId: comment.userId,
+                  content: comment.content,
+                  createdAt: comment.createdAt,
+                  // যদি comment এ user থাকে তাহলে
+                  user: comment.user != null
+                      ? UserEntity(
+                          id: comment.user!.id,
+                          name: comment.user!.name,
+                          username: comment.user!.username,
+                          avatar: comment.user!.avatar,
+                        )
+                      : null,
+                ),
+              )
               .toList();
         }
 
@@ -66,12 +70,14 @@ class CommunityRepositoryImpl implements CommunityRepository {
         List<PollOptionEntity>? pollOptionEntities;
         if (model.pollOptions != null) {
           pollOptionEntities = model.pollOptions!
-              .map((poll) => PollOptionEntity(
-            id: poll.id,
-            postId: poll.postId,
-            title: poll.title,
-            votes: poll.votes,
-          ))
+              .map(
+                (poll) => PollOptionEntity(
+                  id: poll.id,
+                  postId: poll.postId,
+                  title: poll.title,
+                  votes: poll.votes,
+                ),
+              )
               .toList();
         }
 

@@ -42,7 +42,6 @@ class GetFeedModel {
   });
 
   factory GetFeedModel.fromJson(Map<String, dynamic> json) {
-
     return GetFeedModel(
       id: json['id']?.toString(),
       authorId: json['author_Id']?.toString() ?? json['authorId']?.toString(),
@@ -61,14 +60,14 @@ class GetFeedModel {
 
       likes: json['likes'] != null
           ? (json['likes'] as List)
-          .map((v) => LikeModel.fromJson(v as Map<String, dynamic>))
-          .toList()
+                .map((v) => LikeModel.fromJson(v as Map<String, dynamic>))
+                .toList()
           : null,
 
       comments: json['comments'] != null
           ? (json['comments'] as List)
-          .map((v) => CommentModel.fromJson(v as Map<String, dynamic>))
-          .toList()
+                .map((v) => CommentModel.fromJson(v as Map<String, dynamic>))
+                .toList()
           : null,
 
       shares: json['shares'] != null
@@ -77,21 +76,27 @@ class GetFeedModel {
 
       pollOptions: json['poll_options'] != null
           ? (json['poll_options'] as List)
-          .map((v) => PollOptionModel.fromJson(v as Map<String, dynamic>))
-          .toList()
+                .map((v) => PollOptionModel.fromJson(v as Map<String, dynamic>))
+                .toList()
           : null,
 
       likeCount: json['likeCount'] != null
           ? int.tryParse(json['likeCount'].toString())
-          : json['likes'] != null ? (json['likes'] as List).length : 0,
+          : json['likes'] != null
+          ? (json['likes'] as List).length
+          : 0,
 
       commentCount: json['commentCount'] != null
           ? int.tryParse(json['commentCount'].toString())
-          : json['comments'] != null ? (json['comments'] as List).length : 0,
+          : json['comments'] != null
+          ? (json['comments'] as List).length
+          : 0,
 
       shareCount: json['shareCount'] != null
           ? int.tryParse(json['shareCount'].toString())
-          : json['shares'] != null ? (json['shares'] as List).length : 0,
+          : json['shares'] != null
+          ? (json['shares'] as List).length
+          : 0,
     );
   }
 
@@ -128,8 +133,6 @@ class AuthorModel {
   AuthorModel({this.id, this.name, this.username, this.avatar});
 
   factory AuthorModel.fromJson(Map<String, dynamic> json) {
-
-
     return AuthorModel(
       id: json['id']?.toString(),
       name: json['name']?.toString(),
@@ -139,12 +142,7 @@ class AuthorModel {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'username': username,
-      'avatar': avatar,
-    };
+    return {'id': id, 'name': name, 'username': username, 'avatar': avatar};
   }
 }
 
@@ -157,7 +155,6 @@ class LikeModel {
   LikeModel({this.id, this.postId, this.userId, this.createdAt});
 
   factory LikeModel.fromJson(Map<String, dynamic> json) {
-
     return LikeModel(
       id: json['id']?.toString(),
       postId: json['postId']?.toString(),
@@ -194,7 +191,6 @@ class CommentModel {
   });
 
   factory CommentModel.fromJson(Map<String, dynamic> json) {
-   
     return CommentModel(
       id: json['id']?.toString(),
       postId: json['postId']?.toString(),
@@ -237,12 +233,7 @@ class UserModel {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'username': username,
-      'avatar': avatar,
-    };
+    return {'id': id, 'name': name, 'username': username, 'avatar': avatar};
   }
 }
 
@@ -255,21 +246,17 @@ class PollOptionModel {
   PollOptionModel({this.id, this.postId, this.title, this.votes});
 
   factory PollOptionModel.fromJson(Map<String, dynamic> json) {
-  
     return PollOptionModel(
       id: json['id']?.toString(),
       postId: json['postId']?.toString(),
       title: json['title']?.toString(),
-      votes: json['votes'] != null ? List<dynamic>.from(json['votes'] as List) : null,
+      votes: json['votes'] != null
+          ? List<dynamic>.from(json['votes'] as List)
+          : null,
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'postId': postId,
-      'title': title,
-      'votes': votes ?? [],
-    };
+    return {'id': id, 'postId': postId, 'title': title, 'votes': votes ?? []};
   }
 }
