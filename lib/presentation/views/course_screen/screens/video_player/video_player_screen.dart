@@ -152,7 +152,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
-               'Video Name : ${widget.fileName}',
+                'Video Name : ${widget.fileName}',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16.sp,

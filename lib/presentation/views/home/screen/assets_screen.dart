@@ -7,11 +7,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../../../widgets/secondary_appber.dart';
+import '../../../widgets/secondary_appber.dart';
 
 class AssetsScreen extends ConsumerStatefulWidget {
   final String courseId;
-
   const AssetsScreen({super.key, required this.courseId});
 
   @override

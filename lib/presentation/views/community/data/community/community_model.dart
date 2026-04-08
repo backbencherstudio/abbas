@@ -257,6 +257,11 @@ class PollOptionModel {
   }
 
   Map<String, dynamic> toJson() {
-    return {'id': id, 'postId': postId, 'title': title, 'votes': votes ?? []};
+    return {
+      'id': id,
+      'postId': postId,
+      'title': title,
+      'votes': votes?.map((v) => v.toJson()).toList(),
+    };
   }
 }

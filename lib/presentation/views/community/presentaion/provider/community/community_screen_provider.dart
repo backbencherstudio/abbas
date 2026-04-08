@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:abbas/presentation/views/community/domain/community/community_usecase.dart';
 import 'package:abbas/presentation/views/community/model/get_comment_model.dart';
 import 'package:abbas/presentation/views/community/model/get_post_like_model.dart';
 import 'package:flutter/material.dart';
@@ -7,12 +8,10 @@ import '../../../../../../cors/constants/api_endpoints.dart';
 import '../../../../../../cors/network/api_response_model.dart';
 import '../../../../../../cors/services/api_client.dart';
 import '../../../domain/community/community_entity.dart';
-import '../../../domain/community/community_usecase.dart';
 
 class CommunityScreenProvider extends ChangeNotifier {
-  final GetCommunityFeedUseCase getCommunityFeedsUseCase;
-
-  CommunityScreenProvider({required this.getCommunityFeedsUseCase});
+  final GetCommunityFeedUseCase getCommunityFeedUseCase;
+  CommunityScreenProvider({required this.getCommunityFeedUseCase});
 
   bool _isDeletePost = false;
   bool get isDeletePost => _isDeletePost;
@@ -120,8 +119,8 @@ class CommunityScreenProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final result = await getCommunityFeedsUseCase();
-      notifyListeners();
+      final result = await getCommunityFeedUseCase();
+
       result.sort((a, b) {
         final aDate = a.createdAt != null
             ? DateTime.tryParse(a.createdAt!)
@@ -134,7 +133,9 @@ class CommunityScreenProvider extends ChangeNotifier {
         if (bDate == null) return -1;
         return bDate.compareTo(aDate);
       });
+
       _feeds = result;
+      notifyListeners();
     } catch (e) {
       notifyListeners();
       _error = e.toString();
@@ -391,6 +392,28 @@ class CommunityScreenProvider extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  /// ------------------------ Report ------------------------------------------
+  Future<ApiResponseModel> report({
+    required String reason,
+    required String description,
+    required String userId,
+  }) async {
+    var body = {'reason': reason, 'description': description};
+    try {
+      final ApiResponseModel response = await _apiClient.post(
+        ApiEndpoints.report(userId),
+        body: body,
+      );
+      if (response.success) {
+        return ApiResponseModel(success: true, message: response.message);
+      } else {
+        return ApiResponseModel(success: false, message: response.message);
+      }
+    } catch (e) {
+      return ApiResponseModel(success: false, message: '$e');
     }
   }
 }

@@ -2,7 +2,10 @@ import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:abbas/cors/routes/route_names.dart';
 import 'package:abbas/presentation/views/community/presentaion/screens/update_post.dart';
 import 'package:abbas/presentation/views/course_screen/screens/my_class/pdf_viewer_screen.dart';
-import 'package:abbas/presentation/views/home/screen/screens/all_assignments_screen.dart';
+import 'package:abbas/presentation/views/home/screen/all_assignments_details_screen.dart';
+import 'package:abbas/presentation/views/home/screen/home_assets_courses_screen.dart';
+import 'package:abbas/presentation/views/home/screen/home_my_course_screen.dart';
+import 'package:abbas/presentation/views/home/screen/all_assignments_screen.dart';
 import 'package:flutter/material.dart';
 import '../../presentation/views/auth/forgot_password/screen/forgot_password_screen.dart';
 import '../../presentation/views/auth/login/presentaion/screen/login_screen.dart';
@@ -18,7 +21,7 @@ import '../../presentation/views/community/presentaion/screens/my_profile_public
 import '../../presentation/views/community/presentaion/screens/others_profile.dart';
 import '../../presentation/views/community/presentaion/screens/report_list_page.dart';
 import '../../presentation/views/course_screen/screens/course_modele/course_module_screen.dart';
-import '../../presentation/views/course_screen/screens/my_class/assets_screen.dart';
+import '../../presentation/views/home/screen/assets_screen.dart';
 import '../../presentation/views/course_screen/screens/my_class/my_class_screen.dart';
 import '../../presentation/views/course_screen/screens/my_class/widget/pdf_widget.dart';
 import '../../presentation/views/course_screen/screens/my_course/my_assignment/due_assignment_screen.dart';
@@ -99,9 +102,7 @@ class AppRoutes {
     RouteNames.parentScreen: (context) => const ParentScreen(),
     RouteNames.scanner: (context) => const Scanner(),
     RouteNames.allAssignmentsScreen: (context) {
-      final args = ModalRoute.of(context)?.settings.arguments;
-      final moduleId = args is String ? args : '';
-      return AllAssignmentsScreen(moduleId: moduleId);
+      return AllAssignmentsScreen();
     },
     RouteNames.otherCourseScreen: (context) => const OtherCourseScreen(),
     RouteNames.myCourseScreen: (context) {
@@ -132,11 +133,12 @@ class AppRoutes {
       final assignmentId = args is String ? args : '';
       return SubmittedAssignmentScreen(assignmentId: assignmentId);
     },
+    RouteNames.homeAssetsCoursesScreen: (context) => HomeAssetsCoursesScreen(),
     RouteNames.assetsScreen: (context) {
-      final args = ModalRoute.of(context)!.settings.arguments;
-      final courseId = args is String ? args : '';
+      final courseId = ModalRoute.of(context)!.settings.arguments as String;
       return AssetsScreen(courseId: courseId);
     },
+    RouteNames.homeMyCourseScreen: (context) => HomeMyCourseScreen(),
     RouteNames.startEnrollment: (context) => const StartEnrollment(),
     RouteNames.selectCourse: (context) => const SelectCourse(),
     RouteNames.courseModule: (context) {
@@ -144,7 +146,8 @@ class AppRoutes {
       return CourseModule(courseId: courseId);
     },
     RouteNames.fillEnrollmentForm: (context) {
-      final courseId = ModalRoute.of(context)!.settings.arguments as String;
+      final args = ModalRoute.of(context)!.settings.arguments;
+      final courseId = args is Map ? args['id'] : '';
       return FillEnrollmentForm(courseId: courseId);
     },
     RouteNames.rulesRegulations: (context) {
@@ -207,6 +210,11 @@ class AppRoutes {
     },
     RouteNames.completePayment: (context) => CompletePayment(),
     RouteNames.prosHome: (context) => ProsHome(),
+    RouteNames.allAssignmentDetails: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments;
+      final courseId = args is String ? args : '';
+      return AllAssignmentsDetailsScreen(courseId: courseId);
+    },
     RouteNames.myCourse: (context) => MyCourse(),
     RouteNames.courseModules: (context) => CourseModules(),
     RouteNames.parentScreenTwo: (context) => ParentScreenTwo(),

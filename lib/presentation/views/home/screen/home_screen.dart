@@ -651,13 +651,13 @@ class _QuickGrid extends StatelessWidget {
         Navigator.pushNamed(context, RouteNames.scanner);
         break;
       case 'book':
-        Navigator.pushNamed(context, RouteNames.prosHome);
+        Navigator.pushNamed(context, RouteNames.homeMyCourseScreen);
         break;
       case 'note':
         Navigator.pushNamed(context, RouteNames.allAssignmentsScreen);
         break;
       case 'folder':
-        Navigator.pushNamed(context, RouteNames.scanner);
+        Navigator.pushNamed(context, RouteNames.homeAssetsCoursesScreen);
         break;
       default:
         Navigator.pushNamed(context, RouteNames.scanner);

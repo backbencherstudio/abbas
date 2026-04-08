@@ -38,15 +38,15 @@ class SubmitAssignmentProvider extends StateNotifier<ResponseModel> {
     required String assignmentId,
   }) async {
     try {
- FormData formData = FormData.fromMap({
-  "title": title,
-  "description": description,
+      FormData formData = FormData.fromMap({
+        "title": title,
+        "description": description,
 
-  "media": await MultipartFile.fromFile(
-    media.path,
-    filename: media.path.split('/').last,
-  ),
-});
+        "media": await MultipartFile.fromFile(
+          media.path,
+          filename: media.path.split('/').last,
+        ),
+      });
 
       final response = await dioClient.postHttp(
         ApiEndpoints.submitAssignment(assignmentId),

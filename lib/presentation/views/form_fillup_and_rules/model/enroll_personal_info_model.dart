@@ -34,7 +34,7 @@ class Data {
   String? dateOfBirth;
   String? experienceLevel;
   String? courseId;
-  Null? enrolledDocuments;
+  dynamic enrolledDocuments;
   String? status;
   bool? isPaymentCompleted;
   String? step;
