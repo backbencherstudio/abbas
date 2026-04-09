@@ -20,6 +20,7 @@ import '../../presentation/views/community/presentaion/screens/my_profile_privat
 import '../../presentation/views/community/presentaion/screens/my_profile_public.dart';
 import '../../presentation/views/community/presentaion/screens/others_profile.dart';
 import '../../presentation/views/community/presentaion/screens/report_list_page.dart';
+import '../../presentation/views/community/presentaion/screens/report_user_screen.dart';
 import '../../presentation/views/course_screen/screens/course_modele/course_module_screen.dart';
 import '../../presentation/views/home/screen/assets_screen.dart';
 import '../../presentation/views/course_screen/screens/my_class/my_class_screen.dart';
@@ -195,6 +196,7 @@ class AppRoutes {
     RouteNames.editProfile: (context) => EditProfile(),
     RouteNames.othersProfile: (context) => OthersProfile(),
     RouteNames.reportListPage: (context) => ReportListPage(),
+    RouteNames.reportUserScreen: (context) => ReportUserScreen(),
     RouteNames.newMessageScreens: (context) => NewMessageScreens(),
     RouteNames.createGroupScreen: (context) => CreateGroupScreen(),
     RouteNames.oneTwoOneChatScreen: (context) => OneTwoOneChatScreen(),

@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:abbas/cors/network/api_response_handle.dart';
 import 'package:abbas/cors/routes/route_names.dart';
+import 'package:abbas/cors/theme/app_colors.dart';
 import 'package:abbas/cors/utils/app_utils.dart';
 import 'package:abbas/presentation/views/profile/view_model/profil_screen_provider.dart';
 import 'package:abbas/presentation/widgets/animated_loading.dart';
@@ -138,6 +139,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
     final profileProvider = Provider.of<ProfileScreenProvider>(context);
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: RefreshIndicator(
         onRefresh: _onRefresh,
         edgeOffset: 60,
@@ -587,7 +589,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                     CommunityVideoWidget(
                                       videoUrl: feed.mediaUrl!,
                                     )
-                                  else if (feed.postType == 'POST')
+                                  else
                                     GestureDetector(
                                       onTap: () {},
                                       child: ClipRRect(
@@ -612,72 +614,57 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                         ),
                                       ),
                                     )
-                                  else if (feed.postType == 'POLL' &&
-                                      feed.pollOptions != null &&
-                                      feed.pollOptions!.isNotEmpty)
-                                    Column(
-                                      children: List.generate(
-                                        feed.pollOptions!.length,
-                                        (index) {
-                                          logger.d(
-                                            "Poll Options : ${feed.pollOptions}",
-                                          );
+                                else if (feed.postType == 'POLL' &&
+                                    feed.pollOptions != null &&
+                                    feed.pollOptions!.isNotEmpty)
+                                  Column(
+                                    children: List.generate(
+                                      feed.pollOptions!.length,
+                                      (index) {
+                                        logger.d(
+                                          "Poll Options : ${feed.pollOptions}",
+                                        );
 
-                                          logger.d(
-                                            "============== Community Screen poll ${feed.postType}",
-                                          );
-                                          final option =
-                                              feed.pollOptions![index];
-                                          return Padding(
-                                            padding: EdgeInsets.only(
-                                              bottom: 8.h,
+                                        logger.d(
+                                          "============== Community Screen poll ${feed.postType}",
+                                        );
+                                        final option = feed.pollOptions![index];
+                                        return Padding(
+                                          padding: EdgeInsets.only(bottom: 8.h),
+                                          child: Container(
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 12.w,
+                                              vertical: 8.h,
                                             ),
-                                            child: Container(
-                                              padding: EdgeInsets.symmetric(
-                                                horizontal: 12.w,
-                                                vertical: 8.h,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(12.r),
+                                              border: Border.all(
+                                                color: Colors.white,
+                                                width: 1.w,
                                               ),
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(12.r),
-                                                border: Border.all(
+                                            ),
+                                            child: ListTile(
+                                              title: Text(
+                                                option.title ??
+                                                    "Option ${index + 1}",
+                                                style: TextStyle(
                                                   color: Colors.white,
-                                                  width: 1.w,
+                                                  fontSize: 14.sp,
                                                 ),
                                               ),
-                                              child: ListTile(
-                                                title: Text(
-                                                  option.title ??
-                                                      "Option ${index + 1}",
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 14.sp,
-                                                  ),
-                                                ),
-                                                // trailing: CircleAvatar(
-                                                //   radius: 24.r,
-                                                //   backgroundColor: Colors.white,
-                                                // ),
-                                              ),
+                                              // trailing: CircleAvatar(
+                                              //   radius: 24.r,
+                                              //   backgroundColor: Colors.white,
+                                              // ),
                                             ),
-                                          );
-                                        },
-                                      ),
-                                    )
-                                  else
-                                    Container(
-                                      height: 200,
-                                      width: double.infinity,
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey[200],
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Icon(
-                                        Icons.image,
-                                        size: 50.sp,
-                                        color: Colors.grey,
-                                      ),
+                                          ),
+                                        );
+                                      },
                                     ),
+                                  )
+                                else
+                                  const SizedBox.shrink(),
                                 SizedBox(height: 12.h),
                                 Row(
                                   children: [

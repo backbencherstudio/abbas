@@ -108,13 +108,21 @@ class CommunityScreenProvider extends ChangeNotifier {
   String _mediaType = 'TEXT';
 
   File? _selectImage;
-  File? _selecteProfile;
+  File? _selectProfile;
   File? get selectImage => _selectImage;
-  File? get selectProfile => _selecteProfile;
+  File? get selectProfile => _selectProfile;
 
   File? get selectedMedia => _selectedMedia;
   bool get isPickingImage => _isPickingImage;
   String get mediaType => _mediaType;
+
+
+  int _selectedIndex = 0;
+  int get selectedIndex => _selectedIndex;
+  void setSelectedIndex( int index) {
+    _selectedIndex = index;
+    notifyListeners();
+  }
 
   void setImagePicked(File image) {
     _selectImage = image;
@@ -122,7 +130,7 @@ class CommunityScreenProvider extends ChangeNotifier {
   }
 
   void setProfilePicked(File image) {
-    _selecteProfile = image;
+    _selectProfile = image;
     notifyListeners();
   }
 
