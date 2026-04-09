@@ -7,17 +7,14 @@ import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
 
 // Global notification instance
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-FlutterLocalNotificationsPlugin();
+    FlutterLocalNotificationsPlugin();
 
 Future<void> showDownloadCompletedNotification(String filePath) async {
-  const AndroidNotificationDetails androidDetails =
-  AndroidNotificationDetails(
+  const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
     'download_channel',
     'Downloads',
     channelDescription: 'Notifications for file downloads',
@@ -26,8 +23,9 @@ Future<void> showDownloadCompletedNotification(String filePath) async {
     playSound: true,
   );
 
-  const NotificationDetails platformDetails =
-  NotificationDetails(android: androidDetails);
+  const NotificationDetails platformDetails = NotificationDetails(
+    android: androidDetails,
+  );
 
   await flutterLocalNotificationsPlugin.show(
     id: 0,
@@ -124,9 +122,9 @@ class LediKhadashProtiva extends StatelessWidget {
       if (file.existsSync()) await file.delete();
 
       final dio = Dio();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Downloading PDF...")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Downloading PDF...")));
 
       await dio.download(url, filePath);
 
@@ -154,13 +152,12 @@ class LediKhadashProtiva extends StatelessWidget {
 
       return filePath;
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error downloading PDF: $e")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error downloading PDF: $e")));
       rethrow;
     }
   }
-
 
   void _openPdf(BuildContext context) async {
     // Only download and trigger notification
@@ -192,26 +189,28 @@ class LediKhadashProtiva extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w400,
+              ),
+              //style: Theme.of(context).textTheme.bodyMedium,
               overflow: TextOverflow.ellipsis,
             ),
           ),
           if (hasIcon)
             isVideo
-                ? Icon(Icons.play_arrow_outlined,
-                color: Colors.red, size: 28.h)
+                ? Icon(Icons.play_arrow_outlined, color: Colors.red, size: 28.h)
                 : GestureDetector(
-              onTap: () => _openPdf(context),
-              child: SvgPicture.asset(
-                'assets/icons/download.svg',
-                height: 24.h,
-                width: 24.w,
-              ),
-            ),
+                    onTap: () => _openPdf(context),
+                    child: SvgPicture.asset(
+                      'assets/icons/download.svg',
+                      height: 24.h,
+                      width: 24.w,
+                    ),
+                  ),
         ],
       ),
     );
   }
 }
-
-

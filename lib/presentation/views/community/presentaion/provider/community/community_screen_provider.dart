@@ -3,11 +3,11 @@ import 'package:abbas/presentation/views/community/domain/community/community_us
 import 'package:abbas/presentation/views/community/model/get_comment_model.dart';
 import 'package:abbas/presentation/views/community/model/get_post_like_model.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
 import '../../../../../../cors/constants/api_endpoints.dart';
 import '../../../../../../cors/network/api_response_model.dart';
 import '../../../../../../cors/services/api_client.dart';
+import '../../../../../../cors/services/user_id_storage.dart';
 import '../../../domain/community/community_entity.dart';
 
 class CommunityScreenProvider extends ChangeNotifier {
@@ -42,18 +42,41 @@ class CommunityScreenProvider extends ChangeNotifier {
 
   List<GetCommentModel> get comments => _comments;
 
+  /// --------------- Per-post Comment Counts -------------------------------------
+  final Map<String, int> _postCommentCounts = {};
+
+  int getPostCommentCount(String postId, int initialCount) {
+    return _postCommentCounts[postId] ?? initialCount;
+  }
+
   final List<Replies> _replies = [];
 
   List<Replies> get replies => _replies;
 
   /// --------------- Per-post Reaction State ----------------------------------
   /// Maps postId -> selected ReactionType label (e.g. 'Like', 'Love', 'Angry')
-  final Map<String, String> _postReactions = {};
-
+  //final Map<String, String> _postReactions = {};
+  final Map<String, String?> _postReactions = {};
   String? getReaction(String postId) => _postReactions[postId];
 
-  void setReaction(String postId, String reactionLabel) {
+/*  void setReaction(String postId, String reactionLabel) {
     _postReactions[postId] = reactionLabel;
+    notifyListeners();
+  }*/
+
+  void setReaction(String postId, String? reactionLabel) {
+    final oldReaction = _postReactions[postId];
+    if (reactionLabel == null) {
+      _postReactions.remove(postId);
+      if (oldReaction != null) {
+        _postLikeCounts[postId] = (_postLikeCounts[postId] ?? 0) - 1;
+      }
+    } else {
+      _postReactions[postId] = reactionLabel;
+      if (oldReaction == null) {
+        _postLikeCounts[postId] = (_postLikeCounts[postId] ?? 0) + 1;
+      }
+    }
     notifyListeners();
   }
 
@@ -128,6 +151,7 @@ class CommunityScreenProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final currentUserId = await UserIdStorage().getUserId();
       final result = await getCommunityFeedUseCase();
 
       result.sort((a, b) {
@@ -144,6 +168,24 @@ class CommunityScreenProvider extends ChangeNotifier {
       });
 
       _feeds = result;
+
+      // Initialize counts and reaction state from feeds
+      for (var feed in _feeds) {
+        if (feed.id != null) {
+          _postLikeCounts[feed.id!] = feed.likeCount ?? 0;
+          _postCommentCounts[feed.id!] = feed.commentCount ?? 0;
+
+          // Sync local reaction state with server data
+          final userLiked =
+              feed.likes?.any((like) => like.userId == currentUserId) ?? false;
+          if (userLiked) {
+            _postReactions[feed.id!] = 'Like';
+          } else {
+            _postReactions.remove(feed.id!);
+          }
+        }
+      }
+
       notifyListeners();
     } catch (e) {
       notifyListeners();
@@ -276,6 +318,17 @@ class CommunityScreenProvider extends ChangeNotifier {
         );
         _getPostLikeModel = model;
         _postLikeCounts[postId] = model.likesCount ?? 0;
+
+        // Sync reaction state
+        final currentUserId = await UserIdStorage().getUserId();
+        final userLiked =
+            model.likes?.any((like) => like.user?.id == currentUserId) ?? false;
+        if (userLiked) {
+          _postReactions[postId] = 'Like';
+        } else {
+          _postReactions.remove(postId);
+        }
+
         notifyListeners();
       }
     } catch (e) {
@@ -293,6 +346,8 @@ class CommunityScreenProvider extends ChangeNotifier {
       );
       if (response.success) {
         logger.d(response.message);
+        _postCommentCounts[postId] = (getPostCommentCount(postId, 0)) + 1;
+        notifyListeners();
         return ApiResponseModel(success: true, message: response.message);
       }
       return ApiResponseModel(success: false, message: response.message);
@@ -315,6 +370,7 @@ class CommunityScreenProvider extends ChangeNotifier {
       _comments = list
           .map((item) => GetCommentModel.fromJson(item as Map<String, dynamic>))
           .toList();
+      _postCommentCounts[postId] = _comments.length;
     } catch (e) {
       logger.e('getComment error: $e');
     } finally {
@@ -337,6 +393,8 @@ class CommunityScreenProvider extends ChangeNotifier {
       );
       if (response.success) {
         logger.d(response.message);
+        _postCommentCounts[postId] = (getPostCommentCount(postId, 0)) + 1;
+        notifyListeners();
         return ApiResponseModel(success: true, message: response.message);
       }
       return ApiResponseModel(success: false, message: response.message);

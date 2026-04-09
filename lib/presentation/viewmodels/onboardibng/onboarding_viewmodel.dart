@@ -23,6 +23,10 @@ class OnboardingViewModel extends ChangeNotifier {
   }
 
   void skip(BuildContext context) {
+    Navigator.pushReplacementNamed(context, RouteNames.loginAndSignUpScreen);
+  }
+
+/*  void skip(BuildContext context) {
     if (currentPage < totalPages - 1) {
       pageController.animateToPage(
        currentPage + 1,
@@ -32,7 +36,7 @@ class OnboardingViewModel extends ChangeNotifier {
     } else {
       Navigator.pushReplacementNamed(context, RouteNames.loginAndSignUpScreen);
     }
-  }
+  }*/
 
   @override
   void dispose() {

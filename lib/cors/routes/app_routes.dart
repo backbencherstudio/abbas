@@ -65,7 +65,7 @@ import '../../presentation/views/profile/screens/feedback/feedback_screen.dart';
 import '../../presentation/views/profile/screens/personal_info/edit_personal_info_screen.dart';
 import '../../presentation/views/profile/screens/personal_info/personal_info_screen.dart';
 import '../../presentation/views/profile/screens/push_notifications/screen/push_notifications.dart';
-import '../../presentation/views/profile/screens/subscription_and_payment/change_password.dart';
+import '../../presentation/views/profile/screens/change_password/change_password.dart';
 import '../../presentation/views/profile/screens/subscription_and_payment/change_stripe.dart';
 import '../../presentation/views/profile/screens/subscription_and_payment/payment_history.dart';
 import '../../presentation/views/profile/screens/subscription_and_payment/subscriptions.dart';
