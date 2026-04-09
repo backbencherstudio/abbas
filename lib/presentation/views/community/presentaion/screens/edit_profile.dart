@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:abbas/cors/utils/app_utils.dart';
 import 'package:abbas/presentation/views/community/presentaion/provider/community/community_screen_provider.dart';
 import 'package:abbas/presentation/widgets/custom_text_field.dart';
+import 'package:abbas/presentation/widgets/validator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
@@ -62,28 +63,52 @@ class _EditProfileState extends State<EditProfile> {
     }
   }
 
+  Future<void> _pickerProfleImage() async {
+    try {
+      context.read<CommunityScreenProvider>().setIsPickingImage(true);
+      final pickedImage = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: double.infinity,
+        maxHeight: double.infinity,
+        imageQuality: 85,
+      );
+
+      if (pickedImage != null) {
+        context.read<CommunityScreenProvider>().setProfilePicked(
+          File(pickedImage.path),
+        );
+      }
+    } on Exception catch (e) {
+      if (mounted) {
+        Utils.showToast(
+          msg: 'Error picking image: $e',
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
+      }
+    } finally {
+      context.read<CommunityScreenProvider>().setIsPickingImage(false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFF030C15),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            SecondaryAppBar(title: 'Edit Profile', hasButton: true),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w),
+      body: Column(
+        children: [
+          SecondaryAppBar(title: 'Edit Profile', hasButton: true),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w),
+            child: SingleChildScrollView(
               child: Column(
                 children: [
                   SizedBox(height: 15.h),
                   Stack(
-                    alignment: Alignment.bottomCenter,
                     children: [
                       Stack(
                         children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12.r)
-                            ),
+                          SizedBox(
                             height: 200.h,
                             width: double.infinity,
                             child:
@@ -116,23 +141,31 @@ class _EditProfileState extends State<EditProfile> {
                         ],
                       ),
                       Transform.translate(
-                        offset: Offset(0, 50),
+                        offset: Offset(140, 120),
                         child: Stack(
                           children: [
                             Container(
                               padding: const EdgeInsets.all(1),
                               decoration: BoxDecoration(
-                                color: Colors.black,
+                                color: Colors.black54,
                                 shape: BoxShape.circle,
                               ),
                               child: CircleAvatar(
                                 radius: 50.r,
-                                backgroundImage: AssetImage(
-                                  'assets/images/girls_profile.png',
-                                ),
+                                backgroundImage:
+                                    context
+                                            .watch<CommunityScreenProvider>()
+                                            .selectProfile ==
+                                        null
+                                    ? AssetImage('assets/images/profile.png')
+                                    : FileImage(
+                                        context
+                                            .watch<CommunityScreenProvider>()
+                                            .selectProfile!,
+                                      ),
                               ),
                             ),
-
+                    
                             Positioned(
                               right: 2.r,
                               bottom: 2,
@@ -141,13 +174,16 @@ class _EditProfileState extends State<EditProfile> {
                                 height: 40.h,
                                 padding: const EdgeInsets.all(6),
                                 decoration: const BoxDecoration(
-                                  color: Colors.black45,
+                                  color: Colors.black54,
                                   shape: BoxShape.circle,
                                 ),
-                                child: Image.asset(
-                                  'assets/icons/button.png',
-                                  scale: 3.4.sp,
-                                  fit: BoxFit.cover,
+                                child: GestureDetector(
+                                  onTap: _pickerProfleImage,
+                                  child: Image.asset(
+                                    'assets/icons/button.png',
+                                    scale: 3.4.sp,
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
                               ),
                             ),
@@ -156,7 +192,7 @@ class _EditProfileState extends State<EditProfile> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 40.h),
+                  SizedBox(height: 16.h),
                   Form(
                     key: _formKey,
                     child: Column(
@@ -175,6 +211,7 @@ class _EditProfileState extends State<EditProfile> {
                         CustomTextField(
                           controller: _nameController,
                           hintText: 'Enter your name',
+                          validator: nameValidator,
                         ),
                         SizedBox(height: 16.h),
                         Text(
@@ -189,6 +226,7 @@ class _EditProfileState extends State<EditProfile> {
                         CustomTextField(
                           controller: _usernameController,
                           hintText: 'Enter your user name',
+                          validator: userNameValidator,
                         ),
                         SizedBox(height: 16.h),
                         Text(
@@ -203,6 +241,7 @@ class _EditProfileState extends State<EditProfile> {
                         CustomTextField(
                           controller: _bioController,
                           hintText: 'Write here.....',
+                          maxLines: 5,
                         ),
                         SizedBox(height: 24.h),
                         PrimaryButton(
@@ -225,8 +264,8 @@ class _EditProfileState extends State<EditProfile> {
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

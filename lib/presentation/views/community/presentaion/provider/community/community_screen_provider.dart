@@ -3,7 +3,6 @@ import 'package:abbas/presentation/views/community/domain/community/community_us
 import 'package:abbas/presentation/views/community/model/get_comment_model.dart';
 import 'package:abbas/presentation/views/community/model/get_post_like_model.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
 import '../../../../../../cors/constants/api_endpoints.dart';
 import '../../../../../../cors/network/api_response_model.dart';
@@ -85,7 +84,9 @@ class CommunityScreenProvider extends ChangeNotifier {
   String _mediaType = 'TEXT';
 
   File? _selectImage;
+  File? _selecteProfile;
   File? get selectImage => _selectImage;
+  File? get selectProfile => _selecteProfile;
 
   File? get selectedMedia => _selectedMedia;
   bool get isPickingImage => _isPickingImage;
@@ -93,6 +94,11 @@ class CommunityScreenProvider extends ChangeNotifier {
 
   void setImagePicked(File image) {
     _selectImage = image;
+    notifyListeners();
+  }
+
+  void setProfilePicked(File image) {
+    _selecteProfile = image;
     notifyListeners();
   }
 
@@ -423,6 +429,40 @@ class CommunityScreenProvider extends ChangeNotifier {
       }
     } catch (e) {
       return ApiResponseModel(success: false, message: '$e');
+    }
+  }
+
+  /// -------------------------- Edit My Profile -------------------------------
+  Future<ApiResponseModel> editMyProfile({
+    required String name,
+    required String userName,
+    required String avatar,
+    required String about,
+  }) async {
+    var body = {
+      'name': name,
+      'username': userName,
+      'avatar': avatar,
+      'about': about,
+    };
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final response = await _apiClient.patch(
+        ApiEndpoints.editMyProfile,
+        body: body,
+      );
+
+      if (response.success) {
+        return ApiResponseModel(success: true, message: response.message);
+      } else {
+        return ApiResponseModel(success: false, message: response.message);
+      }
+    } on Exception catch (e) {
+      return ApiResponseModel(success: false, message: '$e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 }

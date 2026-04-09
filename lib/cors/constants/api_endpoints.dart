@@ -94,7 +94,9 @@ class ApiEndpoints {
   static String deletePost(String postId) =>
       '$baseUrl/api/community/post/$postId';
   static const String createPoll = '$baseUrl/api/community/post';
-  static String report(String userId) => '$baseUrl/community/report/$userId';
+  static String report(String userId) =>
+      '$baseUrl/api/community/report/$userId';
+  static const String editMyProfile = '$baseUrl/api/community/edit-profile';
 
   // chat
 
