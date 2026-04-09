@@ -53,7 +53,6 @@ class OthersProfile extends StatelessWidget {
     final data = profileProvider.otherProfileModel?.data;
     final name = data?.name ?? "N/A";
     final userName = data?.name ?? "N/A";
-    final email = data?.email ?? "N/A";
     final about = data?.about ?? "N/A";
     final userId = data?.id ?? "N/A";
     final avater = data?.avatar ?? "N/A";
@@ -61,11 +60,7 @@ class OthersProfile extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            SecondaryAppBar(
-              title: 'Other Profile',
-              hasButton: true,
-              isSearch: true,
-            ),
+            SecondaryAppBar(title: 'Other Profile', hasButton: true),
             Padding(
               padding: EdgeInsets.all(8.w),
               child: Column(
@@ -95,11 +90,226 @@ class OthersProfile extends StatelessWidget {
                     children: [
                       _buildChatButton(userId, context, createChatProvider),
                       SizedBox(width: 8.w),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.pushNamed(context, RouteNames.editProfile);
-                        },
-                        child: Image.asset('assets/icons/dots.png', scale: 3.5),
+                      Expanded(
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 6.w,
+                            vertical: 6.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Color(0xFF0A1A29),
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+
+                          child: PopupMenuButton(
+                            color: Color(0xFF030C15AB),
+                            borderRadius: BorderRadius.circular(16.r),
+                            icon: Icon(
+                              Icons.more_horiz,
+                              color: Colors.white,
+                              size: 24.sp,
+                            ),
+                            itemBuilder: (context) {
+                              return [
+                                PopupMenuItem(
+                                  value: "edit",
+                                  child: GestureDetector(
+                                    onTap: () {},
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 6.h,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Color(0xFF3D4566),
+                                        borderRadius: BorderRadius.circular(
+                                          4.r,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          SvgPicture.asset(
+                                            "assets/icons/report_icon.svg",
+                                          ),
+                                          SizedBox(width: 6.w),
+                                          Text(
+                                            "Report",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12.sp,
+                                              fontWeight: FontWeight.w400,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                PopupMenuItem(
+                                  value: "share",
+                                  child: GestureDetector(
+                                    onTap: () => showDialog(
+                                      context: context,
+                                      barrierDismissible: false,
+                                      builder: (context) {
+                                        return AlertDialog(
+                                          titlePadding: EdgeInsets.symmetric(
+                                            horizontal: 16.w,
+                                          ),
+                                          backgroundColor: Color(0xFF07121D),
+                                          title: Column(
+                                            children: [
+                                              SizedBox(height: 6.h),
+                                              Container(
+                                                width: 33.w,
+                                                height: 4.h,
+                                                decoration: BoxDecoration(
+                                                  color: Color(0xFF5F6CA0),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                        99.r,
+                                                      ),
+                                                ),
+                                              ),
+                                              SizedBox(height: 24.h),
+                                              Image.asset(
+                                                'assets/images/report_img.png',
+                                                width: 48.r,
+                                                height: 48.r,
+                                              ),
+                                              SizedBox(height: 16.h),
+                                              Text(
+                                                "Report Post",
+                                                style: TextStyle(
+                                                  fontSize: 18.sp,
+                                                  color: Color(0xFFFFFFFF),
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                              SizedBox(height: 10.h),
+                                              Text(
+                                                "Are you sure you to Report the User?",
+                                                style: TextStyle(
+                                                  fontSize: 14.sp,
+                                                  color: Color(0xFFB2B5B8),
+                                                  fontWeight: FontWeight.w400,
+                                                ),
+                                              ),
+                                              SizedBox(height: 16.h),
+                                              FilledButton(
+                                                style: FilledButton.styleFrom(
+                                                  fixedSize: Size(335.w, 48.h),
+                                                  backgroundColor: Color(
+                                                    0xFFE9201D,
+                                                  ),
+                                                ),
+                                                onPressed: () {},
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    SvgPicture.asset(
+                                                      'assets/icons/report_icon.svg',
+                                                    ),
+                                                    SizedBox(width: 10.w),
+                                                    Text(
+                                                      "Yes, Report",
+                                                      style: TextStyle(
+                                                        fontSize: 16.sp,
+                                                        color: Color(
+                                                          0xFFFFFFFF,
+                                                        ),
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              SizedBox(height: 16.h),
+                                              OutlinedButton(
+                                                style: OutlinedButton.styleFrom(
+                                                  fixedSize: Size(335.w, 48.h),
+                                                  side: BorderSide(
+                                                    color: Color(0xFF3D4566),
+                                                  ),
+                                                ),
+                                                onPressed: () {
+                                                  Navigator.pop(context);
+                                                },
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.cancel_outlined,
+                                                      color: Colors.white,
+                                                      size: 16.sp,
+                                                    ),
+                                                    SizedBox(width: 10.w),
+                                                    Text(
+                                                      "Cancel",
+                                                      style: TextStyle(
+                                                        fontSize: 16.sp,
+                                                        color: Color(
+                                                          0xFFFFFFFF,
+                                                        ),
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              SizedBox(height: 16.h),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 6.h,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Color(0xFF3D4566),
+                                        borderRadius: BorderRadius.circular(
+                                          4.r,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Image.asset(
+                                            "assets/icons/share.png",
+                                            width: 18.w,
+                                            height: 18.h,
+                                          ),
+                                          SizedBox(width: 6.w),
+                                          Text(
+                                            "Share",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12.sp,
+                                              fontWeight: FontWeight.w400,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ];
+                            },
+                            // onSelected: (value) {
+                            //   if (value == "delete") {
+                            //     _deletePost(feed.id ?? "");
+                            //   }
+                            // },
+                          ),
+                        ),
                       ),
                     ],
                   ),

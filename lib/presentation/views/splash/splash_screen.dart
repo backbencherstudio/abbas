@@ -296,7 +296,6 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
   }
 
-
   Future<void> _fetchAccessToken() async {
     await _refreshTokenViewModel.fetchNewAccessToken();
     if (_refreshTokenViewModel.errorMessage != null) {
@@ -333,10 +332,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      appBar: AppBar(backgroundColor: Colors.transparent, elevation: 0),
       extendBodyBehindAppBar: true,
       body: TweenAnimationBuilder<Color?>(
         duration: const Duration(milliseconds: 2000),
