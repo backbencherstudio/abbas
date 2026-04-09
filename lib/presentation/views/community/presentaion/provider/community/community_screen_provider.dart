@@ -3,6 +3,7 @@ import 'package:abbas/presentation/views/community/domain/community/community_us
 import 'package:abbas/presentation/views/community/model/get_comment_model.dart';
 import 'package:abbas/presentation/views/community/model/get_post_like_model.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
 import '../../../../../../cors/constants/api_endpoints.dart';
 import '../../../../../../cors/network/api_response_model.dart';
@@ -83,9 +84,17 @@ class CommunityScreenProvider extends ChangeNotifier {
   bool _isPickingImage = false;
   String _mediaType = 'TEXT';
 
+  File? _selectImage;
+  File? get selectImage => _selectImage;
+
   File? get selectedMedia => _selectedMedia;
   bool get isPickingImage => _isPickingImage;
   String get mediaType => _mediaType;
+
+  void setImagePicked(File image) {
+    _selectImage = image;
+    notifyListeners();
+  }
 
   void setSelectedMedia(File media, String type) {
     _selectedMedia = media;

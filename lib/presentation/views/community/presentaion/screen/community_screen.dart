@@ -135,8 +135,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
   @override
   Widget build(BuildContext context) {
     final profileProvider = Provider.of<ProfileScreenProvider>(context);
-    final profileImage = profileProvider.profile?.data?.avatar;
-    final profileName = profileProvider.profile?.data?.name;
+
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: _onRefresh,
@@ -264,7 +263,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          profileName ?? "name : N/A",
+                                          feed.author?.name ?? "name : N/A",
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: Colors.white,
@@ -348,8 +347,13 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                             child: GestureDetector(
                                               onTap: () => showDialog(
                                                 context: context,
+                                                barrierDismissible: false,
                                                 builder: (context) {
                                                   return AlertDialog(
+                                                    titlePadding:
+                                                        EdgeInsets.symmetric(
+                                                          horizontal: 16.w,
+                                                        ),
                                                     backgroundColor: Color(
                                                       0xFF07121D,
                                                     ),
@@ -387,7 +391,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                                                 FontWeight.w500,
                                                           ),
                                                         ),
-                                                        SizedBox(height: 16.h),
+                                                        SizedBox(height: 10.h),
                                                         Text(
                                                           "Are you sure you to Delete this Post?",
                                                           style: TextStyle(
@@ -399,6 +403,106 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                                                 FontWeight.w400,
                                                           ),
                                                         ),
+                                                        SizedBox(height: 16.h),
+                                                        FilledButton(
+                                                          style:
+                                                              FilledButton.styleFrom(
+                                                                fixedSize: Size(
+                                                                  335.w,
+                                                                  48.h,
+                                                                ),
+                                                                backgroundColor:
+                                                                    Color(
+                                                                      0xFFE9201D,
+                                                                    ),
+                                                              ),
+                                                          onPressed: () {
+                                                            _deletePost(
+                                                              feed.id ?? '',
+                                                            );
+                                                            Navigator.pop(
+                                                              context,
+                                                            );
+                                                          },
+                                                          child: Row(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .center,
+                                                            children: [
+                                                              SvgPicture.asset(
+                                                                'assets/icons/delete.svg',
+                                                              ),
+                                                              SizedBox(
+                                                                width: 10.w,
+                                                              ),
+                                                              Text(
+                                                                "Delete",
+                                                                style: TextStyle(
+                                                                  fontSize:
+                                                                      16.sp,
+                                                                  color: Color(
+                                                                    0xFFFFFFFF,
+                                                                  ),
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w500,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                        SizedBox(height: 16.h),
+                                                        OutlinedButton(
+                                                          style:
+                                                              OutlinedButton.styleFrom(
+                                                                fixedSize: Size(
+                                                                  335.w,
+                                                                  48.h,
+                                                                ),
+                                                                side: BorderSide(
+                                                                  color: Color(
+                                                                    0xFF3D4566,
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                          onPressed: () {
+                                                            Navigator.pop(
+                                                              context,
+                                                            );
+                                                          },
+                                                          child: Row(
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .center,
+                                                            children: [
+                                                              Icon(
+                                                                Icons
+                                                                    .cancel_outlined,
+                                                                size: 16.sp,
+                                                                color: Color(
+                                                                  0xFFFFFFFF,
+                                                                ),
+                                                              ),
+                                                              SizedBox(
+                                                                width: 10.w,
+                                                              ),
+                                                              Text(
+                                                                "Cancel",
+                                                                style: TextStyle(
+                                                                  fontSize:
+                                                                      16.sp,
+                                                                  color: Color(
+                                                                    0xFFFFFFFF,
+                                                                  ),
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w500,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                        SizedBox(height: 16.h),
                                                       ],
                                                     ),
                                                   );
