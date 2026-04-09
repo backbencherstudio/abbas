@@ -111,6 +111,7 @@ class _CourseScreenState extends ConsumerState<CourseScreen> {
                                       Icon(
                                         Icons.arrow_forward_ios,
                                         color: Colors.white,
+                                        size: 20.sp,
                                       ),
                                     ],
                                   ),

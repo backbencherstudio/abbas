@@ -1,9 +1,9 @@
 class ApiEndpoints {
   ApiEndpoints._();
 
-  static const String baseUrl =
-      'http://192.168.7.14:4000';
-  static const String socketUrl = "https://train-cnet-suit-reviews.trycloudflare.com";
+  static const String baseUrl = 'http://192.168.7.14:4000';
+  static const String socketUrl =
+      "https://train-cnet-suit-reviews.trycloudflare.com";
   static const String register = '$baseUrl/api/auth/register';
   static const String login = '$baseUrl/api/auth/login';
   static const String refreshToken = '$baseUrl/api/auth/refresh-token';
@@ -94,6 +94,7 @@ class ApiEndpoints {
   static String deletePost(String postId) =>
       '$baseUrl/api/community/post/$postId';
   static const String createPoll = '$baseUrl/api/community/post';
+  static String report(String userId) => '$baseUrl/community/report/$userId';
 
   // chat
 
@@ -110,6 +111,7 @@ class ApiEndpoints {
       return '$baseUrl/api/conversations/$conversationId/messages?take=$take';
     }
   }
+
   static String dmSendMessage(String conversationId) =>
       '$baseUrl/api/conversations/$conversationId/messages';
 

@@ -34,9 +34,15 @@ class CreatePostWidget extends StatelessWidget {
                       builder: (context, profileProvider, child) {
                         final profileImage =
                             profileProvider.profile?.data?.avatar;
-                        return CircleAvatar(
-                          radius: 24.r,
-                          backgroundImage: NetworkImage(profileImage ?? ''),
+                        return GestureDetector(
+                          onTap: () => Navigator.pushNamed(
+                            context,
+                            RouteNames.editProfile,
+                          ),
+                          child: CircleAvatar(
+                            radius: 24.r,
+                            backgroundImage: NetworkImage(profileImage ?? ''),
+                          ),
                         );
                       },
                     ),

@@ -266,55 +266,46 @@ Future<void> configureDependencies() async {
   );
 
 
-  // ===============================
-  // LOGIN DEPENDENCY INJECTION
-  // ===============================
-
-  // 2️⃣ Remote Data Source
   getIt.registerLazySingleton<LoginRemoteDataSource>(
     () => LoginRemoteDataSource(
       getIt<ApiClient>(), // ApiClient injected
     ),
   );
 
-  // 3️⃣ Repository
+
   getIt.registerLazySingleton<LoginRepository>(
     () => LoginRepositoryImpl(getIt<LoginRemoteDataSource>()),
   );
-  // 4️⃣ UseCase
+
   getIt.registerLazySingleton<LoginUseCase>(
     () => LoginUseCase(getIt<LoginRepository>()),
   );
 
-  // 5️⃣ Provider
+
   getIt.registerFactory<LoginScreenProvider>(
     () => LoginScreenProvider(loginUseCase: getIt<LoginUseCase>()),
   );
 
-  // ===============================
-  // Get feed DEPENDENCY INJECTION
-  // ===============================
 
-  // 2️⃣ Remote Data Source
+
   getIt.registerLazySingleton<CommunityRemoteDataSource>(
     () => CommunityRemoteDataSource(
       getIt<ApiClient>(), // ApiClient injected
     ),
   );
 
-  // 3️⃣ Repository
   getIt.registerLazySingleton<CommunityRepository>(
     () => CommunityRepositoryImpl(getIt<CommunityRemoteDataSource>()),
   );
-  // 4️⃣ UseCase
+
   getIt.registerLazySingleton<GetCommunityFeedUseCase>(
     () => GetCommunityFeedUseCase(getIt<CommunityRepository>()),
   );
 
-  // 5️⃣ Provider
+
   getIt.registerFactory<CommunityScreenProvider>(
     () => CommunityScreenProvider(
-      getCommunityFeedsUseCase: getIt<GetCommunityFeedUseCase>(),
+      getCommunityFeedUseCase: getIt<GetCommunityFeedUseCase>(),
     ),
   );
 

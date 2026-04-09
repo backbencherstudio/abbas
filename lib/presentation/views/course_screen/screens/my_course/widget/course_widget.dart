@@ -213,13 +213,7 @@ class _CourseWidgetState extends ConsumerState<CourseWidget> {
                                   borderRadius: BorderRadius.circular(12.r),
                                 ),
                               ),
-                              onPressed: () {
-                                Navigator.pushNamed(
-                                  context,
-                                  RouteNames.assetsScreen,
-                                  arguments: data?.data?.id,
-                                );
-                              },
+                              onPressed: () {},
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
