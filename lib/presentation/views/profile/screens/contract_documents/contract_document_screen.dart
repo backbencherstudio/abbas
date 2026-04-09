@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../widgets/secondary_appber.dart';
+import '../../../course_screen/screens/my_class/widget/pdf_widget.dart';
 
 
 class ContractDocumentScreen extends StatelessWidget {
@@ -17,9 +18,9 @@ class ContractDocumentScreen extends StatelessWidget {
             child: Column(
               spacing: 16.h,
               children: [
-                // LediKhadashProtiva(title: 'Signed Contract'),
-                // LediKhadashProtiva(title: 'Rules and Regulations'),
-                // LediKhadashProtiva(title: 'Payment Receipt'),
+                 LediKhadashProtiva(title: 'Signed Contract',),
+                 LediKhadashProtiva(title: 'Rules and Regulations'),
+                 LediKhadashProtiva(title: 'Payment Receipt'),
               ],
             ),
           )

@@ -42,9 +42,11 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
 
     provider.setIsSubmitting(true);
 
-    await provider.createComment(widget.postId, text);
-    _commentController.clear();
-    await provider.getComment(widget.postId);
+    final response = await provider.createComment(widget.postId, text);
+    if (response.success) {
+      _commentController.clear();
+      await provider.getComment(widget.postId);
+    }
 
     if (mounted) {
       provider.setIsSubmitting(false);
@@ -60,10 +62,16 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
 
     provider.setIsSubmitting(true);
 
-    await provider.replyComment(widget.postId, _replyingToCommentId!, text);
-    _commentController.clear();
-    _cancelReply();
-    await provider.getComment(widget.postId);
+    final response = await provider.replyComment(
+      widget.postId,
+      _replyingToCommentId!,
+      text,
+    );
+    if (response.success) {
+      _commentController.clear();
+      _cancelReply();
+      await provider.getComment(widget.postId);
+    }
 
     if (mounted) {
       provider.setIsSubmitting(false);

@@ -86,7 +86,17 @@ class _ReactionButtonState extends State<ReactionButton> {
             : null;
 
         return GestureDetector(
-          onTap: () => _showReactionBar(provider),
+        //  onTap: () => _showReactionBar(provider),
+          onTap: () {
+            final currentReaction = provider.getReaction(widget.postId);
+            if (currentReaction == 'Like') {
+              provider.setReaction(widget.postId, null);
+            } else {
+              provider.setReaction(widget.postId, 'Like');
+            }
+            provider.createPostLike(widget.postId);
+          },
+
           onLongPress: () => _showReactionBar(provider),
           child: Row(
             mainAxisSize: MainAxisSize.min,
