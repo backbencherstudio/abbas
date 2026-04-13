@@ -59,6 +59,7 @@ class RouteNames {
   static const String editProfile = '/editProfile';
   static const String othersProfile = '/othersProfile';
   static const String reportListPage = '/reportListPage';
+  static const String reportUserScreen = '/reportUserScreen';
   static const String newMessageScreens = '/newMessageScreens';
   static const String createGroupScreen = '/createGroupScreen';
   static const String oneTwoOneChatScreen = '/oneTwoOneChatScreen';
