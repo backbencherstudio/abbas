@@ -50,6 +50,7 @@ class ApiEndpoints {
   static String getModuleDetails(String moduleId) =>
       '$baseUrl/api/course/module/$moduleId';
 
+
   static String getClassDetails(String classId) =>
       '$baseUrl/api/course/class/$classId';
 

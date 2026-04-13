@@ -33,7 +33,7 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
     _scrollController.addListener(_onScroll);
   }
 
-  /// 🔥 Load more when scroll to top (for pagination)
+  ///  Load more when scroll to top (for pagination)
   void _onScroll() {
     if (!_scrollController.hasClients || conversationId == null) return;
 
@@ -219,7 +219,6 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
                     },
                   ),
           ),
-
           // Message Input
           Padding(
             padding: EdgeInsets.only(bottom: 24.h, left: 6.w, right: 6.w),
