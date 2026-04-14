@@ -1,3 +1,4 @@
+import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../../cors/routes/route_names.dart';
@@ -13,13 +14,12 @@ class ReportListPage extends StatefulWidget {
 class _ReportListPageState extends State<ReportListPage> {
   String? selectedReason;
 
-
   final reasons = [
     "Hate Speech or Offensive Behavior",
     'Inappropriate Content',
-    ' Harassment or Bullying',
+    'Harassment or Bullying',
     'Spam or Scam',
-    ' False Information',
+    'False Information',
   ];
 
   @override
@@ -55,7 +55,7 @@ class _ReportListPageState extends State<ReportListPage> {
                   ),
                   SizedBox(height: 24.h),
                   ...reasons.map(
-                    (r) => Container(
+                    (reasonTitle) => Container(
                       margin: EdgeInsets.symmetric(vertical: 8.h),
                       padding: EdgeInsets.symmetric(
                         horizontal: 12.w,
@@ -71,7 +71,7 @@ class _ReportListPageState extends State<ReportListPage> {
                       ),
                       child: ListTile(
                         title: Text(
-                          r,
+                          reasonTitle,
                           style: TextStyle(
                             fontSize: 14.sp,
                             color: Colors.white,
@@ -87,6 +87,7 @@ class _ReportListPageState extends State<ReportListPage> {
                           Navigator.pushNamed(
                             context,
                             RouteNames.reportUserScreen,
+                            arguments: reasonTitle,
                           );
                         },
                       ),
@@ -100,7 +101,4 @@ class _ReportListPageState extends State<ReportListPage> {
       ),
     );
   }
-
-
-
 }
