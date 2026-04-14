@@ -67,6 +67,7 @@ dependencies:
   path: ^1.9.1
   socket_io_client: ^3.1.4
   file_picker: ^10.3.10
+  social_sharing_plus: ^1.2.3
 
 dev_dependencies:
   flutter_test:
