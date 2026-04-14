@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:abbas/cors/utils/app_utils.dart';
 import 'package:abbas/presentation/views/community/presentaion/provider/community/community_screen_provider.dart';
+import 'package:abbas/presentation/views/profile/view_model/profil_screen_provider.dart';
 import 'package:abbas/presentation/widgets/custom_text_field.dart';
 import 'package:abbas/presentation/widgets/validator.dart';
 import 'package:flutter/material.dart';
@@ -19,10 +20,28 @@ class EditProfile extends StatefulWidget {
 }
 
 class _EditProfileState extends State<EditProfile> {
+  @override
+  void initState() {
+    super.initState();
+    _updateProfile();
+  }
+
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
+
+  void _updateProfile() {
+    final editProfileData = context
+        .read<ProfileScreenProvider>()
+        .myProfileModel
+        ?.data;
+    if (editProfileData != null) {
+      _nameController.text = editProfileData.name ?? '';
+      _usernameController.text = editProfileData.username ?? '';
+      _bioController.text = editProfileData.about ?? '';
+    }
+  }
 
   @override
   void dispose() {
@@ -63,7 +82,7 @@ class _EditProfileState extends State<EditProfile> {
     }
   }
 
-  Future<void> _pickerProfleImage() async {
+  Future<void> _pickerProfileImage() async {
     try {
       context.read<CommunityScreenProvider>().setIsPickingImage(true);
       final pickedImage = await _imagePicker.pickImage(
@@ -109,7 +128,7 @@ class _EditProfileState extends State<EditProfile> {
                       Stack(
                         children: [
                           SizedBox(
-                            height: 200.h,
+                            height: 130.h,
                             width: double.infinity,
                             child:
                                 context
@@ -141,11 +160,11 @@ class _EditProfileState extends State<EditProfile> {
                         ],
                       ),
                       Transform.translate(
-                        offset: Offset(140, 120),
+                        offset: Offset(140, 90),
                         child: Stack(
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(1),
+                              padding:  EdgeInsets.all(1.r),
                               decoration: BoxDecoration(
                                 color: Colors.black54,
                                 shape: BoxShape.circle,
@@ -165,20 +184,20 @@ class _EditProfileState extends State<EditProfile> {
                                       ),
                               ),
                             ),
-                    
+
                             Positioned(
-                              right: 2.r,
+                              right: -2.r,
                               bottom: 2,
                               child: Container(
-                                width: 30.w,
+                                width: 40.w,
                                 height: 40.h,
-                                padding: const EdgeInsets.all(6),
+                                padding: EdgeInsets.all(6.r),
                                 decoration: const BoxDecoration(
-                                  color: Colors.black54,
+                                  color: Colors.transparent,
                                   shape: BoxShape.circle,
                                 ),
                                 child: GestureDetector(
-                                  onTap: _pickerProfleImage,
+                                  onTap: _pickerProfileImage,
                                   child: Image.asset(
                                     'assets/icons/button.png',
                                     scale: 3.4.sp,
@@ -198,7 +217,7 @@ class _EditProfileState extends State<EditProfile> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(height: 16.h),
+                        SizedBox(height: 48.h),
                         Text(
                           'Name',
                           style: TextStyle(
@@ -245,18 +264,57 @@ class _EditProfileState extends State<EditProfile> {
                         ),
                         SizedBox(height: 24.h),
                         PrimaryButton(
-                          onTap: () {},
+                          onTap: () async {
+                            if (_formKey.currentState!.validate()) {
+                              final res = await context
+                                  .read<CommunityScreenProvider>()
+                                  .editMyProfile(
+                                    name: _nameController.text,
+                                    userName: _usernameController.text,
+                                    about: _bioController.text,
+                                    avatar: context
+                                        .read<CommunityScreenProvider>()
+                                        .selectProfile,
+                                    coverImage: context
+                                        .read<CommunityScreenProvider>()
+                                        .selectImage,
+                                  );
+
+                              if (res.success) {
+                                context.read<CommunityScreenProvider>().fetchFeeds();
+                                Utils.showToast(
+                                  msg: res.message,
+                                  backgroundColor: Colors.green,
+                                  textColor: Colors.white,
+                                );
+                                Navigator.pop(context);
+                              } else {
+                                Utils.showToast(
+                                  msg: res.message,
+                                  backgroundColor: Colors.red,
+                                  textColor: Colors.white,
+                                );
+                              }
+                            }
+                          },
                           color: Colors.white,
                           textColor: Colors.black,
                           icon: '',
-                          child: Text(
-                            "Save",
-                            style: TextStyle(
-                              fontSize: 16.sp,
-                              color: Color(0xFF030C15),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
+                          child:
+                              context.watch<CommunityScreenProvider>().isLoading
+                              ? const Center(
+                                  child: CircularProgressIndicator(
+                                    color: Colors.black,
+                                  ),
+                                )
+                              : Text(
+                                  "Save",
+                                  style: TextStyle(
+                                    fontSize: 16.sp,
+                                    color: Color(0xFF030C15),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
                         ),
                       ],
                     ),
