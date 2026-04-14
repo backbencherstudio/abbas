@@ -1,4 +1,5 @@
 import 'package:abbas/cors/services/token_storage.dart';
+import 'package:abbas/cors/theme/app_colors.dart';
 import 'package:abbas/presentation/views/profile/view_model/profil_screen_provider.dart';
 import 'package:abbas/presentation/views/profile/widgets/option_card.dart';
 import 'package:flutter/material.dart';
@@ -32,6 +33,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final textTheme = Theme.of(context).textTheme;
     final TokenStorage _tokenStorage = TokenStorage();
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: Consumer<ProfileScreenProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading) {
