@@ -106,6 +106,9 @@ class ApiEndpoints {
   static const String editMyProfile = '$baseUrl/api/community/edit-profile';
   static const String getMyProfile = '$baseUrl/api/community/my-profile';
 
+  static String voteOnAPoll(String postId, String optionId) =>
+      '$baseUrl/api/community/vote/$postId/$optionId';
+
   // chat
 
   static const String createConversation = '$baseUrl/api/conversations/dm';
