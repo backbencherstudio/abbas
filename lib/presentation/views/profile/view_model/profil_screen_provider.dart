@@ -1,4 +1,5 @@
 import 'package:abbas/cors/constants/api_endpoints.dart';
+import 'package:abbas/presentation/views/profile/model/my_profile_model.dart';
 import 'package:abbas/presentation/views/profile/model/other_profile_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:logger/logger.dart';
@@ -17,12 +18,16 @@ class ProfileScreenProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   CheckMeModel? _profile;
+  MyProfileModel? _myProfileModel;
 
   bool get isLoading => _isLoading;
 
   String? get errorMessage => _errorMessage;
 
   CheckMeModel? get profile => _profile;
+
+  MyProfileModel? get myProfileModel => _myProfileModel;
+
   OtherProfileModel? _otherProfileModel;
 
   OtherProfileModel? get otherProfileModel => _otherProfileModel;
@@ -44,6 +49,42 @@ class ProfileScreenProvider extends ChangeNotifier {
 
       if (response.success) {
         _profile = CheckMeModel.fromJson(response.data);
+
+        logger.i("Profile Parsed Successfully");
+        logger.d("User ID: ${_profile?.data?.id}");
+        logger.d("User Email: ${_profile?.data?.email}");
+      } else {
+        _errorMessage = response.message;
+        logger.e("API Returned Error: $_errorMessage");
+      }
+    } catch (e, stackTrace) {
+      _errorMessage = e.toString();
+
+      logger.e("Exception Occurred");
+      logger.e(e);
+      logger.e(stackTrace);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> getMyProfile() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final ApiResponseModel response = await _apiClient.get(
+        ApiEndpoints.getMyProfile,
+      );
+
+      logger.i("API Success Status: ${response.success}");
+      logger.i("API Message: ${response.message}");
+      logger.d("Raw API Data: ${response.data}");
+
+      if (response.success) {
+        _myProfileModel = MyProfileModel.fromJson(response.data);
 
         logger.i("Profile Parsed Successfully");
         logger.d("User ID: ${_profile?.data?.id}");
