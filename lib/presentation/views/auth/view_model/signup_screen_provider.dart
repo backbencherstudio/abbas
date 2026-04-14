@@ -10,7 +10,6 @@ import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../../cors/services/user_id_storage.dart';
 
-
 final authProvider = StateNotifierProvider<AuthProvider, AuthModel>(
   (ref) => AuthProvider(dioClient: DioClient()),
 );
@@ -57,10 +56,12 @@ class AuthProvider extends StateNotifier<AuthModel> {
     required String password,
   }) async {
     var body = {'name': name, 'email': email, 'password': password};
-
-    logger.d("Body : $body");
     try {
+      state = state.copyWith(isLoading: true);
       final res = await dioClient.postHttp(ApiEndpoints.register, body);
+      if (res is ResponseModel) {
+        return res;
+      }
       if (res['success']) {
         return ResponseModel(success: true, message: res['message']);
       } else {
@@ -68,6 +69,8 @@ class AuthProvider extends StateNotifier<AuthModel> {
       }
     } catch (e) {
       return ResponseModel(success: false, message: '$e');
+    } finally {
+      state = state.copyWith(isLoading: false);
     }
   }
 
@@ -78,7 +81,13 @@ class AuthProvider extends StateNotifier<AuthModel> {
   }) async {
     var body = {'email': email, 'password': password};
     try {
-      final res = await dioClient.postHttp(ApiEndpoints.login, body);
+      state = state.copyWith(isLoading: true);
+      var res = await dioClient.postHttp(ApiEndpoints.login, body);
+
+      if (res is ResponseModel) {
+        return res;
+      }
+
       if (res['success']) {
         final token = res['authorization']['access_token'];
         final refreshToken = res['authorization']['refresh_token'];
@@ -97,6 +106,8 @@ class AuthProvider extends StateNotifier<AuthModel> {
       }
     } catch (e) {
       return ResponseModel(success: false, message: '$e');
+    } finally {
+      state = state.copyWith(isLoading: false);
     }
   }
 
@@ -104,7 +115,11 @@ class AuthProvider extends StateNotifier<AuthModel> {
   Future<ResponseModel> forgotPassword({required String email}) async {
     var body = {'email': email};
     try {
+      state = state.copyWith(isLoading: true);
       final res = await dioClient.postHttp(ApiEndpoints.forgotPassword, body);
+      if (res is ResponseModel) {
+        return res;
+      }
       if (res['success']) {
         return ResponseModel(success: true, message: res['message']);
       } else {
@@ -112,6 +127,8 @@ class AuthProvider extends StateNotifier<AuthModel> {
       }
     } catch (e) {
       return ResponseModel(success: false, message: '$e');
+    } finally {
+      state = state.copyWith(isLoading: false);
     }
   }
 
@@ -122,7 +139,11 @@ class AuthProvider extends StateNotifier<AuthModel> {
   }) async {
     var body = {'email': email, 'otp': otp};
     try {
+      state = state.copyWith(isLoading: true);
       final res = await dioClient.postHttp(ApiEndpoints.verifyEmail, body);
+      if (res is ResponseModel) {
+        return res;
+      }
       if (res['success']) {
         return ResponseModel(success: true, message: res['message']);
       } else {
@@ -130,6 +151,8 @@ class AuthProvider extends StateNotifier<AuthModel> {
       }
     } catch (e) {
       return ResponseModel(success: false, message: '$e');
+    } finally {
+      state = state.copyWith(isLoading: false);
     }
   }
 
@@ -137,10 +160,14 @@ class AuthProvider extends StateNotifier<AuthModel> {
   Future<ResponseModel> resendVerification({required String email}) async {
     var body = {'email': email};
     try {
+      state = state.copyWith(isLoading: true);
       final res = await dioClient.postHttp(
         ApiEndpoints.resendVerification,
         body,
       );
+      if (res is ResponseModel) {
+        return res;
+      }
       if (res['success']) {
         return ResponseModel(success: true, message: res['message']);
       } else {
@@ -148,6 +175,8 @@ class AuthProvider extends StateNotifier<AuthModel> {
       }
     } catch (e) {
       return ResponseModel(success: false, message: '$e');
+    } finally {
+      state = state.copyWith(isLoading: false);
     }
   }
 
@@ -159,7 +188,11 @@ class AuthProvider extends StateNotifier<AuthModel> {
   }) async {
     var body = {'email': email, 'otp': otp, 'new_password': newPassword};
     try {
+      state = state.copyWith(isLoading: true);
       final res = await dioClient.postHttp(ApiEndpoints.resetPassword, body);
+      if (res is ResponseModel) {
+        return res;
+      }
       if (res['success']) {
         return ResponseModel(success: true, message: res['message']);
       } else {
@@ -167,6 +200,8 @@ class AuthProvider extends StateNotifier<AuthModel> {
       }
     } catch (e) {
       return ResponseModel(success: false, message: '$e');
+    } finally {
+      state = state.copyWith(isLoading: false);
     }
   }
 
@@ -182,7 +217,11 @@ class AuthProvider extends StateNotifier<AuthModel> {
       'new_password': newPassword,
     };
     try {
+      state = state.copyWith(isLoading: true);
       final res = await dioClient.postHttp(ApiEndpoints.changePassword, body);
+      if (res is ResponseModel) {
+        return res;
+      }
       if (res['success']) {
         return ResponseModel(success: true, message: res['message']);
       } else {
@@ -190,6 +229,8 @@ class AuthProvider extends StateNotifier<AuthModel> {
       }
     } catch (e) {
       return ResponseModel(success: false, message: '$e');
+    } finally {
+      state = state.copyWith(isLoading: false);
     }
   }
 
@@ -200,7 +241,11 @@ class AuthProvider extends StateNotifier<AuthModel> {
   }) async {
     var body = {'email': email, 'token': token};
     try {
+      state = state.copyWith(isLoading: true);
       final res = await dioClient.postHttp(ApiEndpoints.changeEmail, body);
+      if (res is ResponseModel) {
+        return res;
+      }
       if (res['success']) {
         return ResponseModel(success: true, message: res['message']);
       } else {
@@ -208,6 +253,8 @@ class AuthProvider extends StateNotifier<AuthModel> {
       }
     } catch (e) {
       return ResponseModel(success: false, message: '$e');
+    } finally {
+      state = state.copyWith(isLoading: false);
     }
   }
 
@@ -215,10 +262,14 @@ class AuthProvider extends StateNotifier<AuthModel> {
   Future<ResponseModel> requestChangeEmail({required String email}) async {
     var body = {'email': email};
     try {
+      state = state.copyWith(isLoading: true);
       final res = await dioClient.postHttp(
         ApiEndpoints.requestChangeEmail,
         body,
       );
+      if (res is ResponseModel) {
+        return res;
+      }
       if (res['success']) {
         return ResponseModel(success: true, message: res['message']);
       } else {
@@ -226,6 +277,8 @@ class AuthProvider extends StateNotifier<AuthModel> {
       }
     } catch (e) {
       return ResponseModel(success: false, message: '$e');
+    } finally {
+      state = state.copyWith(isLoading: false);
     }
   }
 }
