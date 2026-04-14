@@ -1,7 +1,7 @@
 class ApiEndpoints {
   ApiEndpoints._();
 
-  static const String baseUrl = 'http://192.168.7.14:4000';
+  static const String baseUrl = 'http://192.168.7.12:4000';
   static const String socketUrl =
       "https://train-cnet-suit-reviews.trycloudflare.com";
   static const String register = '$baseUrl/api/auth/register';
@@ -81,28 +81,40 @@ class ApiEndpoints {
   /// -------------------- Community -------------------------------------------
   static const String getFeed = '$baseUrl/api/community/feed';
   static const String createPost = '$baseUrl/api/community/post';
+
   static String updatePost(String postId) =>
       '$baseUrl/api/community/post/$postId';
   static const String createPostLike = '$baseUrl/api/community/like';
+
   static String getPostLike(String postId) =>
       '$baseUrl/api/community/like/$postId';
+
   static String createComment(String postId) =>
       '$baseUrl/api/community/comment/$postId';
+
   static String getComment(String postId) =>
       '$baseUrl/api/community/comment/$postId';
+
   static String replyComment(String postId) =>
       '$baseUrl/api/community/comment/reply/$postId';
+
   static String deletePost(String postId) =>
       '$baseUrl/api/community/post/$postId';
   static const String createPoll = '$baseUrl/api/community/post';
+
   static String report(String userId) =>
       '$baseUrl/api/community/report/$userId';
   static const String editMyProfile = '$baseUrl/api/community/edit-profile';
+  static const String getMyProfile = '$baseUrl/api/community/my-profile';
+
+  static String voteOnAPoll(String postId, String optionId) =>
+      '$baseUrl/api/community/vote/$postId/$optionId';
 
   // chat
 
   static const String createConversation = '$baseUrl/api/conversations/dm';
   static const String allConversationList = '$baseUrl/api/conversations';
+
   static String searchUser(String query) =>
       '$baseUrl/api/users/suggest?q=$query';
   static const String createGroupChat = '$baseUrl/api/conversations/group';

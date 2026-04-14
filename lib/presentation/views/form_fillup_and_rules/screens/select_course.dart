@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../../cors/network/api_error_handle.dart';
 import '../../../../cors/routes/route_names.dart';
 import '../../../../cors/theme/app_colors.dart';
 import '../../course_screen/view_model/get_all_courses_provider.dart';
@@ -13,7 +14,6 @@ class SelectCourse extends ConsumerStatefulWidget {
 }
 
 class _SelectCourseState extends ConsumerState<SelectCourse> {
-
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -38,8 +38,10 @@ class _SelectCourseState extends ConsumerState<SelectCourse> {
         ),
       ),
       body: getAllCourse.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: Colors.white,)),
-        error: (error, stack) => Center(child: Text('Error : Connection TimeOut. Please try again')),
+        loading: () =>
+            const Center(child: CircularProgressIndicator(color: Colors.white)),
+        error: (error, stack) =>
+            Center(child: Text('Error : Connection TimeOut. Please try again')),
         data: (data) {
           final course = data;
           if (course == null) {
@@ -67,6 +69,7 @@ class _SelectCourseState extends ConsumerState<SelectCourse> {
                     itemBuilder: (BuildContext context, int index) {
                       final value = data?.data?[index];
                       return Card(
+                        margin: EdgeInsets.symmetric(vertical: 10.h),
                         color: const Color(0xFF0A1A29),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12.r),

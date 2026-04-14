@@ -22,7 +22,12 @@ class ApiResponseHandle {
     logger.i("Response Status: $statusCode");
     logger.i("Response Body: $body");
 
-    if (statusCode >= 200 && statusCode < 300) {
+    bool success = statusCode >= 200 && statusCode < 300;
+    if (body is Map<String, dynamic> && body.containsKey('success')) {
+      success = body['success'] == true;
+    }
+
+    if (success) {
       return ApiResponseModel(
         success: true,
         data: body,
@@ -36,7 +41,9 @@ class ApiResponseHandle {
         data: body,
         message: body is Map<String, dynamic> && body.containsKey('message')
             ? body['message']
-            : 'Error $statusCode',
+            : (body is Map<String, dynamic> && body.containsKey('error')
+                ? body['error'].toString()
+                : 'Error $statusCode'),
       );
     }
   }

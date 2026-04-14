@@ -184,6 +184,7 @@ class _CourseScreenState extends ConsumerState<CourseScreen> {
                           horizontal: 12.w,
                           vertical: 16.h,
                         ),
+                        margin: EdgeInsets.symmetric(vertical: 10.h),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12.r),
                           color: const Color(0xFF0A1A29),

@@ -1,4 +1,5 @@
 import 'package:abbas/cors/network/api_response_handle.dart';
+import 'package:abbas/cors/theme/app_colors.dart';
 import 'package:abbas/cors/utils/app_utils.dart';
 import 'package:abbas/presentation/views/community/presentaion/provider/community/community_screen_provider.dart';
 import 'package:abbas/presentation/views/profile/view_model/profil_screen_provider.dart';
@@ -127,6 +128,7 @@ class _CreatePoolState extends State<CreatePool> {
     final profileName = profileProvider.profile?.data?.name;
     final profileImage = profileProvider.profile?.data?.avatar;
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: SingleChildScrollView(
         child: Consumer<CommunityScreenProvider>(
           builder: (context, provider, child) {

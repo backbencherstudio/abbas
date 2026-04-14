@@ -148,7 +148,8 @@ class AppRoutes {
     },
     RouteNames.fillEnrollmentForm: (context) {
       final args = ModalRoute.of(context)!.settings.arguments;
-      final courseId = args is Map ? args['id'] : '';
+      final courseId = args is String ? args : '';
+      logger.d("App Routes : $courseId");
       return FillEnrollmentForm(courseId: courseId);
     },
     RouteNames.rulesRegulations: (context) {
@@ -196,7 +197,11 @@ class AppRoutes {
     RouteNames.editProfile: (context) => EditProfile(),
     RouteNames.othersProfile: (context) => OthersProfile(),
     RouteNames.reportListPage: (context) => ReportListPage(),
-    RouteNames.reportUserScreen: (context) => ReportUserScreen(),
+    RouteNames.reportUserScreen: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments;
+      final reason = args is String ? args : '';
+      return ReportUserScreen(reason: reason,);
+    },
     RouteNames.newMessageScreens: (context) => NewMessageScreens(),
     RouteNames.createGroupScreen: (context) => CreateGroupScreen(),
     RouteNames.oneTwoOneChatScreen: (context) => OneTwoOneChatScreen(),

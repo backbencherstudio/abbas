@@ -12,10 +12,13 @@ import '../../../domain/community/community_entity.dart';
 
 class CommunityScreenProvider extends ChangeNotifier {
   final GetCommunityFeedUseCase getCommunityFeedUseCase;
+
   CommunityScreenProvider({required this.getCommunityFeedUseCase});
 
   bool _isDeletePost = false;
+
   bool get isDeletePost => _isDeletePost;
+
   void setIsDeletePost(bool isDeletePost) {
     _isDeletePost = isDeletePost;
     notifyListeners();
@@ -24,6 +27,9 @@ class CommunityScreenProvider extends ChangeNotifier {
   List<CommunityEntity> _feeds = [];
 
   List<CommunityEntity> get feeds => _feeds;
+
+  String? _currentUserId;
+  String? get currentUserId => _currentUserId;
 
   /// ---------------- Get Post Like Model -------------------------------------
   GetPostLikeModel? _getPostLikeModel;
@@ -57,9 +63,10 @@ class CommunityScreenProvider extends ChangeNotifier {
   /// Maps postId -> selected ReactionType label (e.g. 'Like', 'Love', 'Angry')
   //final Map<String, String> _postReactions = {};
   final Map<String, String?> _postReactions = {};
+
   String? getReaction(String postId) => _postReactions[postId];
 
-/*  void setReaction(String postId, String reactionLabel) {
+  /*  void setReaction(String postId, String reactionLabel) {
     _postReactions[postId] = reactionLabel;
     notifyListeners();
   }*/
@@ -81,7 +88,9 @@ class CommunityScreenProvider extends ChangeNotifier {
   }
 
   bool _isSubmitting = false;
+
   bool get isSubmitting => _isSubmitting;
+
   void setIsSubmitting(bool isSubmitting) {
     _isSubmitting = isSubmitting;
     notifyListeners();
@@ -109,17 +118,22 @@ class CommunityScreenProvider extends ChangeNotifier {
 
   File? _selectImage;
   File? _selectProfile;
+
   File? get selectImage => _selectImage;
+
   File? get selectProfile => _selectProfile;
 
   File? get selectedMedia => _selectedMedia;
+
   bool get isPickingImage => _isPickingImage;
+
   String get mediaType => _mediaType;
 
-
   int _selectedIndex = 0;
+
   int get selectedIndex => _selectedIndex;
-  void setSelectedIndex( int index) {
+
+  void setSelectedIndex(int index) {
     _selectedIndex = index;
     notifyListeners();
   }
@@ -154,6 +168,7 @@ class CommunityScreenProvider extends ChangeNotifier {
   String _privacy = 'PUBLIC';
 
   String get privacy => _privacy;
+
   void setPrivacy(String privacy) {
     _privacy = privacy;
     notifyListeners();
@@ -166,7 +181,7 @@ class CommunityScreenProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final currentUserId = await UserIdStorage().getUserId();
+      _currentUserId = await UserIdStorage().getUserId();
       final result = await getCommunityFeedUseCase();
 
       result.sort((a, b) {
@@ -192,7 +207,7 @@ class CommunityScreenProvider extends ChangeNotifier {
 
           // Sync local reaction state with server data
           final userLiked =
-              feed.likes?.any((like) => like.userId == currentUserId) ?? false;
+              feed.likes?.any((like) => like.userId == _currentUserId) ?? false;
           if (userLiked) {
             _postReactions[feed.id!] = 'Like';
           } else {
@@ -372,6 +387,7 @@ class CommunityScreenProvider extends ChangeNotifier {
   }
 
   bool _isLoadingComments = false;
+
   bool get isLoadingComments => _isLoadingComments;
 
   /// ------------------- Get Comment --------------------------------------
@@ -485,6 +501,8 @@ class CommunityScreenProvider extends ChangeNotifier {
   }) async {
     var body = {'reason': reason, 'description': description};
     try {
+      _isLoading = true;
+      notifyListeners();
       final ApiResponseModel response = await _apiClient.post(
         ApiEndpoints.report(userId),
         body: body,
@@ -496,6 +514,9 @@ class CommunityScreenProvider extends ChangeNotifier {
       }
     } catch (e) {
       return ApiResponseModel(success: false, message: '$e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
@@ -503,33 +524,61 @@ class CommunityScreenProvider extends ChangeNotifier {
   Future<ApiResponseModel> editMyProfile({
     required String name,
     required String userName,
-    required String avatar,
     required String about,
+    File? avatar,
+    File? coverImage,
   }) async {
-    var body = {
-      'name': name,
-      'username': userName,
-      'avatar': avatar,
-      'about': about,
-    };
+    var fields = {'name': name, 'username': userName, 'about': about};
     _isLoading = true;
     notifyListeners();
     try {
-      final response = await _apiClient.patch(
-        ApiEndpoints.editMyProfile,
-        body: body,
-      );
+      ApiResponseModel response;
+      if (avatar != null) {
+        response = await _apiClient.patchMultipart(
+          ApiEndpoints.editMyProfile,
+          fields: fields,
+          fileField: 'avatar',
+          filePath: avatar.path,
+          fileCover: 'cover_image',
+          fileCoverPath: coverImage!.path,
+        );
+      } else {
+        response = await _apiClient.patch(
+          ApiEndpoints.editMyProfile,
+          body: fields,
+        );
+      }
 
       if (response.success) {
+        logger.d('editMyProfile response: ${response.message}');
         return ApiResponseModel(success: true, message: response.message);
       } else {
         return ApiResponseModel(success: false, message: response.message);
       }
     } on Exception catch (e) {
+      logger.e('editMyProfile error: $e');
       return ApiResponseModel(success: false, message: '$e');
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  /// --------------------- Vote On A Poll -------------------------------------
+  Future<ApiResponseModel> voteOnAPoll(String postId, String optionId) async {
+    try {
+      final ApiResponseModel response = await _apiClient.patch(
+        ApiEndpoints.voteOnAPoll(postId, optionId),
+      );
+      if (response.success) {
+        logger.d(response.message);
+         fetchFeeds();
+        return ApiResponseModel(success: true, message: response.message);
+      }
+      return ApiResponseModel(success: false, message: response.message);
+    } catch (e) {
+      logger.e('voteOnAPoll error: $e');
+      return ApiResponseModel(success: false, message: e.toString());
     }
   }
 }
