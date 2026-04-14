@@ -77,6 +77,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final upComingAssignmentsValues = homeData?.upcomingAssignments;
     final upComingEventsValues = homeData?.upcomingEvents;
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           CustomAppbar(
