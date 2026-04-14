@@ -1,4 +1,5 @@
 import 'package:abbas/cors/network/api_error_handle.dart';
+import 'package:abbas/cors/theme/app_colors.dart';
 import 'package:abbas/cors/utils/app_utils.dart';
 import 'package:abbas/presentation/views/form_fillup_and_rules/model/enroll_personal_info_model.dart';
 import 'package:abbas/presentation/views/form_fillup_and_rules/view_model/form_fill_and_rules_provider.dart';
@@ -246,6 +247,7 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
     }
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
