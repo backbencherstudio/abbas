@@ -19,7 +19,7 @@ class OthersProfile extends StatelessWidget {
 
     final data = profileProvider.otherProfileModel?.data;
     final name = data?.name ?? "N/A";
-    final userName = data?.name ?? "N/A";
+    final userName = data?.username ?? "N/A";
     final about = data?.about ?? "N/A";
     final userId = data?.id ?? "N/A";
     final avatar = data?.avatar ?? "N/A";
@@ -51,8 +51,8 @@ class OthersProfile extends StatelessWidget {
                       color: Color(0xFF5F6CA0),
                     ),
                   ),
-                  SizedBox(height: 15.h),
-                  _buildAboutSection(userName, about),
+                  SizedBox(height: 16.h),
+                  _buildAboutSection(name, about),
                   SizedBox(height: 16.h),
                   Row(
                     children: [
