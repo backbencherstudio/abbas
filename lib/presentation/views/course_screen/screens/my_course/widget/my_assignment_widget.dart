@@ -1,3 +1,4 @@
+import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:abbas/presentation/views/course_screen/view_model/get_all_courses_provider.dart';
 import 'package:abbas/presentation/widgets/animated_loading.dart';
 import 'package:flutter/material.dart';
@@ -44,6 +45,15 @@ class _MyAssignmentWidgetState extends ConsumerState<MyAssignmentWidget> {
       );
     }
 
+    if (modules.isEmpty) {
+      return Center(
+        child: Text(
+          "No assignments found",
+          style: TextStyle(color: Colors.white, fontSize: 16.sp),
+        ),
+      );
+    }
+
     return ListView(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
       children: modules.map((module) {
@@ -62,11 +72,16 @@ class _MyAssignmentWidgetState extends ConsumerState<MyAssignmentWidget> {
               ),
             ),
             children: (module.assignments ?? []).map((value) {
+              logger.d("Assignment ${value.id} [${value.title}] Status: ${value.status}");
+
+              final bool isSubmitted = value.status == 'SUBMITTED';
+              final bool isPending = value.status == 'PENDING';
+
               return Padding(
                 padding: EdgeInsets.symmetric(vertical: 7.h),
                 child: InkWell(
                   onTap: () {
-                    if (value.status == 'SUBMITTED') {
+                    if (isSubmitted) {
                       Navigator.pushNamed(
                         context,
                         RouteNames.submittedAssignmentScreen,
@@ -87,9 +102,12 @@ class _MyAssignmentWidgetState extends ConsumerState<MyAssignmentWidget> {
                     ),
                     decoration: BoxDecoration(
                       border: Border(
-                        left: BorderSide(color: Colors.red, width: 3.w),
+                        left: BorderSide(
+                          color: isSubmitted ? Colors.green : Colors.orange,
+                          width: 3.w,
+                        ),
                       ),
-                      color: Color(0xff061220),
+                      color: const Color(0xff061220),
                       borderRadius: BorderRadius.circular(6.r),
                     ),
                     child: Row(
@@ -110,20 +128,23 @@ class _MyAssignmentWidgetState extends ConsumerState<MyAssignmentWidget> {
                           ),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(20.r),
-                            color: value.status == 'SUBMITTED'
-                                ? Color(0xFF1E273D)
-                                : Color(0xffF9C80E),
+                            color: isSubmitted
+                                ? Colors.green.withValues(alpha: 0.1)
+                                : isPending
+                                ? Colors.orange.withValues(alpha: 0.1)
+                                : const Color(0xffF9C80E),
                           ),
                           child: Center(
                             child: Text(
-                              value.status == 'SUBMITTED'
-                                  ? 'Submitted'
-                                  : value.dueLabel ?? 'N/A',
+                              value.status ?? 'N/A',
                               style: TextStyle(
-                                color: value.status == 'SUBMITTED'
-                                    ? Colors.white
+                                color: isSubmitted
+                                    ? Colors.green
+                                    : isPending
+                                    ? Colors.orange
                                     : Colors.black,
                                 fontSize: 12.sp,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
