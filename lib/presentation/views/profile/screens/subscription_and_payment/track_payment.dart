@@ -1,3 +1,4 @@
+import 'package:abbas/cors/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../../cors/routes/route_names.dart';
@@ -16,6 +17,7 @@ class _TrackPaymentState extends State<TrackPayment> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: SingleChildScrollView(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -82,7 +84,7 @@ class _TrackPaymentState extends State<TrackPayment> {
                                               style: TextStyle(
                                                 color: Colors.white,
                                                 fontWeight: FontWeight.w500,
-                                                fontSize: 16.sp,
+                                                fontSize: 14.sp,
                                               ),
                                             ),
                                           ],

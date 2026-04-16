@@ -37,11 +37,17 @@ class _MyAssignmentWidgetState extends ConsumerState<MyAssignmentWidget> {
     }
 
     if (assignmentsProvider.hasError) {
-      return Center(
-        child: Text(
-          "Failed to load assignments",
-          style: TextStyle(color: Colors.white, fontSize: 16.sp),
-        ),
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, color: Colors.red, size: 48.sp),
+          SizedBox(height: 10.h),
+          Text(
+            assignmentsProvider.error.toString(),
+            style: TextStyle(color: Colors.white, fontSize: 16.sp),
+          ),
+        ],
       );
     }
 
@@ -66,13 +72,15 @@ class _MyAssignmentWidgetState extends ConsumerState<MyAssignmentWidget> {
             title: Text(
               "${module.moduleTitle ?? ''} : ${module.moduleName ?? ''}",
               style: TextStyle(
-                color: Color(0xff8C9196),
+                color: Colors.white,
                 fontSize: 14.sp,
                 fontWeight: FontWeight.w500,
               ),
             ),
             children: (module.assignments ?? []).map((value) {
-              logger.d("Assignment ${value.id} [${value.title}] Status: ${value.status}");
+              logger.d(
+                "Assignment ${value.id} [${value.title}] Status: ${value.status}",
+              );
 
               final bool isSubmitted = value.status == 'SUBMITTED';
               final bool isPending = value.status == 'PENDING';

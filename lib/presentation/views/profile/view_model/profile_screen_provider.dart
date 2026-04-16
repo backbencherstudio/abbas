@@ -1,4 +1,5 @@
 import 'package:abbas/cors/constants/api_endpoints.dart';
+import 'package:abbas/presentation/views/profile/model/account_get_profile_model.dart';
 import 'package:abbas/presentation/views/profile/model/my_profile_model.dart';
 import 'package:abbas/presentation/views/profile/model/other_profile_model.dart';
 import 'package:flutter/cupertino.dart';
@@ -17,12 +18,18 @@ class ProfileScreenProvider extends ChangeNotifier {
 
   bool _isLoading = false;
   String? _errorMessage;
+  String? _successMessage;
   CheckMeModel? _profile;
   MyProfileModel? _myProfileModel;
+  AccountGetProfileModel? _accountGetProfileModel;
+
+  AccountGetProfileModel? get accountGetProfileModel => _accountGetProfileModel;
 
   bool get isLoading => _isLoading;
 
   String? get errorMessage => _errorMessage;
+
+  String? get successMessage => _successMessage;
 
   CheckMeModel? get profile => _profile;
 
@@ -49,7 +56,7 @@ class ProfileScreenProvider extends ChangeNotifier {
 
       if (response.success) {
         _profile = CheckMeModel.fromJson(response.data);
-
+        _successMessage = response.message;
         logger.i("Profile Parsed Successfully");
         logger.d("User ID: ${_profile?.data?.id}");
         logger.d("User Email: ${_profile?.data?.email}");
@@ -85,7 +92,7 @@ class ProfileScreenProvider extends ChangeNotifier {
 
       if (response.success) {
         _myProfileModel = MyProfileModel.fromJson(response.data);
-
+        _successMessage = response.message;
         logger.i("Profile Parsed Successfully");
         logger.d("User ID: ${_profile?.data?.id}");
         logger.d("User Email: ${_profile?.data?.email}");
@@ -123,7 +130,7 @@ class ProfileScreenProvider extends ChangeNotifier {
 
       if (response.success) {
         _otherProfileModel = OtherProfileModel.fromJson(response.data);
-
+        _successMessage = response.message;
         logger.i("Profile Parsed Successfully");
         logger.d("User ID: ${_otherProfileModel?.data?.id}");
         logger.d("User Email: ${_otherProfileModel?.data?.email}");
@@ -174,6 +181,7 @@ class ProfileScreenProvider extends ChangeNotifier {
 
       if (response.success) {
         _profile = CheckMeModel.fromJson(response.data);
+        _successMessage = response.message;
         logger.i("Profile Updated Successfully");
         _isLoading = false;
         notifyListeners();
@@ -189,6 +197,55 @@ class ProfileScreenProvider extends ChangeNotifier {
       _errorMessage = e.toString();
 
       return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// --------------------- Account Get Profile --------------------------------
+  Future<void> getAccountProfile() async {
+    try {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      final ApiResponseModel response = await _apiClient.get(
+        ApiEndpoints.accountGetProfile,
+      );
+      if (response.success) {
+        _accountGetProfileModel = AccountGetProfileModel.fromJson(
+          response.data,
+        );
+      } else {
+        _errorMessage = response.message;
+      }
+    } on Exception catch (e) {
+      logger.e("Get Account Profile Error : $e");
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// -------------------- Delete Account --------------------------------------
+  Future<ApiResponseModel> deleteAccount() async {
+    try {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+      final ApiResponseModel response = await _apiClient.delete(
+        ApiEndpoints.deleteAccount,
+      );
+      if (response.success) {
+        return ApiResponseModel(success: true, message: response.message);
+      } else {
+        return ApiResponseModel(success: false, message: response.message);
+      }
+    } on Exception catch (e) {
+      logger.e("Delete Account Error : $e");
+      return ApiResponseModel(success: false, message: '$e');
     } finally {
       _isLoading = false;
       notifyListeners();

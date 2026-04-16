@@ -1,4 +1,5 @@
 import 'package:abbas/cors/constants/api_endpoints.dart';
+import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:abbas/cors/services/dio_client.dart';
 import 'package:abbas/presentation/views/home/model/get_all_events_model.dart';
 import 'package:abbas/presentation/views/home/model/get_event_by_id_model.dart';
@@ -49,6 +50,7 @@ class GetEventByIdProvider
     try {
       final res = await dioClient.getHttp(ApiEndpoints.getEventById(eventId));
       final model = GetEventsByIdModel.fromJson(res);
+      logger.d("Event Details By Id Data $model");
       state = AsyncValue.data(model);
     } catch (e) {
       state = AsyncValue.error(e, StackTrace.current);

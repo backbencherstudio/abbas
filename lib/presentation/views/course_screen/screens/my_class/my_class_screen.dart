@@ -1,4 +1,5 @@
 import 'package:abbas/presentation/views/course_screen/view_model/get_all_courses_provider.dart';
+import 'package:abbas/presentation/widgets/animated_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -58,8 +59,16 @@ class _MyClassScreenState extends ConsumerState<MyClassScreen> {
   Widget build(BuildContext context) {
     final classes = ref.watch(getClassDetailsProvider);
     return classes.when(
-      loading: () => const CircularProgressIndicator(color: Colors.white),
-      error: (err, stackTrace) => Center(child: Text("Error : $err")),
+      loading: () => const AnimatedLoading(),
+      error: (err, stackTrace) => Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, color: Colors.red, size: 48.sp),
+          SizedBox(height: 16.h),
+          Text("Error : $err", style: TextStyle(color: Colors.white, fontSize: 16.sp)),
+        ],
+      ),
       data: (data) {
         final classValue = data?.data;
         final assignments = classValue?.assignments ?? [];

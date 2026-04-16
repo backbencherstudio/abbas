@@ -1,4 +1,5 @@
 
+import 'package:abbas/cors/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -43,6 +44,7 @@ class _ChangePasswordState extends State<ChangePassword> {
         changePasswordUseCase: getIt<ChangePasswordUseCase>(),
       ),
       child: Scaffold(
+        backgroundColor: AppColors.background,
         body: Consumer<ChangePasswordViewModel>(
           builder: (context, viewModel, child) {
             return Column(

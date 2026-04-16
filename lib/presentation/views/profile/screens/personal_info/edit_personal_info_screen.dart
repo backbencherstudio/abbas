@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:abbas/cors/theme/app_colors.dart';
 import 'package:abbas/cors/utils/app_utils.dart';
 import 'package:abbas/presentation/widgets/custom_button.dart';
 import 'package:abbas/presentation/widgets/custom_text_field.dart';
@@ -6,9 +7,10 @@ import 'package:abbas/presentation/widgets/secondary_appber.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../../widgets/validator.dart';
-import '../../view_model/profil_screen_provider.dart';
+import '../../view_model/profile_screen_provider.dart';
 
 class EditPersonalInfoScreen extends StatefulWidget {
   const EditPersonalInfoScreen({super.key});
@@ -26,6 +28,7 @@ class _EditPersonalInfoScreenState extends State<EditPersonalInfoScreen> {
   final GlobalKey _experienceFieldKey = GlobalKey();
 
   File? selectedImage;
+  String? _isoDob;
 
   bool _isPickingImage = false;
 
@@ -69,7 +72,17 @@ class _EditPersonalInfoScreenState extends State<EditPersonalInfoScreen> {
       if (profile != null) {
         nameController.text = profile.data?.name ?? "";
         phoneController.text = profile.data?.phoneNumber ?? "";
-        dobController.text = profile.data?.dateOfBirth ?? "";
+
+        _isoDob = profile.data?.dateOfBirth;
+        if (_isoDob != null && _isoDob!.isNotEmpty) {
+          try {
+            final date = DateTime.parse(_isoDob!);
+            dobController.text = DateFormat('dd/MM/yyyy').format(date);
+          } catch (e) {
+            dobController.text = _isoDob!;
+          }
+        }
+
         _experienceController.text = profile.data?.experienceLevel ?? "";
         goalController.text = profile.data?.actingGoals?.actingGoals ?? "";
       }
@@ -97,8 +110,8 @@ class _EditPersonalInfoScreenState extends State<EditPersonalInfoScreen> {
 
     if (pickedDate != null) {
       setState(() {
-        dobController.text =
-            "${pickedDate.day.toString().padLeft(2, '0')}/${pickedDate.month.toString().padLeft(2, '0')}/${pickedDate.year}";
+        _isoDob = pickedDate.toUtc().toIso8601String();
+        dobController.text = DateFormat('dd/MM/yyyy').format(pickedDate);
       });
     }
   }
@@ -135,11 +148,11 @@ class _EditPersonalInfoScreenState extends State<EditPersonalInfoScreen> {
           ),
         ),
         PopupMenuItem<String>(
-          value: 'MID-LEVEL',
+          value: 'INTERMEDIATE',
           child: Container(
             width: 200.w,
             padding: EdgeInsets.symmetric(vertical: 8.h),
-            child: Text('MID-LEVEL', style: TextStyle(fontSize: 14.sp)),
+            child: Text('INTERMEDIATE', style: TextStyle(fontSize: 14.sp)),
           ),
         ),
         PopupMenuItem<String>(
@@ -168,6 +181,7 @@ class _EditPersonalInfoScreenState extends State<EditPersonalInfoScreen> {
     );
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           SecondaryAppBar(title: "Edit Personal Info"),
@@ -296,14 +310,21 @@ class _EditPersonalInfoScreenState extends State<EditPersonalInfoScreen> {
                         bool success = await profileProvider.editProfile(
                           name: nameController.text,
                           phone: phoneController.text,
-                          dob: dobController.text,
+                          dob: _isoDob ?? "",
                           experienceLevel: _experienceController.text,
                           goal: goalController.text,
                           imagePath: selectedImage?.path,
                         );
 
                         if (success) {
-                          profileProvider.getProfile();
+                          Utils.showToast(
+                            msg:
+                                profileProvider.successMessage ??
+                                'Profile updated successfully',
+                            backgroundColor: Colors.green,
+                            textColor: Colors.white,
+                          );
+                          await profileProvider.getProfile();
                           Navigator.pop(context);
                         } else {
                           Utils.showToast(

@@ -214,7 +214,7 @@ class ApiClient {
         request.headers.addAll(headers);
         request.fields.addAll(fields);
 
-        if (fileCoverPath!.isNotEmpty) {
+        if (fileCoverPath != null && fileCoverPath.isNotEmpty) {
           File file = File(fileCoverPath);
           if (await file.exists()) {
             String mimeType = _getMimeType(file.path);

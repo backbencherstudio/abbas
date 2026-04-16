@@ -1,4 +1,4 @@
-import 'package:abbas/presentation/views/profile/view_model/profil_screen_provider.dart';
+import 'package:abbas/presentation/views/profile/view_model/profile_screen_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
@@ -14,6 +14,7 @@ class PersonalInfoScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: Consumer<ProfileScreenProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading) {

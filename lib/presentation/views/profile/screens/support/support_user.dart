@@ -1,3 +1,4 @@
+import 'package:abbas/cors/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../widgets/secondary_appber.dart';
@@ -16,6 +17,7 @@ class _SupportUserState extends State<SupportUser> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           SecondaryAppBar(title: 'Support User'),

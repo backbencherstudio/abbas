@@ -10,7 +10,7 @@ import '../views/community/presentaion/provider/community/community_screen_provi
 import '../views/message/provider/call_provider.dart';
 import '../views/message/provider/create_chat_provider.dart';
 import '../views/message/provider/create_group_provider.dart';
-import '../views/profile/view_model/profil_screen_provider.dart';
+import '../views/profile/view_model/profile_screen_provider.dart';
 import 'auth/forgot_password/forgot_password_viewmodel.dart';
 import 'auth/otp_verify/otp_verify_viewmodel.dart';
 import 'auth/profile/edit_personal_info_viewmodel.dart';
