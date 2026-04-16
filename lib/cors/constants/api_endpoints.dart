@@ -1,7 +1,7 @@
 class ApiEndpoints {
   ApiEndpoints._();
 
-  static const String baseUrl = 'http://192.168.7.14:4000';
+  static const String baseUrl = 'http://192.168.7.12:4000';
   static const String socketUrl =
       "https://train-cnet-suit-reviews.trycloudflare.com";
   static const String register = '$baseUrl/api/auth/register';
