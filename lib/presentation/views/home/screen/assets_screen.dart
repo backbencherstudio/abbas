@@ -10,8 +10,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../widgets/secondary_appber.dart';
 
 class AssetsScreen extends ConsumerStatefulWidget {
-  final String courseId;
-  const AssetsScreen({super.key, required this.courseId});
+  final String classId;
+  const AssetsScreen({super.key, required this.classId});
 
   @override
   ConsumerState<AssetsScreen> createState() => _AssetsScreenState();
@@ -22,8 +22,8 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen> {
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref
-          .read(getCourseAssetsProvider.notifier)
-          .getCourseAssets(courseId: widget.courseId);
+          .read(getClassDetailsProvider.notifier)
+          .getClassDetails(classId: widget.classId);
     });
     super.initState();
   }

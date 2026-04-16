@@ -48,6 +48,7 @@ class _AllEventsState extends ConsumerState<AllEvents> {
       return AnimatedLoading();
     }
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -89,6 +90,7 @@ class _AllEventsState extends ConsumerState<AllEvents> {
                           borderRadius: BorderRadius.circular(14.r),
                         ),
                         padding: EdgeInsets.all(16.r),
+                        margin : EdgeInsets.symmetric(vertical: 10.h),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [

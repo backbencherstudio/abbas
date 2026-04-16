@@ -150,7 +150,7 @@ class _Item extends StatelessWidget {
               label,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 11.sp,
+                fontSize: 10.sp,
                 fontWeight: FontWeight.w500,
                 color: isActive ? active : inactive,
               ),

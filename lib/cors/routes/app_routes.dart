@@ -136,8 +136,9 @@ class AppRoutes {
     },
     RouteNames.homeAssetsCoursesScreen: (context) => HomeAssetsCoursesScreen(),
     RouteNames.assetsScreen: (context) {
-      final courseId = ModalRoute.of(context)!.settings.arguments as String;
-      return AssetsScreen(courseId: courseId);
+      final args = ModalRoute.of(context)!.settings.arguments;
+      final classId = args is String ? args : '';
+      return AssetsScreen(classId: classId);
     },
     RouteNames.homeMyCourseScreen: (context) => HomeMyCourseScreen(),
     RouteNames.startEnrollment: (context) => const StartEnrollment(),
@@ -200,7 +201,7 @@ class AppRoutes {
     RouteNames.reportUserScreen: (context) {
       final args = ModalRoute.of(context)!.settings.arguments;
       final reason = args is String ? args : '';
-      return ReportUserScreen(reason: reason,);
+      return ReportUserScreen(reason: reason);
     },
     RouteNames.newMessageScreens: (context) => NewMessageScreens(),
     RouteNames.createGroupScreen: (context) => CreateGroupScreen(),

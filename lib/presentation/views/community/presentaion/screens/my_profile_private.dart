@@ -6,7 +6,7 @@ import '../../../../../cors/routes/route_names.dart';
 import '../../../../../cors/theme/app_colors.dart';
 import '../../../../widgets/secondary_appber.dart';
 import '../../../message/provider/create_chat_provider.dart';
-import '../../../profile/view_model/profil_screen_provider.dart';
+import '../../../profile/view_model/profile_screen_provider.dart';
 import '../../widgets/post_actions.dart';
 
 class MyProfilePrivate extends StatelessWidget {

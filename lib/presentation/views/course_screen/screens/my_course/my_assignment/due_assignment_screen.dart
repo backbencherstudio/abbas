@@ -61,7 +61,6 @@ class _DueAssignmentScreenState extends ConsumerState<DueAssignmentScreen> {
 
   /// -------------------- Process Media Files --------------------------------------
 
-
   // Future<void> pickMedia() async {
   //   try {
   //     final XFile? pickedFile = await _picker.pickImage(
@@ -76,21 +75,21 @@ class _DueAssignmentScreenState extends ConsumerState<DueAssignmentScreen> {
   // }
 
   Future<void> pickPdf() async {
-  try {
-    // Open file picker for PDF files only
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['pdf'],
-    );
+    try {
+      // Open file picker for PDF files only
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+      );
 
-    if (result != null && result.files.isNotEmpty) {
-      File pdfFile = File(result.files.single.path!);
-      ref.read(selectedFileProvider.notifier).state = pdfFile;
+      if (result != null && result.files.isNotEmpty) {
+        File pdfFile = File(result.files.single.path!);
+        ref.read(selectedFileProvider.notifier).state = pdfFile;
+      }
+    } catch (e) {
+      logger.e('Error picking PDF file: $e');
     }
-  } catch (e) {
-    logger.e('Error picking PDF file: $e');
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -234,8 +233,8 @@ class _DueAssignmentScreenState extends ConsumerState<DueAssignmentScreen> {
                                   SizedBox(height: 20),
                                   GestureDetector(
                                     onTap: () async {
-                                     // await pickMedia();
-                                     await pickPdf() ;
+                                      // await pickMedia();
+                                      await pickPdf();
                                     },
                                     child: DottedBorder(
                                       borderType: BorderType.RRect,
@@ -246,8 +245,8 @@ class _DueAssignmentScreenState extends ConsumerState<DueAssignmentScreen> {
                                       child: Container(
                                         width: double.infinity,
                                         padding: EdgeInsets.symmetric(
-                                          horizontal: 16
-                                              .w, // reduced horizontal padding to fit longer names
+                                          horizontal: 16.w,
+                                          // reduced horizontal padding to fit longer names
                                           vertical: 30.h,
                                         ),
                                         child: Column(
@@ -275,16 +274,6 @@ class _DueAssignmentScreenState extends ConsumerState<DueAssignmentScreen> {
                                                         style: TextStyle(
                                                           color: Colors.white,
                                                           fontSize: 16.sp,
-                                                        ),
-                                                      ),
-                                                      SizedBox(height: 8.h),
-                                                      Text(
-                                                        "or drag & drop",
-                                                        style: TextStyle(
-                                                          color: Color(
-                                                            0xff8C9196,
-                                                          ),
-                                                          fontSize: 12.sp,
                                                         ),
                                                       ),
                                                     ],

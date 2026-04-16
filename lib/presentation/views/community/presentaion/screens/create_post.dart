@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 import 'dart:io';
 
 import 'package:abbas/cors/network/api_response_model.dart';
-import '../../../profile/view_model/profil_screen_provider.dart';
+import '../../../profile/view_model/profile_screen_provider.dart';
 
 class CreatePost extends StatefulWidget {
   const CreatePost({super.key});

@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
-import '../../../profile/view_model/profil_screen_provider.dart';
+import '../../../profile/view_model/profile_screen_provider.dart';
 
 class ReportUserScreen extends StatefulWidget {
   final String reason;

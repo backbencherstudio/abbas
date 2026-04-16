@@ -3,7 +3,7 @@ import 'package:abbas/cors/routes/route_names.dart';
 import 'package:abbas/cors/services/user_id_storage.dart';
 import 'package:abbas/cors/theme/app_colors.dart';
 import 'package:abbas/cors/utils/app_utils.dart';
-import 'package:abbas/presentation/views/profile/view_model/profil_screen_provider.dart';
+import 'package:abbas/presentation/views/profile/view_model/profile_screen_provider.dart';
 import 'package:abbas/presentation/widgets/animated_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -141,7 +141,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final profileProvider = Provider.of<ProfileScreenProvider>(context);
+    final profileProvider = Provider.of<ProfileScreenProvider>(context, listen: false);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -378,18 +378,22 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                         child: Image.network(
                                           feed.mediaUrl!,
                                           errorBuilder:
-                                              (context, error, stackTrace) =>
-                                                  Container(
-                                                    height: 200.h,
-                                                    width: double.infinity,
-                                                    color: Colors.black12,
-                                                    child: const Center(
-                                                      child: Icon(
-                                                        Icons.broken_image,
-                                                        color: Colors.grey,
-                                                      ),
-                                                    ),
+                                              (
+                                                context,
+                                                error,
+                                                stackTrace,
+                                              ) => Container(
+                                                height: 200.h,
+                                                width: double.infinity,
+                                                color: Colors.black12,
+                                                child: Center(
+                                                  child: Icon(
+                                                    Icons.image,
+                                                    size: 48.sp,
+                                                    color: Colors.grey.shade400,
                                                   ),
+                                                ),
+                                              ),
                                         ),
                                       ),
                                     )
@@ -476,10 +480,11 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                                 ),
                                                 child:
                                                     (feed.author?.avatar ==
-                                                                null ||
-                                                            feed.author!
-                                                                .avatar!
-                                                                .isEmpty)
+                                                            null ||
+                                                        feed
+                                                            .author!
+                                                            .avatar!
+                                                            .isEmpty)
                                                     ? Icon(
                                                         Icons.person,
                                                         size: 14.sp,

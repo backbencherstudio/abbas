@@ -23,8 +23,10 @@ class ApiEndpoints {
       '$baseUrl/api/community/profile/$userId';
   static const String editProfile = '$baseUrl/api/auth/update';
 
-  //profile
+  ///----------------------- profile -------------------------------------------
   static const String profileInfo = '/api/auth/me';
+  static const String accountGetProfile = '$baseUrl/api/profile';
+  static const String deleteAccount = '$baseUrl/api/profile/delete-account';
 
   /// -------------------- Home ------------------------------------------------
   static const String getHomeData = '$baseUrl/api/home';
@@ -49,7 +51,6 @@ class ApiEndpoints {
 
   static String getModuleDetails(String moduleId) =>
       '$baseUrl/api/course/module/$moduleId';
-
 
   static String getClassDetails(String classId) =>
       '$baseUrl/api/course/class/$classId';
