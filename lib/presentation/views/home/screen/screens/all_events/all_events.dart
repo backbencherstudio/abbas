@@ -1,6 +1,5 @@
 import 'package:abbas/presentation/views/home/view_model/events_provider.dart';
 import 'package:abbas/presentation/widgets/animated_loading.dart';
-import 'package:abbas/presentation/widgets/shimmer_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -90,7 +89,7 @@ class _AllEventsState extends ConsumerState<AllEvents> {
                           borderRadius: BorderRadius.circular(14.r),
                         ),
                         padding: EdgeInsets.all(16.r),
-                        margin : EdgeInsets.symmetric(vertical: 10.h),
+                        margin: EdgeInsets.symmetric(vertical: 10.h),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -190,13 +189,7 @@ class _AllEventsState extends ConsumerState<AllEvents> {
                                 SizedBox(width: 14.w),
                                 Expanded(
                                   child: ElevatedButton(
-                                    onPressed: () {
-                                      Navigator.pushNamed(
-                                        context,
-                                        RouteNames.eventDetails,
-                                        arguments: event?.id,
-                                      );
-                                    },
+                                    onPressed: () {},
                                     style: ElevatedButton.styleFrom(
                                       fixedSize: Size.fromHeight(56.h),
                                       backgroundColor: AppColors.splashRed,
