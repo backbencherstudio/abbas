@@ -29,6 +29,7 @@ class CommunityScreenProvider extends ChangeNotifier {
   List<CommunityEntity> get feeds => _feeds;
 
   String? _currentUserId;
+
   String? get currentUserId => _currentUserId;
 
   /// ---------------- Get Post Like Model -------------------------------------
@@ -227,7 +228,7 @@ class CommunityScreenProvider extends ChangeNotifier {
   }
 
   /// ------------------- Create Post -----------------------------------------
-  Future<dynamic> createPost(String content, File? mediaFile) async {
+  Future<ApiResponseModel> createPost(String content, File? mediaFile) async {
     _isLoading = true;
     notifyListeners();
 
@@ -253,14 +254,16 @@ class CommunityScreenProvider extends ChangeNotifier {
 
       if (response.success) {
         fetchFeeds();
+        notifyListeners();
+        return ApiResponseModel(success: true, message: response.message);
+      } else {
+        notifyListeners();
+        return ApiResponseModel(success: false, message: response.message);
       }
-
-      notifyListeners();
-      return response;
     } catch (e) {
       notifyListeners();
       logger.e("Error creating post: $e");
-      return e.toString();
+      return ApiResponseModel(success: false, message: '$e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -572,7 +575,7 @@ class CommunityScreenProvider extends ChangeNotifier {
       );
       if (response.success) {
         logger.d(response.message);
-         fetchFeeds();
+        fetchFeeds();
         return ApiResponseModel(success: true, message: response.message);
       }
       return ApiResponseModel(success: false, message: response.message);

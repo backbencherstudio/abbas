@@ -305,7 +305,6 @@ class _EditPersonalInfoScreenState extends State<EditPersonalInfoScreen> {
                     SizedBox(height: 16.h),
 
                     CustomButton(
-                      title: profileProvider.isLoading ? "Loading..." : "Save",
                       onTap: () async {
                         bool success = await profileProvider.editProfile(
                           name: nameController.text,
@@ -335,6 +334,16 @@ class _EditPersonalInfoScreenState extends State<EditPersonalInfoScreen> {
                           );
                         }
                       },
+                      child: profileProvider.isLoading
+                          ? CircularProgressIndicator(color: Colors.white)
+                          : Text(
+                              "Save",
+                              style: TextStyle(
+                                fontSize: 18.sp,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                     ),
                     SizedBox(height: 24.h),
                   ],

@@ -445,13 +445,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   SizedBox(height: 16.h),
 
                   /// ------------- Upcoming Events ------------------------
-                  Text(
-                    "Upcoming Events",
-                    style: TextStyle(
-                      fontSize: 18.sp,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Upcoming Events",
+                        style: TextStyle(
+                          fontSize: 18.sp,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushNamed(
+                            context,
+                            RouteNames.allEvents,
+                          );
+                        },
+                        child: Text(
+                          "View All",
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w400
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   SizedBox(height: 12.h),
                   Container(
@@ -539,7 +560,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           children: [
                             Expanded(
                               child: OutlinedButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  Navigator.pushNamed(
+                                    context,
+                                    RouteNames.eventDetails,
+                                    arguments: upComingEventsValues?.id,
+                                  );
+                                },
                                 style: OutlinedButton.styleFrom(
                                   fixedSize: const Size.fromHeight(56),
                                   foregroundColor: Colors.white,
@@ -566,7 +593,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 onPressed: () {
                                   Navigator.pushNamed(
                                     context,
-                                    RouteNames.allEvents,
+                                    RouteNames.completePayment,
                                   );
                                 },
                                 style: ElevatedButton.styleFrom(

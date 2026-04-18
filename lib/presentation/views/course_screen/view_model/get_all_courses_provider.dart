@@ -213,7 +213,7 @@ class GetClassDetailsProvider
   GetClassDetailsProvider({required this.dioClient})
     : super(AsyncValue.data(null));
 
-  Future<void> getClassDetails({required String classId}) async {
+  Future<bool?> getClassDetails({required String classId}) async {
     state = const AsyncValue.loading();
     try {
       final res = await dioClient.getHttp(
@@ -229,6 +229,7 @@ class GetClassDetailsProvider
       logger.e("Error to load data $e");
       state = AsyncValue.error(e, stackTrace);
     }
+    return null;
   }
 }
 

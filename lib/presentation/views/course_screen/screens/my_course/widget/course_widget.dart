@@ -38,18 +38,46 @@ class _CourseWidgetState extends ConsumerState<CourseWidget> {
   }
 
   /// ------------------ Format Class Time -------------------------------------
-  String formatClassTime(String? classTime) {
-    if (classTime == null) return 'N/A';
-    try {
-      final parts = classTime.split('_');
-      final start = DateFormat('HH:mm').parse(parts[0]);
-      final end = DateFormat('HH:mm').parse(parts[1]);
-      final formattedStart = DateFormat('h:mm a').format(start);
-      final formattedEnd = DateFormat('h:mm a').format(end);
+  String formatClassTime(String? startDate, String? classTime) {
+    if (startDate == null || classTime == null) return 'N/A';
 
-      return '$formattedStart - $formattedEnd';
+    try {
+      // Split time
+      final parts = classTime.split('-');
+      final startTime = parts[0]; // "18:00"
+
+      // Combine date + time
+      final dateTimeString = '${startDate.split('T')[0]} $startTime';
+
+      // Parse as UTC
+      final classDateTimeUtc = DateFormat(
+        'yyyy-MM-dd HH:mm',
+      ).parseUtc(dateTimeString);
+
+      // Convert to local time
+      final classLocal = classDateTimeUtc.toLocal();
+
+      final now = DateTime.now();
+
+      final difference = classLocal.difference(now);
+
+      if (difference.isNegative) {
+        return 'Class already started';
+      }
+
+      final days = difference.inDays;
+      final hours = difference.inHours % 24;
+      final minutes = difference.inMinutes % 60;
+
+      if (days > 0) {
+        return 'Starts in ${days}d ${hours}h';
+      } else if (hours > 0) {
+        return 'Starts in ${hours}h ${minutes}m';
+      } else {
+        return 'Starts in ${minutes}m';
+      }
     } catch (e) {
-      return classTime;
+      return 'Invalid time';
     }
   }
 
@@ -168,7 +196,7 @@ class _CourseWidgetState extends ConsumerState<CourseWidget> {
                           ),
                           SizedBox(width: 7.w),
                           Text(
-                            formatClassTime(nextClassData?.classTime ?? 'N/A'),
+                            formatClassTime(nextClassData?.startDate, nextClassData?.classTime ?? 'N/A'),
                             style: TextStyle(
                               fontSize: 14.sp,
                               color: Colors.white,
@@ -187,7 +215,7 @@ class _CourseWidgetState extends ConsumerState<CourseWidget> {
                         strokeWidth: 1.5,
                         dashPattern: [6, 5],
                         child: Text(
-                          'Today’s class will start from ${formatClassTime(nextClassData?.classTime ?? 'N/A')} AM.',
+                          'Today’s class will start from ${formatClassTime(nextClassData?.startDate, nextClassData?.classTime ?? 'N/A')} AM.',
                           style: TextStyle(
                             fontSize: 13.sp,
                             color: Color(0xffF9C80E),
@@ -213,7 +241,13 @@ class _CourseWidgetState extends ConsumerState<CourseWidget> {
                                   borderRadius: BorderRadius.circular(12.r),
                                 ),
                               ),
-                              onPressed: () {},
+                              onPressed: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  RouteNames.assetsScreen,
+                                  arguments: nextClassData?.id,
+                                );
+                              },
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [

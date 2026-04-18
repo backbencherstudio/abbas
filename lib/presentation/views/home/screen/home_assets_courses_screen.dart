@@ -41,7 +41,7 @@ class _HomeAssetsCoursesScreenState
                   (course) => GestureDetector(
                     onTap: () => Navigator.pushNamed(
                       context,
-                      RouteNames.assetsScreen,
+                      RouteNames.homeCourseAssetsScreen,
                       arguments: course.id,
                     ),
                     child: Padding(

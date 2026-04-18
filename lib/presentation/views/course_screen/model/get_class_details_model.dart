@@ -31,7 +31,7 @@ class Data {
   String? createdAt;
   String? updatedAt;
   List<Assignments>? assignments;
-  List<ClassAssets>? classAssets;
+  ClassAssets? classAssets;
 
   Data({
     this.id,
@@ -66,10 +66,9 @@ class Data {
       });
     }
     if (json['classAssets'] != null) {
-      classAssets = <ClassAssets>[];
-      json['classAssets'].forEach((v) {
-        classAssets!.add(ClassAssets.fromJson(v));
-      });
+      classAssets = json['classAssets'] != null
+          ? ClassAssets.fromJson(json['classAssets'])
+          : null;
     }
   }
 
@@ -89,7 +88,7 @@ class Data {
       data['assignments'] = assignments!.map((v) => v.toJson()).toList();
     }
     if (classAssets != null) {
-      data['classAssets'] = classAssets!.map((v) => v.toJson()).toList();
+      data['classAssets'] = classAssets!.toJson();
     }
     return data;
   }
@@ -100,9 +99,9 @@ class Assignments {
   String? title;
   String? dueDate;
   String? status;
-  String? dueInDays;
+  int? dueInDays;
   String? dueLabel;
-  String? isOverdue;
+  bool? isOverdue;
 
   Assignments({this.id, this.title});
 
@@ -139,8 +138,8 @@ class ClassAssets {
     videos = json['videos'] != null
         ? (json['videos'] as List).map((v) => Videos.fromJson(v)).toList()
         : null;
-    pdfs = json['asset_type'] != null
-        ? (json['asset_type'] as List).map((v) => Pdfs.fromJson(v)).toList()
+    pdfs = json['pdfs'] != null
+        ? (json['pdfs'] as List).map((v) => Pdfs.fromJson(v)).toList()
         : null;
   }
 
