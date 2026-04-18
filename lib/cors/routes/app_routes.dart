@@ -1,12 +1,15 @@
 import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:abbas/cors/routes/route_names.dart';
 import 'package:abbas/presentation/views/community/presentaion/screens/update_post.dart';
+import 'package:abbas/presentation/views/course_screen/screens/my_class/class_assignments_screen.dart';
 import 'package:abbas/presentation/views/course_screen/screens/my_class/pdf_viewer_screen.dart';
 import 'package:abbas/presentation/views/home/screen/all_assignments_details_screen.dart';
 import 'package:abbas/presentation/views/home/screen/home_assets_courses_screen.dart';
 import 'package:abbas/presentation/views/home/screen/home_my_course_screen.dart';
 import 'package:abbas/presentation/views/home/screen/all_assignments_screen.dart';
+import 'package:abbas/presentation/views/home/screen/screens/home_course_assets_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:path/path.dart';
 import '../../presentation/views/auth/forgot_password/screen/forgot_password_screen.dart';
 import '../../presentation/views/auth/login/presentaion/screen/login_screen.dart';
 import '../../presentation/views/auth/otp_verify/screen/otp_verify_screen.dart';
@@ -22,9 +25,10 @@ import '../../presentation/views/community/presentaion/screens/others_profile.da
 import '../../presentation/views/community/presentaion/screens/report_list_page.dart';
 import '../../presentation/views/community/presentaion/screens/report_user_screen.dart';
 import '../../presentation/views/course_screen/screens/course_modele/course_module_screen.dart';
-import '../../presentation/views/home/screen/assets_screen.dart';
+import '../../presentation/views/course_screen/screens/my_class/assets_screen.dart';
 import '../../presentation/views/course_screen/screens/my_class/my_class_screen.dart';
 import '../../presentation/views/course_screen/screens/my_class/widget/pdf_widget.dart';
+import '../../presentation/views/course_screen/screens/my_course/my_assignment/assignment_congratulation_screen.dart';
 import '../../presentation/views/course_screen/screens/my_course/my_assignment/due_assignment_screen.dart';
 import '../../presentation/views/course_screen/screens/my_course/my_assignment/submitted_assignment_screen.dart';
 import '../../presentation/views/course_screen/screens/my_course/my_course_screen.dart';
@@ -139,6 +143,21 @@ class AppRoutes {
       final args = ModalRoute.of(context)!.settings.arguments;
       final classId = args is String ? args : '';
       return AssetsScreen(classId: classId);
+    },
+    RouteNames.classAssignmentsScreen: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments;
+      final classId = args is String ? args : '';
+      return ClassAssignmentsScreen(classId: classId);
+    },
+    RouteNames.assignmentCongratulationScreen: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments;
+      final assignmentId = args is String ? args : '';
+      return AssignmentCongratulationScreen(assignmentId: assignmentId);
+    },
+    RouteNames.homeCourseAssetsScreen: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments;
+      final courseId = args is String ? args : '';
+      return HomeCourseAssetsScreen(courseId: courseId);
     },
     RouteNames.homeMyCourseScreen: (context) => HomeMyCourseScreen(),
     RouteNames.startEnrollment: (context) => const StartEnrollment(),

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:abbas/cors/theme/app_colors.dart';
 import 'package:abbas/presentation/views/message/provider/create_chat_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -176,6 +177,7 @@ class _OneTwoOneChatScreenState extends State<OneTwoOneChatScreen> {
     });
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           // AppBar

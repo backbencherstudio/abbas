@@ -70,7 +70,7 @@ class _MyAssignmentWidgetState extends ConsumerState<MyAssignmentWidget> {
           ),
           child: ExpansionTile(
             title: Text(
-              "${module.moduleTitle ?? ''} : ${module.moduleName ?? ''}",
+              "${module.moduleTitle ?? 'N/A'} : ${module.moduleName ?? 'N/A'}",
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 14.sp,
@@ -84,6 +84,7 @@ class _MyAssignmentWidgetState extends ConsumerState<MyAssignmentWidget> {
 
               final bool isSubmitted = value.status == 'SUBMITTED';
               final bool isPending = value.status == 'PENDING';
+              final bool isGraded = value.status == 'GRADED';
 
               return Padding(
                 padding: EdgeInsets.symmetric(vertical: 7.h),
@@ -95,7 +96,7 @@ class _MyAssignmentWidgetState extends ConsumerState<MyAssignmentWidget> {
                         RouteNames.submittedAssignmentScreen,
                         arguments: value.id,
                       );
-                    } else {
+                    } else  if(isPending){
                       Navigator.pushNamed(
                         context,
                         RouteNames.dueAssignmentScreen,

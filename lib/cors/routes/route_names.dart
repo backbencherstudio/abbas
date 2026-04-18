@@ -35,6 +35,9 @@ class RouteNames {
   static const String dueAssignmentScreen = '/dueAssignmentScreen';
   static const String submittedAssignmentScreen = '/submittedAssignmentScreen';
   static const String assetsScreen = '/assetsScreen';
+  static const String classAssignmentsScreen = '/classAssignmentsScreen';
+  static const String assignmentCongratulationScreen = '/assignmentCongratulationScreen';
+  static const String homeCourseAssetsScreen = '/homeCourseAssetsScreen';
   static const String fillEnrollmentForm = '/fillEnrollmentForm';
   static const String rulesRegulations = '/rulesRegulations';
   static const String digitalContractSigning = '/digitalContractSigning';
