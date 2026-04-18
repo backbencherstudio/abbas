@@ -242,6 +242,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                             Navigator.pushNamed(
                                               context,
                                               RouteNames.myProfilePrivate,
+                                                arguments: feed.id
                                             );
                                           }
                                         } else if (authorId != null &&
@@ -797,7 +798,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
       },
     );
   }
-
   Widget _shareItem({
     required String imageText,
     required String label,
@@ -820,6 +820,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
         ],
       ),
     );
+
   }
 
   Future<void> _shareTo(SocialPlatform platform, String content) async {

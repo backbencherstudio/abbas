@@ -6,7 +6,7 @@ import '../../models/community/feed_response.dart';
 
 
 abstract class FeedRemoteDataSource {
-  Future<List<Feed>> getFeeds();
+  Future<List<Feed>> getFeeds({String? userId});
 }
 
 class FeedRemoteDataSourceImpl implements FeedRemoteDataSource {
@@ -15,9 +15,15 @@ class FeedRemoteDataSourceImpl implements FeedRemoteDataSource {
   FeedRemoteDataSourceImpl({required this.apiService});
 
   @override
-  Future<List<Feed>> getFeeds() async {
+  Future<List<Feed>> getFeeds({
+    String? userId,
+  }) async {
     try {
-      final response = await apiService.get(ApiEndpoints.getFeed);
+      final queryParameters = {
+        'userId': userId,
+      };
+      final response = await apiService.get(ApiEndpoints.getFeed,
+          queryParameters: queryParameters);
       final list = response.data as List;
       return list
           .map((e) => FeedResponse.fromJson(e))
