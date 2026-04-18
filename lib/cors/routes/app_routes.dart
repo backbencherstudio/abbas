@@ -213,7 +213,12 @@ class AppRoutes {
     RouteNames.createPost: (context) => CreatePost(),
     RouteNames.createPool: (context) => CreatePool(),
     RouteNames.myProfilePublic: (context) => MyProfilePublic(),
-    RouteNames.myProfilePrivate: (context) => MyProfilePrivate(),
+
+    RouteNames.myProfilePrivate: (context) {
+      final userId = ModalRoute.of(context)!.settings.arguments as String;
+      return MyProfilePrivate(userId: userId);
+    },
+
     RouteNames.editProfile: (context) => EditProfile(),
     RouteNames.othersProfile: (context) => OthersProfile(),
     RouteNames.reportListPage: (context) => ReportListPage(),
