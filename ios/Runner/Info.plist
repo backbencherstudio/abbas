@@ -6,6 +6,9 @@
     <string>Camera access for video calls</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>Microphone access for audio calls</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Photo Library access for profile picture and videos</string>
+
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>

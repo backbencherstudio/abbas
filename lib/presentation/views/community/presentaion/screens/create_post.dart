@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 import 'dart:io';
 
 import 'package:abbas/cors/network/api_response_model.dart';
-import '../../../profile/view_model/profil_screen_provider.dart';
+import '../../../profile/view_model/profile_screen_provider.dart';
 
 class CreatePost extends StatefulWidget {
   const CreatePost({super.key});
@@ -41,14 +41,11 @@ class _CreatePostState extends State<CreatePost> {
     try {
       context.read<CommunityScreenProvider>().setIsPickingImage(true);
 
-      final XFile? image = await _imagePicker.pickImage(
-        source: source,
-        imageQuality: 85,
-      );
+      final List<XFile>? image = await _imagePicker.pickMultiImage();
 
       if (image != null) {
         context.read<CommunityScreenProvider>().setSelectedMedia(
-          File(image.path),
+          File(image.first.path),
           'PHOTO',
         );
       }
@@ -71,9 +68,7 @@ class _CreatePostState extends State<CreatePost> {
     try {
       context.read<CommunityScreenProvider>().setIsPickingImage(true);
 
-      final XFile? video = await _imagePicker.pickVideo(
-        source: source,
-      );
+      final XFile? video = await _imagePicker.pickVideo(source: source);
 
       if (video != null) {
         context.read<CommunityScreenProvider>().setSelectedMedia(
@@ -163,7 +158,7 @@ class _CreatePostState extends State<CreatePost> {
           backgroundColor: Colors.green,
           textColor: Colors.white,
         );
-        Navigator.pop(context, true); 
+        Navigator.pop(context, true);
       } else {
         String msg = 'Failed to create post';
         if (response is ApiResponseModel) {
@@ -198,12 +193,11 @@ class _CreatePostState extends State<CreatePost> {
       builder: (context, provider, child) {
         return Scaffold(
           backgroundColor: AppColors.background,
-          body: Column(
-            children: [
-              SecondaryAppBar(title: 'Create Post'),
-              SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Padding(
+          body: SingleChildScrollView(
+            child: Column(
+              children: [
+                SecondaryAppBar(title: 'Create Post'),
+                Padding(
                   padding: EdgeInsets.all(16.w),
                   child: Column(
                     children: [
@@ -250,29 +244,18 @@ class _CreatePostState extends State<CreatePost> {
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 12.sp,
-                                        fontWeight: FontWeight.w400
+                                        fontWeight: FontWeight.w400,
                                       ),
                                     ),
                                   ),
                                   PopupMenuItem<String>(
-                                    value: 'FRIENDS',
+                                    value: 'PRIVATE',
                                     child: Text(
-                                      'FRIENDS',
+                                      'PRIVATE',
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 12.sp,
-                                        fontWeight: FontWeight.w400
-                                      ),
-                                    ),
-                                  ),
-                                  PopupMenuItem<String>(
-                                    value: 'ONLY ME',
-                                    child: Text(
-                                      'ONLY ME',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12.sp,
-                                        fontWeight: FontWeight.w400
+                                        fontWeight: FontWeight.w400,
                                       ),
                                     ),
                                   ),
@@ -291,8 +274,6 @@ class _CreatePostState extends State<CreatePost> {
                                   Icon(
                                     provider.privacy == 'PUBLIC'
                                         ? Icons.public
-                                        : provider.privacy == 'FRIENDS'
-                                        ? Icons.group
                                         : Icons.lock,
                                     color: Colors.white,
                                     size: 16.sp,
@@ -355,9 +336,16 @@ class _CreatePostState extends State<CreatePost> {
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(Icons.video_file, color: Colors.white, size: 48),
+                                    Icon(
+                                      Icons.video_file,
+                                      color: Colors.white,
+                                      size: 48,
+                                    ),
                                     SizedBox(height: 8.h),
-                                    Text('Video Selected', style: TextStyle(color: Colors.white)),
+                                    Text(
+                                      'Video Selected',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -479,9 +467,8 @@ class _CreatePostState extends State<CreatePost> {
                     ],
                   ),
                 ),
-              ),
-
-            ],
+              ],
+            ),
           ),
         );
       },

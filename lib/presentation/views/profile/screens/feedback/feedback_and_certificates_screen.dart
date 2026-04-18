@@ -1,3 +1,4 @@
+import 'package:abbas/cors/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
@@ -11,19 +12,30 @@ class FeedbackAndCertificatesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
-          SecondaryAppBar(title: 'Feedback & Certificates'),
+          SecondaryAppBar(title: 'Certificates'),
           Padding(
             padding: EdgeInsets.all(16.w),
             child: Column(
               spacing: 16.h,
               children: [
-                OptionCard(title: 'Feedback', iconPath: 'iconPath', route: RouteNames.feedbackPage, hasPrefixIcon: false,),
-                OptionCard(title: 'Certificates', iconPath: 'iconPath', route: RouteNames.certificate, hasPrefixIcon: false,),
+                // OptionCard(
+                //   title: 'Feedback',
+                //   iconPath: 'iconPath',
+                //   route: RouteNames.feedbackPage,
+                //   hasPrefixIcon: false,
+                // ),
+                OptionCard(
+                  title: 'Certificates',
+                  iconPath: 'iconPath',
+                  route: RouteNames.certificate,
+                  hasPrefixIcon: false,
+                ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );

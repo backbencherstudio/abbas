@@ -1,4 +1,5 @@
 import 'package:abbas/presentation/views/home/view_model/events_provider.dart';
+import 'package:abbas/presentation/widgets/animated_loading.dart';
 import 'package:abbas/presentation/widgets/shimmer_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -44,16 +45,10 @@ class _AllEventsState extends ConsumerState<AllEvents> {
     final allEventsData = ref.watch(getAllEventsProvider);
     final allEvents = allEventsData.value ?? [];
     if (allEventsData.isLoading) {
-      return ListView(
-        children: [
-          shimmerWidget(),
-          SizedBox(height: 12.h),
-          shimmerWidget(),
-          SizedBox(height: 12.h),
-        ],
-      );
+      return AnimatedLoading();
     }
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -70,10 +65,12 @@ class _AllEventsState extends ConsumerState<AllEvents> {
               ),
             ),
           ),
+          SizedBox(height: 16.h),
           Expanded(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: ListView.builder(
+                padding: EdgeInsets.zero,
                 itemCount: allEvents.length,
                 itemBuilder: (context, index) {
                   final event = allEvents[index];
@@ -93,6 +90,7 @@ class _AllEventsState extends ConsumerState<AllEvents> {
                           borderRadius: BorderRadius.circular(14.r),
                         ),
                         padding: EdgeInsets.all(16.r),
+                        margin : EdgeInsets.symmetric(vertical: 10.h),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -196,7 +194,7 @@ class _AllEventsState extends ConsumerState<AllEvents> {
                                       Navigator.pushNamed(
                                         context,
                                         RouteNames.eventDetails,
-                                        arguments: event?.id
+                                        arguments: event?.id,
                                       );
                                     },
                                     style: ElevatedButton.styleFrom(

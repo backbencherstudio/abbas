@@ -1,5 +1,4 @@
-import 'package:abbas/cors/network/api_response_handle.dart';
-import 'package:abbas/presentation/views/profile/view_model/profil_screen_provider.dart';
+import 'package:abbas/presentation/views/profile/view_model/profile_screen_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -43,9 +42,11 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
 
     provider.setIsSubmitting(true);
 
-    await provider.createComment(widget.postId, text);
-    _commentController.clear();
-    await provider.getComment(widget.postId);
+    final response = await provider.createComment(widget.postId, text);
+    if (response.success) {
+      _commentController.clear();
+      await provider.getComment(widget.postId);
+    }
 
     if (mounted) {
       provider.setIsSubmitting(false);
@@ -61,10 +62,16 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
 
     provider.setIsSubmitting(true);
 
-    await provider.replyComment(widget.postId, _replyingToCommentId!, text);
-    _commentController.clear();
-    _cancelReply();
-    await provider.getComment(widget.postId);
+    final response = await provider.replyComment(
+      widget.postId,
+      _replyingToCommentId!,
+      text,
+    );
+    if (response.success) {
+      _commentController.clear();
+      _cancelReply();
+      await provider.getComment(widget.postId);
+    }
 
     if (mounted) {
       provider.setIsSubmitting(false);
@@ -204,70 +211,72 @@ class _CommentBottomSheetState extends State<CommentBottomSheet> {
                                           : null,
                                     ),
                                     SizedBox(width: 10.w),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          comment.user?.name ?? 'Unknown',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 13.sp,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                        SizedBox(height: 4.h),
-                                        Text(
-                                          comment.content ?? '',
-                                          style: TextStyle(
-                                            color: const Color(0xFFD2D2D5),
-                                            fontSize: 13.sp,
-                                          ),
-                                        ),
-                                        SizedBox(height: 6.h),
-                                        Row(
-                                          children: [
-                                            TextButton(
-                                              onPressed: () {
-                                                setState(() {
-                                                  _replyingToCommentId =
-                                                      comment.id;
-                                                  _replyingToUserName =
-                                                      comment.user?.name ??
-                                                      'User';
-                                                });
-                                              },
-                                              style: TextButton.styleFrom(
-                                                padding: EdgeInsets.zero,
-                                                minimumSize: Size.zero,
-                                                tapTargetSize:
-                                                    MaterialTapTargetSize
-                                                        .shrinkWrap,
-                                              ),
-                                              child: Text(
-                                                "Reply",
-                                                style: TextStyle(
-                                                  color: Colors.blueAccent,
-                                                  fontSize: 12.sp,
-                                                ),
-                                              ),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            comment.user?.name ?? 'Unknown',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 13.sp,
+                                              fontWeight: FontWeight.w600,
                                             ),
-                                            if (comment.replies != null &&
-                                                comment
-                                                    .replies!
-                                                    .isNotEmpty) ...[
-                                              SizedBox(width: 12.w),
-                                              Text(
-                                                '${comment.replies!.length} replies',
-                                                style: TextStyle(
-                                                  color: Colors.grey[500],
-                                                  fontSize: 11.sp,
+                                          ),
+                                          SizedBox(height: 4.h),
+                                          Text(
+                                            comment.content ?? '',
+                                            style: TextStyle(
+                                              color: const Color(0xFFD2D2D5),
+                                              fontSize: 13.sp,
+                                            ),
+                                          ),
+                                          SizedBox(height: 6.h),
+                                          Row(
+                                            children: [
+                                              TextButton(
+                                                onPressed: () {
+                                                  setState(() {
+                                                    _replyingToCommentId =
+                                                        comment.id;
+                                                    _replyingToUserName =
+                                                        comment.user?.name ??
+                                                        'User';
+                                                  });
+                                                },
+                                                style: TextButton.styleFrom(
+                                                  padding: EdgeInsets.zero,
+                                                  minimumSize: Size.zero,
+                                                  tapTargetSize:
+                                                      MaterialTapTargetSize
+                                                          .shrinkWrap,
+                                                ),
+                                                child: Text(
+                                                  "Reply",
+                                                  style: TextStyle(
+                                                    color: Colors.blueAccent,
+                                                    fontSize: 12.sp,
+                                                  ),
                                                 ),
                                               ),
+                                              if (comment.replies != null &&
+                                                  comment
+                                                      .replies!
+                                                      .isNotEmpty) ...[
+                                                SizedBox(width: 12.w),
+                                                Text(
+                                                  '${comment.replies!.length} replies',
+                                                  style: TextStyle(
+                                                    color: Colors.grey[500],
+                                                    fontSize: 11.sp,
+                                                  ),
+                                                ),
+                                              ],
                                             ],
-                                          ],
-                                        ),
-                                      ],
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                     SizedBox(width: 8.w),
                                     Text(

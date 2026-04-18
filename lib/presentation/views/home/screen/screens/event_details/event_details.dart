@@ -1,5 +1,5 @@
 import 'package:abbas/presentation/views/home/view_model/events_provider.dart';
-import 'package:abbas/presentation/widgets/shimmer_widget.dart';
+import 'package:abbas/presentation/widgets/animated_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -37,18 +37,8 @@ class _EventDetailsState extends ConsumerState<EventDetails> {
   @override
   Widget build(BuildContext context) {
     final eventDetailsProvider = ref.watch(getEventByIdProvider);
-    final eventDetails = eventDetailsProvider.value;
-    if (eventDetailsProvider.isLoading) {
-      return ListView(
-        children: [
-          shimmerWidget(),
-          SizedBox(height: 12.h),
-          shimmerWidget(),
-          SizedBox(height: 12.h),
-          shimmerWidget(),
-        ],
-      );
-    }
+    final eventDetails = eventDetailsProvider.value?.data;
+
     return Scaffold(
       backgroundColor: Color(0xff030D15),
       body: SingleChildScrollView(
@@ -58,6 +48,26 @@ class _EventDetailsState extends ConsumerState<EventDetails> {
             const SecondaryAppBar(title: 'Event Details'),
 
             SizedBox(height: 20.h),
+
+            if (eventDetailsProvider.isLoading) const AnimatedLoading(),
+            if (eventDetailsProvider.hasError)
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 48.sp, color: Colors.red),
+                  SizedBox(height: 16.h),
+                  Text(
+                    eventDetailsProvider.error.toString(),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              ),
+
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: Container(
@@ -106,7 +116,6 @@ class _EventDetailsState extends ConsumerState<EventDetails> {
                         ),
                         SizedBox(width: 10.w),
                         Text(
-
                           eventDetails?.location ?? 'N/A',
                           style: TextStyle(
                             color: Color(0xffE9E9EA),
@@ -312,7 +321,14 @@ class _EventDetailsState extends ConsumerState<EventDetails> {
                 color: Color(0xFFE9201D),
                 textColor: Colors.white,
                 icon: '',
-                child: Text("Get Ticket"),
+                child: Text(
+                  "Get Ticket",
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
               ),
             ),
             SizedBox(height: 25.h),

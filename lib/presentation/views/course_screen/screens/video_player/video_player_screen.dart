@@ -1,3 +1,4 @@
+import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:abbas/cors/theme/app_colors.dart';
 import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
@@ -34,16 +35,18 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   Future<void> _initVideo() async {
     try {
-      /// Show warning if HTTP URL
+      /// ------------------- Show warning if HTTP URL -------------------
       if (widget.assetUrl.startsWith('http:') &&
           !widget.assetUrl.startsWith('https:')) {
-        debugPrint(
-          '⚠️ Loading video from HTTP URL. May not work on some Android devices.',
+        logger.e(
+          'Loading video from HTTP URL. May not work on some Android devices.',
         );
       }
 
-      /// Initialize VideoPlayerController
-      _videoPlayerController = VideoPlayerController.networkUrl(Uri.parse(widget.assetUrl));
+      /// ------------------- Initialize VideoPlayerController -------------------
+      _videoPlayerController = VideoPlayerController.networkUrl(
+        Uri.parse(widget.assetUrl),
+      );
 
       await _videoPlayerController.initialize().timeout(
         const Duration(seconds: 30),
@@ -52,18 +55,19 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         },
       );
 
-      /// Listen for player errors
+      /// ------------------- Listen for player errors -------------------
       _videoPlayerController.addListener(() {
         if (_videoPlayerController.value.hasError) {
           setState(() {
             _hasError = true;
             _errorMessage =
-                _videoPlayerController.value.errorDescription ?? 'Unknown error';
+                _videoPlayerController.value.errorDescription ??
+                'Unknown error';
           });
         }
       });
 
-      /// Initialize ChewieController
+      /// --------------- Initialize ChewieController -------------------
       _chewieController = ChewieController(
         videoPlayerController: _videoPlayerController,
         autoPlay: true,
@@ -148,7 +152,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                widget.fileName,
+                'Video Name : ${widget.fileName}',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 16.sp,
@@ -159,31 +163,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           ),
 
           /// ------------------------ Video player area -----------------------
-          Expanded(child: _buildVideoContent()),
-
-          // HTTP warning
-          if (widget.assetUrl.startsWith('http:') &&
-              !widget.assetUrl.startsWith('https:'))
-            Container(
-              color: Colors.orange.shade900,
-              padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 16.w),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.warning_amber_rounded,
-                    color: Colors.white,
-                    size: 16.sp,
-                  ),
-                  SizedBox(width: 8.w),
-                  Expanded(
-                    child: Text(
-                      'Using insecure HTTP connection. Video may not play on some devices.',
-                      style: TextStyle(color: Colors.white, fontSize: 12.sp),
-                    ),
-                  ),
-                ],
-              ),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              child: _buildVideoContent(),
             ),
+          ),
         ],
       ),
     );

@@ -2,6 +2,10 @@ import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:abbas/cors/routes/route_names.dart';
 import 'package:abbas/presentation/views/community/presentaion/screens/update_post.dart';
 import 'package:abbas/presentation/views/course_screen/screens/my_class/pdf_viewer_screen.dart';
+import 'package:abbas/presentation/views/home/screen/all_assignments_details_screen.dart';
+import 'package:abbas/presentation/views/home/screen/home_assets_courses_screen.dart';
+import 'package:abbas/presentation/views/home/screen/home_my_course_screen.dart';
+import 'package:abbas/presentation/views/home/screen/all_assignments_screen.dart';
 import 'package:flutter/material.dart';
 import '../../presentation/views/auth/forgot_password/screen/forgot_password_screen.dart';
 import '../../presentation/views/auth/login/presentaion/screen/login_screen.dart';
@@ -16,8 +20,9 @@ import '../../presentation/views/community/presentaion/screens/my_profile_privat
 import '../../presentation/views/community/presentaion/screens/my_profile_public.dart';
 import '../../presentation/views/community/presentaion/screens/others_profile.dart';
 import '../../presentation/views/community/presentaion/screens/report_list_page.dart';
+import '../../presentation/views/community/presentaion/screens/report_user_screen.dart';
 import '../../presentation/views/course_screen/screens/course_modele/course_module_screen.dart';
-import '../../presentation/views/course_screen/screens/my_class/assets_screen.dart';
+import '../../presentation/views/home/screen/assets_screen.dart';
 import '../../presentation/views/course_screen/screens/my_class/my_class_screen.dart';
 import '../../presentation/views/course_screen/screens/my_class/widget/pdf_widget.dart';
 import '../../presentation/views/course_screen/screens/my_course/my_assignment/due_assignment_screen.dart';
@@ -61,7 +66,7 @@ import '../../presentation/views/profile/screens/feedback/feedback_screen.dart';
 import '../../presentation/views/profile/screens/personal_info/edit_personal_info_screen.dart';
 import '../../presentation/views/profile/screens/personal_info/personal_info_screen.dart';
 import '../../presentation/views/profile/screens/push_notifications/screen/push_notifications.dart';
-import '../../presentation/views/profile/screens/subscription_and_payment/change_password.dart';
+import '../../presentation/views/profile/screens/change_password/change_password.dart';
 import '../../presentation/views/profile/screens/subscription_and_payment/change_stripe.dart';
 import '../../presentation/views/profile/screens/subscription_and_payment/payment_history.dart';
 import '../../presentation/views/profile/screens/subscription_and_payment/subscriptions.dart';
@@ -97,6 +102,9 @@ class AppRoutes {
     },
     RouteNames.parentScreen: (context) => const ParentScreen(),
     RouteNames.scanner: (context) => const Scanner(),
+    RouteNames.allAssignmentsScreen: (context) {
+      return AllAssignmentsScreen();
+    },
     RouteNames.otherCourseScreen: (context) => const OtherCourseScreen(),
     RouteNames.myCourseScreen: (context) {
       final args = ModalRoute.of(context)?.settings.arguments;
@@ -121,13 +129,18 @@ class AppRoutes {
       final assignmentId = args is String ? args : '';
       return DueAssignmentScreen(assignmentId: assignmentId);
     },
-    RouteNames.submittedAssignmentScreen: (context) =>
-        const SubmittedAssignmentScreen(),
+    RouteNames.submittedAssignmentScreen: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments;
+      final assignmentId = args is String ? args : '';
+      return SubmittedAssignmentScreen(assignmentId: assignmentId);
+    },
+    RouteNames.homeAssetsCoursesScreen: (context) => HomeAssetsCoursesScreen(),
     RouteNames.assetsScreen: (context) {
       final args = ModalRoute.of(context)!.settings.arguments;
-      final courseId = args is String ? args : '';
-      return AssetsScreen(courseId: courseId);
+      final classId = args is String ? args : '';
+      return AssetsScreen(classId: classId);
     },
+    RouteNames.homeMyCourseScreen: (context) => HomeMyCourseScreen(),
     RouteNames.startEnrollment: (context) => const StartEnrollment(),
     RouteNames.selectCourse: (context) => const SelectCourse(),
     RouteNames.courseModule: (context) {
@@ -135,7 +148,9 @@ class AppRoutes {
       return CourseModule(courseId: courseId);
     },
     RouteNames.fillEnrollmentForm: (context) {
-      final courseId = ModalRoute.of(context)!.settings.arguments as String;
+      final args = ModalRoute.of(context)!.settings.arguments;
+      final courseId = args is String ? args : '';
+      logger.d("App Routes : $courseId");
       return FillEnrollmentForm(courseId: courseId);
     },
     RouteNames.rulesRegulations: (context) {
@@ -183,6 +198,11 @@ class AppRoutes {
     RouteNames.editProfile: (context) => EditProfile(),
     RouteNames.othersProfile: (context) => OthersProfile(),
     RouteNames.reportListPage: (context) => ReportListPage(),
+    RouteNames.reportUserScreen: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments;
+      final reason = args is String ? args : '';
+      return ReportUserScreen(reason: reason);
+    },
     RouteNames.newMessageScreens: (context) => NewMessageScreens(),
     RouteNames.createGroupScreen: (context) => CreateGroupScreen(),
     RouteNames.oneTwoOneChatScreen: (context) => OneTwoOneChatScreen(),
@@ -198,6 +218,11 @@ class AppRoutes {
     },
     RouteNames.completePayment: (context) => CompletePayment(),
     RouteNames.prosHome: (context) => ProsHome(),
+    RouteNames.allAssignmentDetails: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments;
+      final courseId = args is String ? args : '';
+      return AllAssignmentsDetailsScreen(courseId: courseId);
+    },
     RouteNames.myCourse: (context) => MyCourse(),
     RouteNames.courseModules: (context) => CourseModules(),
     RouteNames.parentScreenTwo: (context) => ParentScreenTwo(),
@@ -219,6 +244,7 @@ class AppRoutes {
     RouteNames.updatePost: (context) {
       final args = ModalRoute.of(context)!.settings.arguments;
       final postId = args is Map ? args['id'] : '';
+      logger.d("App Routes : $postId");
       final postContent = args is Map ? args['content'] : '';
       return UpdatePost(postId: postId, postContent: postContent);
     },

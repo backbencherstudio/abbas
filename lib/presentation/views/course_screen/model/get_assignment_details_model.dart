@@ -6,7 +6,7 @@ class GetAssignmentDetailsModel {
 
   GetAssignmentDetailsModel.fromJson(Map<String, dynamic> json) {
     success = json['success'];
-    data = json['data'] != null ?  Data.fromJson(json['data']) : null;
+    data = json['data'] != null ? Data.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -32,20 +32,22 @@ class Data {
   String? teacherId;
   String? moduleClassId;
   ModuleClass? moduleClass;
+  Submission? submission;
 
-  Data(
-      {this.id,
-        this.title,
-        this.description,
-        this.submissionDate,
-        this.dueDate,
-        this.totalMarks,
-        this.attachmentUrl,
-        this.averageScore,
-        this.createdAt,
-        this.teacherId,
-        this.moduleClassId,
-        this.moduleClass});
+  Data({
+    this.id,
+    this.title,
+    this.description,
+    this.submissionDate,
+    this.dueDate,
+    this.totalMarks,
+    this.attachmentUrl,
+    this.averageScore,
+    this.createdAt,
+    this.teacherId,
+    this.moduleClassId,
+    this.moduleClass,
+  });
 
   Data.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -54,13 +56,18 @@ class Data {
     submissionDate = json['submission_Date'];
     dueDate = json['due_date'];
     totalMarks = json['total_marks'];
-    attachmentUrl = json['attachment_url'].cast<String>();
+    attachmentUrl = json['attachment_url'] != null
+        ? List<String>.from(json['attachment_url'])
+        : [];
     averageScore = json['average_score'];
     createdAt = json['createdAt'];
     teacherId = json['teacherId'];
     moduleClassId = json['moduleClassId'];
     moduleClass = json['moduleClass'] != null
         ? ModuleClass.fromJson(json['moduleClass'])
+        : null;
+    submission = json['submission'] != null
+        ? Submission.fromJson(json['submission'])
         : null;
   }
 
@@ -80,6 +87,9 @@ class Data {
     if (moduleClass != null) {
       data['moduleClass'] = moduleClass!.toJson();
     }
+    if (submission != null) {
+      data['submission'] = submission!.toJson();
+    }
     return data;
   }
 }
@@ -96,8 +106,7 @@ class ModuleClass {
     id = json['id'];
     classTitle = json['class_title'];
     className = json['class_name'];
-    module =
-    json['module'] != null ?  Module.fromJson(json['module']) : null;
+    module = json['module'] != null ? Module.fromJson(json['module']) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -133,6 +142,48 @@ class Module {
     data['module_title'] = moduleTitle;
     data['module_name'] = moduleName;
     data['createdAt'] = createdAt;
+    return data;
+  }
+}
+
+class Submission {
+  String? id;
+  String? title;
+  String? description;
+  String? fileUrl;
+  bool? submitted;
+  String? submittedAt;
+  dynamic grade;
+
+  Submission({
+    this.id,
+    this.title,
+    this.description,
+    this.fileUrl,
+    this.submitted,
+    this.submittedAt,
+    this.grade,
+  });
+
+  Submission.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    title = json['title'];
+    description = json['description'];
+    fileUrl = json['fileUrl'];
+    submitted = json['submitted'];
+    submittedAt = json['submittedAt'];
+    grade = json['grade'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = {};
+    data['id'] = id;
+    data['title'] = title;
+    data['description'] = description;
+    data['fileUrl'] = fileUrl;
+    data['submitted'] = submitted;
+    data['submittedAt'] = submittedAt;
+    data['grade'] = grade;
     return data;
   }
 }

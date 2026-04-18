@@ -97,6 +97,10 @@ class ChangePasswordViewModel extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
       return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+      return _isSuccess;
     }
   }
 

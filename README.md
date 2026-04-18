@@ -1,8 +1,8 @@
-# Acting Academy App 🎭
+# Acting Academy App 
 
 A Flutter-based mobile application for an acting academy, providing students with courses, community interaction, and learning resources. Built following clean architecture principles with MVVM pattern.
 
-## 📱 Features
+##  Features
 
 - **User Authentication**: Login, registration, and OTP verification
 - **Onboarding Flow**: Guided introduction for new users
@@ -10,58 +10,12 @@ A Flutter-based mobile application for an acting academy, providing students wit
 - **Community Features**: Posts, comments, reactions
 - **Profile Management**: Personal information and account settings
 
-## 🏗️ Architecture
+##  Architecture
 
 The app follows **MVVM (Model-View-ViewModel)** pattern with a clean separation of concerns:
 
-### Project Structure
-lib/
-├── core/ # Global configurations & infrastructure
-│ ├── constants/ # API endpoints, app constants
-│ ├── di/ # Dependency injection setup
-│ ├── network/ # API error handling, network utilities
-│ ├── routes/ # App routing & navigation
-│ ├── services/ # Dio client, socket, storage services
-│ ├── theme/ # App theme, colors, styles
-│ └── utils/ # Helper functions, utilities
-│
-├── presentation/ # Global presentation layer
-│ ├── viewmodels/ # Shared business logic
-│ │ ├── auth/ # Login, register viewmodels
-│ │ ├── community/ # Post viewmodel
-│ │ ├── course/ # Course viewmodel
-│ │ ├── home/ # Home viewmodel
-│ │ ├── onboarding/ # Onboarding viewmodel
-│ │ └── profile/ # Profile viewmodel
-│ └── app_providers.dart # ViewModel registration
-│
-└── views/ # Feature-specific views
-├── auth/ # Authentication feature
-│ ├── login/ # Login screen
-│ │ ├── data/ # Login model, repository impl
-│ │ ├── domain/ # Login entity, usecases
-│ │ └── presentation/
-│ │ ├── screen/ # Login screen UI
-│ │ └── widgets/# Login-specific widgets
-│ ├── register/ # Registration screen
-│ └── otp_verify/ # OTP verification screen
-│
-├── community/ # Community feature
-│ ├── data/ # Models, repositories
-│ ├── domain/ # Entities, usecases
-│ └── presentation/
-│ ├── screen/ # Community, comment screens
-│ └── widgets/ # Post card, reaction buttons
-│
-└── course_screen/ # Course & classroom feature
-├── model/ # Course models
-└── screens/
-├── my_class/ # Classroom screens
-└── my_course/ # Course content screens
 
-text
-
-## 🔄 MVVM Workflow
+##  MVVM Workflow
 
 ### Model (Data Layer)
 Located in `views/*/data/` folders
@@ -82,7 +36,7 @@ Located in `views/*/presentation/screen/`
 - Renders UI based on state
 - Dispatches user actions to ViewModels
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 - Flutter SDK (>=3.0.0)
@@ -110,7 +64,7 @@ Run the app
 
 bash
 flutter run
-📦 Dependencies
+ Dependencies
 Core
 get_it: Dependency injection
 
@@ -138,7 +92,7 @@ flutter_native_splash: Splash screen
 
 flutter_launcher_icons: App icons
 
-🔧 Configuration
+ Configuration
 API Endpoints
 Configure API endpoints in lib/core/constants/api_endpoints.dart
 
@@ -148,7 +102,7 @@ Customize app theme in lib/core/theme/app_theme.dart
 Routes
 Add new routes in lib/core/routes/route_names.dart and app_routes.dart
 
-📝 Code Structure Guidelines
+ Code Structure Guidelines
 Adding a New Feature
 Create feature folder under lib/views/
 
@@ -181,14 +135,14 @@ dart
 class RouteNames {
   static const String newFeature = '/new-feature';
 }
-🧪 Testing
+ Testing
 Unit Tests
 bash
 flutter test test/
 Widget Tests
 bash
 flutter test test/widgets/
-📱 Build & Release
+ Build & Release
 Android
 bash
 # Generate keystore
@@ -205,7 +159,7 @@ bash
 flutter build ios --release
 # Open in Xcode for distribution
 open ios/Runner.xcworkspace
-🤝 Contributing
+ Contributing
 Fork the repository
 
 Create your feature branch (git checkout -b feature/AmazingFeature)
@@ -225,13 +179,9 @@ Add comments for complex logic
 
 Write tests for new features
 
-📄 License
-This project is proprietary and confidential. Unauthorized copying, distribution, or use is strictly prohibited.
 
-📞 Support
-For support, email support@actingacademy.com or create an issue in the repository.
 
-📊 Project Status
+ Project Status
 Authentication Module
 
 Onboarding Flow

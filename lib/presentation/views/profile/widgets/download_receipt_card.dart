@@ -1,11 +1,13 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 
 class LediKhadashProtiva extends StatelessWidget {
   const LediKhadashProtiva({
-    super.key, required this.title, this.hasIcon = true, this.isVideo = false,
+    super.key,
+    required this.title,
+    this.hasIcon = true,
+    this.isVideo = false,
   });
 
   final String title;
@@ -21,15 +23,45 @@ class LediKhadashProtiva extends StatelessWidget {
       decoration: BoxDecoration(
         color: Color(0xFF0D2136),
         borderRadius: BorderRadius.circular(12.r),
-        border: BoxBorder.fromLTRB(left: BorderSide(color: Color(0xFF5F6CA0), width: 1.5.w),),
+        border: BoxBorder.fromLTRB(
+          left: BorderSide(color: Color(0xFF5F6CA0), width: 1.5.w),
+        ),
       ),
       child: Row(
         children: [
-          SvgPicture.asset(isVideo ? 'assets/icons/video_stroke.svg' : 'assets/icons/pdf.svg', height: 24.h, width: 24.w,),
+          SvgPicture.asset(
+            isVideo ? 'assets/icons/video_stroke.svg' : 'assets/icons/pdf.svg',
+            height: 24.h,
+            width: 24.w,
+          ),
           SizedBox(width: 16.w),
-          Text(title, style: Theme.of(context).textTheme.bodyMedium,),
+          Expanded(
+            child: Text(
+              textAlign: TextAlign.start,
+              title,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w400,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
           Spacer(),
-          hasIcon ? isVideo ? Icon(Icons.play_arrow_outlined, color: Colors.red, size: 28.h,) : SvgPicture.asset('assets/icons/download.svg', height: 24.h, width: 24.w,) : SizedBox(),
+          hasIcon
+              ? isVideo
+                    ? Icon(
+                        Icons.play_arrow_outlined,
+                        color: Colors.red,
+                        size: 28.h,
+                      )
+                    : SvgPicture.asset(
+                        'assets/icons/download.svg',
+                        height: 24.h,
+                        width: 24.w,
+                      )
+              : SizedBox(),
         ],
       ),
     );

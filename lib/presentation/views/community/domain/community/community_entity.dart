@@ -41,7 +41,7 @@ class CommunityEntity {
     this.shareCount,
   });
 
-  // Model থেকে Entity তে convert করার factory
+
   factory CommunityEntity.fromModel(GetFeedModel model) {
     return CommunityEntity(
       id: model.id,
@@ -166,3 +166,6 @@ class PollOptionEntity {
     );
   }
 }
+
+
+

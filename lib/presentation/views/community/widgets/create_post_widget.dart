@@ -1,4 +1,4 @@
-import 'package:abbas/presentation/views/profile/view_model/profil_screen_provider.dart';
+import 'package:abbas/presentation/views/profile/view_model/profile_screen_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
@@ -34,9 +34,15 @@ class CreatePostWidget extends StatelessWidget {
                       builder: (context, profileProvider, child) {
                         final profileImage =
                             profileProvider.profile?.data?.avatar;
-                        return CircleAvatar(
-                          radius: 24.r,
-                          backgroundImage: NetworkImage(profileImage ?? ''),
+                        return GestureDetector(
+                          onTap: () => Navigator.pushNamed(
+                            context,
+                            RouteNames.editProfile,
+                          ),
+                          child: CircleAvatar(
+                            radius: 24.r,
+                            backgroundImage: NetworkImage(profileImage ?? ''),
+                          ),
                         );
                       },
                     ),

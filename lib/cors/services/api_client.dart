@@ -202,6 +202,9 @@ class ApiClient {
     required Map<String, String> fields,
     required String fileField,
     required String filePath,
+    String? fileCover,
+    String? fileCoverPath,
+
     Map<String, String>? additionalHeaders,
   }) async {
     try {
@@ -211,6 +214,18 @@ class ApiClient {
         request.headers.addAll(headers);
         request.fields.addAll(fields);
 
+        if (fileCoverPath != null && fileCoverPath.isNotEmpty) {
+          File file = File(fileCoverPath);
+          if (await file.exists()) {
+            String mimeType = _getMimeType(file.path);
+            var multipartFile = await http.MultipartFile.fromPath(
+              fileCover!,
+              fileCoverPath,
+              contentType: http.MediaType.parse(mimeType),
+            );
+            request.files.add(multipartFile);
+          }
+        }
         if (filePath.isNotEmpty) {
           File file = File(filePath);
           if (await file.exists()) {

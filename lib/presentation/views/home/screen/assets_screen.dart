@@ -7,12 +7,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../../../widgets/secondary_appber.dart';
+import '../../../widgets/secondary_appber.dart';
 
 class AssetsScreen extends ConsumerStatefulWidget {
-  final String courseId;
-
-  const AssetsScreen({super.key, required this.courseId});
+  final String classId;
+  const AssetsScreen({super.key, required this.classId});
 
   @override
   ConsumerState<AssetsScreen> createState() => _AssetsScreenState();
@@ -23,8 +22,8 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen> {
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref
-          .read(getCourseAssetsProvider.notifier)
-          .getCourseAssets(courseId: widget.courseId);
+          .read(getClassDetailsProvider.notifier)
+          .getClassDetails(classId: widget.classId);
     });
     super.initState();
   }
@@ -71,13 +70,24 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen> {
                             ? AnimatedLoading()
                             : data?.data == null
                             ? Center(
-                                child: Text(
-                                  "No data available",
-                                  style: TextStyle(
-                                    fontSize: 16.sp,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.video_file,
+                                      color: Colors.white,
+                                      size: 50.sp,
+                                    ),
+                                    SizedBox(height: 10.h),
+                                    Text(
+                                      "No data available",
+                                      style: TextStyle(
+                                        fontSize: 16.sp,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               )
                             : ListView(
@@ -135,17 +145,28 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen> {
                             ? AnimatedLoading()
                             : data?.data == null
                             ? Center(
-                                child: Text(
-                                  "No data available",
-                                  style: TextStyle(
-                                    fontSize: 16.sp,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.picture_as_pdf,
+                                      color: Colors.white,
+                                      size: 50.sp,
+                                    ),
+                                    SizedBox(height: 10.h),
+                                    Text(
+                                      "No data available",
+                                      style: TextStyle(
+                                        fontSize: 16.sp,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               )
                             : ListView(
-                                padding: EdgeInsets.all(16.w),
+                                padding: EdgeInsets.all(16.r),
                                 children: [
                                   Column(
                                     crossAxisAlignment:
@@ -178,15 +199,23 @@ class _AssetsScreenState extends ConsumerState<AssetsScreen> {
                                                         pdfAsset.fileName ??
                                                         'N/A',
                                                     isVideo: false,
+                                                    hasIcon: false,
                                                     onTap: () {
-                                                      logger.d("Pdf url : ${pdfAsset.assetUrl}");
-                                                      logger.d("Pdf file name : ${pdfAsset.fileName}");
+                                                      logger.d(
+                                                        "Pdf url : ${pdfAsset.assetUrl}",
+                                                      );
+                                                      logger.d(
+                                                        "Pdf file name : ${pdfAsset.fileName}",
+                                                      );
                                                       Navigator.pushNamed(
                                                         context,
-                                                        RouteNames.pdfViewerScreen,
+                                                        RouteNames
+                                                            .pdfViewerScreen,
                                                         arguments: {
-                                                          'asset_url': pdfAsset.assetUrl,
-                                                          'file_name': pdfAsset.fileName,
+                                                          'asset_url':
+                                                              pdfAsset.assetUrl,
+                                                          'file_name':
+                                                              pdfAsset.fileName,
                                                         },
                                                       );
                                                     },
@@ -268,17 +297,7 @@ class AssetsWidget extends StatelessWidget {
                 ),
               ),
               if (hasIcon)
-                isVideo
-                    ? Icon(
-                        Icons.play_arrow_outlined,
-                        color: Colors.red,
-                        size: 28.h,
-                      )
-                    : SvgPicture.asset(
-                        'assets/icons/download.svg',
-                        height: 24.h,
-                        width: 24.w,
-                      ),
+                Icon(Icons.play_arrow_outlined, color: Colors.red, size: 28.h),
             ],
           ),
         ),

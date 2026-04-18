@@ -47,6 +47,15 @@ String? nameValidator(String? value) {
   return null;
 }
 
+
+String? userNameValidator(String? value) {
+  if (value == null || value.isEmpty) {
+    return 'Please enter your user name';
+  }
+  return null;
+}
+
+
 String? phoneValidator(String? value) {
   if (value == null || value.isEmpty) {
     return 'Please enter a valid phone number';

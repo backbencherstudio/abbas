@@ -6,7 +6,7 @@ class GetClassDetailsModel {
 
   GetClassDetailsModel.fromJson(Map<String, dynamic> json) {
     success = json['success'];
-    data = json['data'] != null ?  Data.fromJson(json['data']) : null;
+    data = json['data'] != null ? Data.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -31,21 +31,22 @@ class Data {
   String? createdAt;
   String? updatedAt;
   List<Assignments>? assignments;
-  List<Null>? classAssets;
+  List<ClassAssets>? classAssets;
 
-  Data(
-      {this.id,
-        this.moduleId,
-        this.classTitle,
-        this.className,
-        this.classOverview,
-        this.duration,
-        this.startDate,
-        this.classTime,
-        this.createdAt,
-        this.updatedAt,
-        this.assignments,
-        this.classAssets});
+  Data({
+    this.id,
+    this.moduleId,
+    this.classTitle,
+    this.className,
+    this.classOverview,
+    this.duration,
+    this.startDate,
+    this.classTime,
+    this.createdAt,
+    this.updatedAt,
+    this.assignments,
+    this.classAssets,
+  });
 
   Data.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -61,14 +62,14 @@ class Data {
     if (json['assignments'] != null) {
       assignments = <Assignments>[];
       json['assignments'].forEach((v) {
-        assignments!.add( Assignments.fromJson(v));
+        assignments!.add(Assignments.fromJson(v));
       });
     }
     if (json['classAssets'] != null) {
-      classAssets = <Null>[];
-      // json['classAssets'].forEach((v) {
-      //   classAssets!.add(new Null.fromJson(v));
-      // });
+      classAssets = <ClassAssets>[];
+      json['classAssets'].forEach((v) {
+        classAssets!.add(ClassAssets.fromJson(v));
+      });
     }
   }
 
@@ -87,9 +88,9 @@ class Data {
     if (assignments != null) {
       data['assignments'] = assignments!.map((v) => v.toJson()).toList();
     }
-    // if (classAssets != null) {
-    //   data['classAssets'] = classAssets!.map((v) => v.toJson()).toList();
-    // }
+    if (classAssets != null) {
+      data['classAssets'] = classAssets!.map((v) => v.toJson()).toList();
+    }
     return data;
   }
 }
@@ -97,18 +98,104 @@ class Data {
 class Assignments {
   String? id;
   String? title;
+  String? dueDate;
+  String? status;
+  String? dueInDays;
+  String? dueLabel;
+  String? isOverdue;
 
   Assignments({this.id, this.title});
 
   Assignments.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     title = json['title'];
+    dueDate = json['due_date'];
+    status = json['status'];
+    dueInDays = json['due_in_days'];
+    dueLabel = json['due_label'];
+    isOverdue = json['is_overdue'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = {};
     data['id'] = id;
     data['title'] = title;
+    data['due_date'] = dueDate;
+    data['status'] = status;
+    data['due_in_days'] = dueInDays;
+    data['due_label'] = dueLabel;
+    data['is_overdue'] = isOverdue;
+    return data;
+  }
+}
+
+class ClassAssets {
+  List<Videos>? videos;
+  List<Pdfs>? pdfs;
+
+  ClassAssets({this.videos, this.pdfs});
+
+  ClassAssets.fromJson(Map<String, dynamic> json) {
+    videos = json['videos'] != null
+        ? (json['videos'] as List).map((v) => Videos.fromJson(v)).toList()
+        : null;
+    pdfs = json['asset_type'] != null
+        ? (json['asset_type'] as List).map((v) => Pdfs.fromJson(v)).toList()
+        : null;
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = {};
+    if (videos != null) {
+      data['videos'] = videos!.map((v) => v.toJson()).toList();
+    }
+    if (pdfs != null) {
+      data['pdfs'] = pdfs!.map((v) => v.toJson()).toList();
+    }
+    return data;
+  }
+}
+
+class Videos {
+  String? id;
+  String? assetUrl;
+  String? fileName;
+
+  Videos({this.id, this.assetUrl, this.fileName});
+
+  Videos.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    assetUrl = json['asset_url'];
+    fileName = json['file_name'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = {};
+    data['id'] = id;
+    data['asset_url'] = assetUrl;
+    data['file_name'] = fileName;
+    return data;
+  }
+}
+
+class Pdfs {
+  String? id;
+  String? assetUrl;
+  String? fileName;
+
+  Pdfs({this.id, this.assetUrl, this.fileName});
+
+  Pdfs.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    assetUrl = json['asset_url'];
+    fileName = json['file_name'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = {};
+    data['id'] = id;
+    data['asset_url'] = assetUrl;
+    data['file_name'] = fileName;
     return data;
   }
 }

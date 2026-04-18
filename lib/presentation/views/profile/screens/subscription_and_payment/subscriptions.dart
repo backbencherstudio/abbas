@@ -1,3 +1,4 @@
+import 'package:abbas/cors/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import '../../../../../cors/routes/route_names.dart';
 import '../../../../widgets/secondary_appber.dart';
@@ -14,6 +15,7 @@ class _SubscriptionsState extends State<Subscriptions> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           SecondaryAppBar(title: 'Subscription & Payment'),

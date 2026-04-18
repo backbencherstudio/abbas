@@ -1,52 +1,51 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:provider/provider.dart';
 import '../../../../../cors/routes/route_names.dart';
-import '../../../../widgets/custom_bottom_sheet.dart';
+import '../../../../../cors/theme/app_colors.dart';
 import '../../../../widgets/secondary_appber.dart';
-import '../../widgets/create_post_widget.dart';
+import '../../../message/provider/create_chat_provider.dart';
+import '../../../profile/view_model/profile_screen_provider.dart';
 import '../../widgets/post_actions.dart';
-
 
 class MyProfilePrivate extends StatelessWidget {
   const MyProfilePrivate({super.key});
 
-  void onPostDelete(context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => CustomBottomSheet(
-        title: 'Delete Post',
-        description: 'Are you sure you to Delete this Post?',
-        iconPath: 'assets/icons/alert.svg',
-        buttonTitle: 'Delete',
-        buttonIconPath: 'assets/icons/delete.svg',
-      ),
-    );
-  }
   @override
   Widget build(BuildContext context) {
+    final profileProvider = Provider.of<ProfileScreenProvider>(context);
+    final createChatProvider = Provider.of<CreateChatProvider>(context);
+
+    final data = profileProvider.myProfileModel?.data;
+    final name = data?.name ?? "N/A";
+    final userName = data?.username ?? "N/A";
+    final about = data?.about ?? "N/A";
+    final userId = data?.id ?? "N/A";
+    final avatar = data?.avatar ?? "N/A";
+    final coverImage = data?.coverImage ?? 'N/A';
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: SingleChildScrollView(
         child: Column(
           children: [
-            SecondaryAppBar(
-              title: 'My Profile',
-              hasButton: true,
-              isSearch: true,
-            ),
+            SecondaryAppBar(title: 'My Profile', hasButton: true),
             Padding(
               padding: EdgeInsets.all(8.w),
               child: Column(
                 children: [
-                  _buildProfileHeader(context),
+                  _buildProfileHeader(context, avatar, coverImage),
                   SizedBox(height: 60.h),
                   Text(
-                    'Brooklyn Simmons',
-                    style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w600),
+                    name,
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
                   ),
                   Text(
-                    '@brooklyn_Simmons',
+                    userName,
                     style: TextStyle(
                       fontSize: 12.sp,
                       fontWeight: FontWeight.w400,
@@ -54,25 +53,240 @@ class MyProfilePrivate extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 15.h),
-                  _buildAboutSection(),
+                  _buildAboutSection(userName, about),
                   SizedBox(height: 16.h),
                   Row(
                     children: [
-                      _buildChatButton(),
+                      _buildChatButton(userId, context, createChatProvider),
                       SizedBox(width: 8.w),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.pushNamed(context, RouteNames.editProfile);
-                        },
-                        child: Image.asset(
-                          'assets/icons/edit_profile.png',
-                          scale: 2.5,
+                      Expanded(
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 6.w,
+                            vertical: 6.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Color(0xFF0A1A29),
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+
+                          child: PopupMenuButton(
+                            color: Color(0xFF030C15AB),
+                            borderRadius: BorderRadius.circular(16.r),
+                            icon: Icon(
+                              Icons.more_horiz,
+                              color: Colors.white,
+                              size: 24.sp,
+                            ),
+                            itemBuilder: (context) {
+                              return [
+                                PopupMenuItem(
+                                  value: "edit",
+                                  child: GestureDetector(
+                                    onTap: () => showDialog(
+                                      context: context,
+                                      barrierDismissible: false,
+                                      builder: (context) {
+                                        return AlertDialog(
+                                          titlePadding: EdgeInsets.symmetric(
+                                            horizontal: 16.w,
+                                          ),
+                                          backgroundColor: Color(0xFF07121D),
+                                          title: Column(
+                                            children: [
+                                              SizedBox(height: 6.h),
+                                              Container(
+                                                width: 33.w,
+                                                height: 4.h,
+                                                decoration: BoxDecoration(
+                                                  color: Color(0xFF5F6CA0),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                        99.r,
+                                                      ),
+                                                ),
+                                              ),
+                                              SizedBox(height: 24.h),
+                                              Image.asset(
+                                                'assets/images/report_img.png',
+                                                width: 48.r,
+                                                height: 48.r,
+                                              ),
+                                              SizedBox(height: 16.h),
+                                              Text(
+                                                "Report Post",
+                                                style: TextStyle(
+                                                  fontSize: 18.sp,
+                                                  color: Color(0xFFFFFFFF),
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                              SizedBox(height: 10.h),
+                                              Text(
+                                                "Are you sure you to Report the User?",
+                                                style: TextStyle(
+                                                  fontSize: 14.sp,
+                                                  color: Color(0xFFB2B5B8),
+                                                  fontWeight: FontWeight.w400,
+                                                ),
+                                              ),
+                                              SizedBox(height: 16.h),
+                                              FilledButton(
+                                                style: FilledButton.styleFrom(
+                                                  fixedSize: Size(335.w, 48.h),
+                                                  backgroundColor: Color(
+                                                    0xFFE9201D,
+                                                  ),
+                                                ),
+                                                onPressed: () {
+                                                  Navigator.pushNamed(
+                                                    context,
+                                                    RouteNames.reportListPage,
+                                                  );
+                                                },
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    SvgPicture.asset(
+                                                      'assets/icons/report_icon.svg',
+                                                    ),
+                                                    SizedBox(width: 10.w),
+                                                    Text(
+                                                      "Yes, Report",
+                                                      style: TextStyle(
+                                                        fontSize: 16.sp,
+                                                        color: Color(
+                                                          0xFFFFFFFF,
+                                                        ),
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              SizedBox(height: 16.h),
+                                              OutlinedButton(
+                                                style: OutlinedButton.styleFrom(
+                                                  fixedSize: Size(335.w, 48.h),
+                                                  side: BorderSide(
+                                                    color: Color(0xFF3D4566),
+                                                  ),
+                                                ),
+                                                onPressed: () {
+                                                  Navigator.pop(context);
+                                                },
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.cancel_outlined,
+                                                      color: Colors.white,
+                                                      size: 16.sp,
+                                                    ),
+                                                    SizedBox(width: 10.w),
+                                                    Text(
+                                                      "Cancel",
+                                                      style: TextStyle(
+                                                        fontSize: 16.sp,
+                                                        color: Color(
+                                                          0xFFFFFFFF,
+                                                        ),
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              SizedBox(height: 16.h),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 6.h,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Color(0xFF3D4566),
+                                        borderRadius: BorderRadius.circular(
+                                          4.r,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          SvgPicture.asset(
+                                            "assets/icons/report_icon.svg",
+                                          ),
+                                          SizedBox(width: 6.w),
+                                          Text(
+                                            "Report",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12.sp,
+                                              fontWeight: FontWeight.w400,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                PopupMenuItem(
+                                  value: "share",
+                                  child: GestureDetector(
+                                    onTap: () {},
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 6.h,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Color(0xFF3D4566),
+                                        borderRadius: BorderRadius.circular(
+                                          4.r,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Image.asset(
+                                            "assets/icons/share.png",
+                                            width: 18.w,
+                                            height: 18.h,
+                                          ),
+                                          SizedBox(width: 6.w),
+                                          Text(
+                                            "Share",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12.sp,
+                                              fontWeight: FontWeight.w400,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ];
+                            },
+                            // onSelected: (value) {
+                            //   if (value == "delete") {
+                            //     _deletePost(feed.id ?? "");
+                            //   }
+                            // },
+                          ),
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 16.h),
-                  CreatePostWidget(),
                   SizedBox(height: 16.h),
                   _buildPostCard(context),
                   SizedBox(height: 40.h),
@@ -85,71 +299,40 @@ class MyProfilePrivate extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileHeader(BuildContext context) {
+  Widget _buildProfileHeader(
+    BuildContext context,
+    String avatar,
+    String coverImage,
+  ) {
     return Stack(
       alignment: Alignment.bottomCenter,
       children: [
-        Stack(
-          children: [
-            SizedBox(
-              height: 200.h,
-              width: double.infinity,
-              child: Image.asset(
-                'assets/images/profile_cover.png',
-                fit: BoxFit.cover,
-              ),
-            ),
-            Positioned(
-              right: 16.w,
-              bottom: 16.h,
-              child: Image.asset('assets/icons/button.png', scale: 3),
-            ),
-          ],
+        SizedBox(
+          height: 130.h,
+          width: double.infinity,
+          child: Image.network(coverImage, fit: BoxFit.cover),
         ),
         Transform.translate(
           offset: Offset(0, 50.h),
-          child: Stack(
-            children: [
-              Container(
-                padding: EdgeInsets.all(1.w),
-                decoration: BoxDecoration(
-                  color: Colors.black,
-                  shape: BoxShape.circle,
-                ),
-                child: CircleAvatar(
-                  radius: 50.r,
-                  backgroundImage: AssetImage(
-                    'assets/images/girls_profile.png',
-                  ),
-                ),
-              ),
-              Positioned(
-                right: 2.w,
-                bottom: 2.h,
-                child: Container(
-                  width: 30.w,
-                  height: 40.h,
-                  padding: EdgeInsets.all(6.w),
-                  decoration: const BoxDecoration(
-                    color: Colors.black45,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Image.asset(
-                    'assets/icons/button.png',
-                    scale: 3.4,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-            ],
+          child: Container(
+            padding: EdgeInsets.all(1.w),
+            decoration: BoxDecoration(
+              color: Colors.black,
+              shape: BoxShape.circle,
+            ),
+            child: CircleAvatar(
+              radius: 50.r,
+              backgroundImage: NetworkImage(avatar),
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildAboutSection() {
+  Widget _buildAboutSection(String userName, String about) {
     return Container(
+      width: double.infinity,
       margin: EdgeInsets.symmetric(horizontal: 0.w),
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -161,7 +344,7 @@ class MyProfilePrivate extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'About Brooklyn',
+            'About $userName',
             style: TextStyle(
               fontSize: 18.sp,
               fontWeight: FontWeight.bold,
@@ -170,7 +353,7 @@ class MyProfilePrivate extends StatelessWidget {
           ),
           SizedBox(height: 8.h),
           Text(
-            'Aspiring actor passionate about stage, screen, and voice performance. Currently training at CINACT to grow my performance skills and creative confidence.',
+            about,
             style: TextStyle(fontSize: 16.sp, color: Color(0xFFD2D2D5)),
           ),
         ],
@@ -178,12 +361,22 @@ class MyProfilePrivate extends StatelessWidget {
     );
   }
 
-  Widget _buildChatButton() {
+  Widget _buildChatButton(
+    String userId,
+    BuildContext context,
+    CreateChatProvider provider,
+  ) {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 4.w),
-      width: 290.w,
+      width: 280.w,
       child: ElevatedButton.icon(
-        onPressed: () {},
+        onPressed: () async {
+          if (userId.isNotEmpty) {
+            debugPrint("THe userId is for create conversation $userId");
+            await provider.createConversation(userId);
+          } else {}
+          Navigator.pushNamed(context, RouteNames.oneTwoOneChatScreen);
+        },
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF3D4566),
           padding: EdgeInsets.symmetric(vertical: 16.h),
@@ -199,7 +392,11 @@ class MyProfilePrivate extends StatelessWidget {
         ),
         label: Text(
           'Chat',
-          style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500, color: Colors.white),
+          style: TextStyle(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+          ),
         ),
       ),
     );
@@ -245,15 +442,13 @@ class MyProfilePrivate extends StatelessWidget {
                 color: Color(0xFF05111C),
                 borderRadius: BorderRadius.circular(20.r),
                 onSelected: (String result) {
-                  if (result == 'Edit') {
-                  } else if (result == 'Delete') {
-                    onPostDelete(context);
-                  }
+                  if (result == 'Share') {
+                  } else if (result == 'Report') {}
                 },
                 itemBuilder: (BuildContext context) {
                   return [
                     PopupMenuItem<String>(
-                      value: 'Edit',
+                      value: 'Report',
                       child: Container(
                         width: double.infinity,
                         height: 30.h,
@@ -264,18 +459,26 @@ class MyProfilePrivate extends StatelessWidget {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Image.asset('assets/icons/edit.png', width: 16.w, height: 16.h),
+                            SvgPicture.asset(
+                              'assets/icons/user_report.svg',
+                              width: 16.w,
+                              height: 16.h,
+                            ),
                             SizedBox(width: 8.w),
                             Text(
-                              'Edit',
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 14.sp),
+                              'Report',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14.sp,
+                              ),
                             ),
                           ],
                         ),
                       ),
                     ),
                     PopupMenuItem<String>(
-                      value: 'Delete',
+                      value: 'Share',
                       child: Container(
                         width: double.infinity,
                         height: 30.h,
@@ -286,11 +489,19 @@ class MyProfilePrivate extends StatelessWidget {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            SvgPicture.asset('assets/icons/delete.svg', width: 16.w, height: 16.h),
+                            Image.asset(
+                              'assets/icons/share.png',
+                              width: 16.w,
+                              height: 16.h,
+                            ),
                             SizedBox(width: 8.w),
                             Text(
-                              'Delete',
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 14.sp),
+                              'Share',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14.sp,
+                              ),
                             ),
                           ],
                         ),
@@ -298,14 +509,22 @@ class MyProfilePrivate extends StatelessWidget {
                     ),
                   ];
                 },
-                child: Icon(Icons.more_horiz_outlined, color: Colors.white, size: 24.sp),
+                child: Icon(
+                  Icons.more_horiz_outlined,
+                  color: Colors.white,
+                  size: 24.sp,
+                ),
               ),
             ],
           ),
           SizedBox(height: 12.h),
           Text(
             'Behind the scenes of our latest project! The team has been working incredibly hard.',
-            style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w400, color: Colors.white),
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w400,
+              color: Colors.white,
+            ),
           ),
           SizedBox(height: 12.h),
           Container(

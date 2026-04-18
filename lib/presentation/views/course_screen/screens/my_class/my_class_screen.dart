@@ -1,4 +1,5 @@
 import 'package:abbas/presentation/views/course_screen/view_model/get_all_courses_provider.dart';
+import 'package:abbas/presentation/widgets/animated_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -28,33 +29,46 @@ class _MyClassScreenState extends ConsumerState<MyClassScreen> {
   }
 
   /// ------------------- Format Created At ------------------------------------
-  String formatCreatedAt(String? createdAt){
-    if(createdAt == null) return 'N/A';
+  String formatCreatedAt(String? createdAt) {
+    if (createdAt == null) return 'N/A';
     final dateTime = DateTime.parse(createdAt);
     final formatted = DateFormat('dd-MM-yyyy').format(dateTime);
     return formatted;
   }
-  
+
   /// ------------------ Format Class Time -------------------------------------
-  String formatClassTime(String? classTime){
-    if(classTime == null) return 'N/A';
-    try{
+  String formatClassTime(String? classTime) {
+    if (classTime == null) return 'N/A';
+    try {
       final parts = classTime.split('_');
       final start = DateFormat('HH:mm').parse(parts[0]);
       final end = DateFormat('HH:mm').parse(parts[1]);
-      final formattedStart = DateFormat('h:mm a').format(start); /// 6.00 PM
-      final formattedEnd = DateFormat('h:mm a').format(end); /// 8.00 PM
+      final formattedStart = DateFormat('h:mm a').format(start);
+
+      /// 6.00 PM
+      final formattedEnd = DateFormat('h:mm a').format(end);
+
+      /// 8.00 PM
       return '$formattedStart - $formattedEnd';
-    }catch(e){
+    } catch (e) {
       return classTime;
     }
   }
+
   @override
   Widget build(BuildContext context) {
     final classes = ref.watch(getClassDetailsProvider);
     return classes.when(
-      loading: () => const CircularProgressIndicator(color: Colors.white),
-      error: (err, stackTrace) => Center(child: Text("Error : $err")),
+      loading: () => const AnimatedLoading(),
+      error: (err, stackTrace) => Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, color: Colors.red, size: 48.sp),
+          SizedBox(height: 16.h),
+          Text("Error : $err", style: TextStyle(color: Colors.white, fontSize: 16.sp)),
+        ],
+      ),
       data: (data) {
         final classValue = data?.data;
         final assignments = classValue?.assignments ?? [];
@@ -202,7 +216,6 @@ class _MyClassScreenState extends ConsumerState<MyClassScreen> {
                           ),
                           SizedBox(height: 17.h),
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Expanded(
                                 child: OutlinedButton(
@@ -223,7 +236,6 @@ class _MyClassScreenState extends ConsumerState<MyClassScreen> {
                                   },
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
-
                                     children: [
                                       SvgPicture.asset(
                                         'assets/icons/folder.svg',
@@ -241,44 +253,46 @@ class _MyClassScreenState extends ConsumerState<MyClassScreen> {
                                   ),
                                 ),
                               ),
-                              if (assignments.isNotEmpty) SizedBox(width: 10),
-
-                              ...assignments.map((assignment) {
-                                return Expanded(
-                                  child: OutlinedButton(
-                                    style: OutlinedButton.styleFrom(
-                                      side: BorderSide(
-                                        color: Color(0xff3D4466),
-                                        width: 1,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
+                              SizedBox(width: 10.w),
+                              Expanded(
+                                child: OutlinedButton(
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(
+                                      color: Color(0xff3D4466),
+                                      width: 1,
                                     ),
-                                    onPressed: () {},
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        SvgPicture.asset(
-                                          'assets/icons/doc.svg',
-                                        ),
-                                        SizedBox(width: 6.w),
-                                        Text(
-                                          assignment.title ?? 'N/A',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(6),
                                     ),
                                   ),
-                                );
-                              }),
+                                  onPressed: () {
+                                    Navigator.pushNamed(
+                                      context,
+                                      RouteNames.assetsScreen,
+                                    );
+                                  },
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SvgPicture.asset(
+                                        'assets/icons/folder.svg',
+                                      ),
+                                      SizedBox(width: 6.w),
+                                      Text(
+                                        "Assignments",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
+                          if (assignments.isNotEmpty) SizedBox(width: 10),
                         ],
                       ),
                     ),

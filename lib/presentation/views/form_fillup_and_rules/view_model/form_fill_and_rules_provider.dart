@@ -1,5 +1,5 @@
 import 'package:abbas/cors/constants/api_endpoints.dart';
-import 'package:abbas/cors/network/api_error_handle.dart';
+import 'package:abbas/cors/network/api_response_handle.dart';
 import 'package:abbas/cors/services/dio_client.dart';
 import 'package:abbas/data/models/response_model.dart';
 import 'package:abbas/presentation/views/form_fillup_and_rules/model/current_step_model.dart';
@@ -172,7 +172,7 @@ class AcceptContractTermsProvider extends StateNotifier<ResponseModel> {
       'digital_signature_date': digitalSignatureDate,
     };
 
-    debugPrint("THe body data for this api ${body}");
+    logger.d("THe body data for this api $body");
     try {
       final res = await dioClient.postHttp(
         ApiEndpoints.acceptContractTerms(enrollmentId),
@@ -184,7 +184,7 @@ class AcceptContractTermsProvider extends StateNotifier<ResponseModel> {
         return ResponseModel(success: false, message: res['message']);
       }
     } catch (e) {
-      debugPrint("The error message is ------ ${body} ${e}");
+      logger.e("The error message is ------ $body $e");
       return ResponseModel(success: false, message: "$e");
     }
   }

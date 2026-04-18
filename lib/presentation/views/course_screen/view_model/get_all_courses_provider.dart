@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:abbas/cors/services/token_storage.dart';
 import 'package:abbas/data/models/response_model.dart';
 import 'package:abbas/presentation/views/course_screen/model/get_assignment_details_model.dart';
 import 'package:abbas/presentation/views/course_screen/model/get_class_details_model.dart';
@@ -9,10 +8,8 @@ import 'package:abbas/presentation/views/course_screen/model/get_my_assignments_
 import 'package:abbas/presentation/views/course_screen/model/my_course_details_model.dart';
 import 'package:abbas/presentation/views/course_screen/model/my_courses_model.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:image_picker/image_picker.dart';
 import '../../../../cors/constants/api_endpoints.dart';
 import '../../../../cors/network/api_error_handle.dart';
 import '../../../../cors/services/dio_client.dart';
@@ -21,7 +18,8 @@ import '../model/get_course_details_model.dart';
 
 /// ------------------ Submit Assignment ---------------------------------------
 
-final selectedFileProvider = StateProvider<XFile?>((ref) => null);
+final selectedFileProvider = StateProvider<File?>((ref) => null);
+final submitAssignmentLoadingProvider = StateProvider<bool>((ref) => false);
 final submitAssignmentProvider =
     StateNotifierProvider<SubmitAssignmentProvider, ResponseModel>(
       (ref) => SubmitAssignmentProvider(dioClient: DioClient()),
@@ -36,60 +34,31 @@ class SubmitAssignmentProvider extends StateNotifier<ResponseModel> {
   Future<ResponseModel> submitAssignment({
     required String title,
     required String description,
-    required String media,
+    required File media,
     required String assignmentId,
   }) async {
     try {
-      // Get token
-      final tokenStorage = TokenStorage();
-      final token = await tokenStorage.getToken();
-
-      // Create form data
       FormData formData = FormData.fromMap({
         "title": title,
         "description": description,
+
+        "media": await MultipartFile.fromFile(
+          media.path,
+          filename: media.path.split('/').last,
+        ),
       });
 
-      // Add file if exists
-      if (media.isNotEmpty) {
-        File file = File(media);
-
-        if (await file.exists()) {
-          formData.files.add(
-            MapEntry("media", await MultipartFile.fromFile(media)),
-          );
-        } else {
-          return ResponseModel(success: false, message: "File not found");
-        }
-      }
-
-      // Make request
-      final response = await Dio(
-        BaseOptions(
-          baseUrl: ApiEndpoints.baseUrl,
-          connectTimeout: const Duration(seconds: 30),
-          receiveTimeout: const Duration(seconds: 30),
-          sendTimeout: const Duration(seconds: 30),
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            'Authorization': 'Bearer $token',
-          },
-        ),
-      ).post(ApiEndpoints.submitAssignment(assignmentId), data: formData);
-
-      debugPrint("Response:------------- ${response.data}");
-      // Return response
-      final res = response.data;
-      return ResponseModel(
-        success: res["success"] ?? false,
-        message: res["message"] ?? "Submission completed",
+      final response = await dioClient.postHttp(
+        ApiEndpoints.submitAssignment(assignmentId),
+        formData,
       );
-    } catch (e) {
-      String message = "Submission failed";
-      if (e is DioException) {
-        message = e.response?.data["message"] ?? e.message ?? message;
+      if (response['success']) {
+        return ResponseModel(success: true, message: response['message']);
+      } else {
+        return ResponseModel(success: false, message: response['message']);
       }
-      return ResponseModel(success: false, message: message);
+    } catch (e) {
+      return ResponseModel(success: false, message: e.toString());
     }
   }
 }

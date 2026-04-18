@@ -14,6 +14,7 @@ class SupportScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           SecondaryAppBar(title: 'Support'),

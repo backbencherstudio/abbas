@@ -53,6 +53,7 @@ class DioClient {
     Object? data,
   ) async {
     final token = await _tokenStorage.getToken();
+    logger.d(" url ${ ApiEndpoints.baseUrl + path}");
     try {
       final response = await _dio.post(
         path,

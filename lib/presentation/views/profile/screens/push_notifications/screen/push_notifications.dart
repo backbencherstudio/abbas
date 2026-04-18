@@ -13,7 +13,7 @@ class PushNotifications extends StatelessWidget {
       backgroundColor: Color(0xFF030C15),
       body: Column(
         children: [
-          SecondaryAppBar(title: 'Push Notifications'),
+          SecondaryAppBar(title: 'Notifications'),
           SizedBox(height: 10.h,),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -21,21 +21,21 @@ class PushNotifications extends StatelessWidget {
               children:  [
                 SizedBox(height: 20.h),
                 _NotificationSettingItem(
-                  title: 'New Announcements',
+                  title: 'Notifications',
                   initialValue: true,
                 ),
-                _NotificationSettingItem(
-                  title: 'Payment Reminders',
-                  initialValue: false,
-                ),
-                _NotificationSettingItem(
-                  title: 'Course Availability',
-                  initialValue: false,
-                ),
-                _NotificationSettingItem(
-                  title: 'Community Mentions',
-                  initialValue: true,
-                ),
+                // _NotificationSettingItem(
+                //   title: 'Payment Reminders',
+                //   initialValue: false,
+                // ),
+                // _NotificationSettingItem(
+                //   title: 'Course Availability',
+                //   initialValue: false,
+                // ),
+                // _NotificationSettingItem(
+                //   title: 'Community Mentions',
+                //   initialValue: true,
+                // ),
               ],
             ),
           ),

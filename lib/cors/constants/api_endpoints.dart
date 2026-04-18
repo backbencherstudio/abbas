@@ -23,15 +23,17 @@ class ApiEndpoints {
       '$baseUrl/api/community/profile/$userId';
   static const String editProfile = '$baseUrl/api/auth/update';
 
-  //profile
+  ///----------------------- profile -------------------------------------------
   static const String profileInfo = '/api/auth/me';
+  static const String accountGetProfile = '$baseUrl/api/profile';
+  static const String deleteAccount = '$baseUrl/api/profile/delete-account';
 
   /// -------------------- Home ------------------------------------------------
   static const String getHomeData = '$baseUrl/api/home';
 
   /// ------------------- Courses ----------------------------------------------
   static String submitAssignment(String assignmentId) =>
-      '$baseUrl/course/assignment/$assignmentId/submit';
+      '/api/course/assignment/$assignmentId/submit';
   static const String getAllCourses = '$baseUrl/api/course/all';
   static const String getMyCourses = '$baseUrl/api/course/my-courses';
 
@@ -49,7 +51,6 @@ class ApiEndpoints {
 
   static String getModuleDetails(String moduleId) =>
       '$baseUrl/api/course/module/$moduleId';
-
 
   static String getClassDetails(String classId) =>
       '$baseUrl/api/course/class/$classId';
@@ -81,24 +82,40 @@ class ApiEndpoints {
   /// -------------------- Community -------------------------------------------
   static const String getFeed = '$baseUrl/api/community/feed';
   static const String createPost = '$baseUrl/api/community/post';
+
   static String updatePost(String postId) =>
       '$baseUrl/api/community/post/$postId';
   static const String createPostLike = '$baseUrl/api/community/like';
+
   static String getPostLike(String postId) =>
       '$baseUrl/api/community/like/$postId';
+
   static String createComment(String postId) =>
       '$baseUrl/api/community/comment/$postId';
+
   static String getComment(String postId) =>
       '$baseUrl/api/community/comment/$postId';
+
   static String replyComment(String postId) =>
       '$baseUrl/api/community/comment/reply/$postId';
+
   static String deletePost(String postId) =>
       '$baseUrl/api/community/post/$postId';
+  static const String createPoll = '$baseUrl/api/community/post';
+
+  static String report(String userId) =>
+      '$baseUrl/api/community/report/$userId';
+  static const String editMyProfile = '$baseUrl/api/community/edit-profile';
+  static const String getMyProfile = '$baseUrl/api/community/my-profile';
+
+  static String voteOnAPoll(String postId, String optionId) =>
+      '$baseUrl/api/community/vote/$postId/$optionId';
 
   // chat
 
   static const String createConversation = '$baseUrl/api/conversations/dm';
   static const String allConversationList = '$baseUrl/api/conversations';
+
   static String searchUser(String query) =>
       '$baseUrl/api/users/suggest?q=$query';
   static const String createGroupChat = '$baseUrl/api/conversations/group';

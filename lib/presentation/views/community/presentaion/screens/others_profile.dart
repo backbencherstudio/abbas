@@ -1,49 +1,16 @@
 import 'package:abbas/presentation/views/message/provider/create_chat_provider.dart';
-import 'package:abbas/presentation/views/profile/view_model/profil_screen_provider.dart';
+import 'package:abbas/presentation/views/profile/view_model/profile_screen_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../../../../../cors/routes/route_names.dart';
-import '../../../../widgets/custom_bottom_sheet.dart';
+import '../../../../../cors/theme/app_colors.dart';
 import '../../../../widgets/secondary_appber.dart';
 import '../../widgets/post_actions.dart';
-import '../../widgets/share_bottom_sheet.dart';
 
 class OthersProfile extends StatelessWidget {
   const OthersProfile({super.key});
-
-  void onPostReport(context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => CustomBottomSheet(
-        title: 'Report User',
-        description: 'Are you sure to Report the User?',
-        iconPath: 'assets/icons/alert.svg',
-        buttonTitle: 'Yes, Report',
-        buttonIconPath: 'assets/icons/user_report.svg',
-        onTap: () {
-          Navigator.pushNamed(context, RouteNames.reportListPage);
-        },
-      ),
-    );
-  }
-
-  void onPostShare(context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) => ShareBottomSheet(
-        title: 'Share with your friends',
-        description: '',
-        iconPath: '',
-        buttonTitle: 'Back to Home',
-        buttonIconPath: '',
-        onTap: () {
-          Navigator.pushNamed(context, RouteNames.reportListPage);
-        },
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,25 +19,21 @@ class OthersProfile extends StatelessWidget {
 
     final data = profileProvider.otherProfileModel?.data;
     final name = data?.name ?? "N/A";
-    final userName = data?.name ?? "N/A";
-    final email = data?.email ?? "N/A";
+    final userName = data?.username ?? "N/A";
     final about = data?.about ?? "N/A";
     final userId = data?.id ?? "N/A";
-    final avater = data?.avatar ?? "N/A";
+    final avatar = data?.avatar ?? "N/A";
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: SingleChildScrollView(
         child: Column(
           children: [
-            SecondaryAppBar(
-              title: 'Other Profile',
-              hasButton: true,
-              isSearch: true,
-            ),
+            SecondaryAppBar(title: 'Other Profile', hasButton: true),
             Padding(
               padding: EdgeInsets.all(8.w),
               child: Column(
                 children: [
-                  _buildProfileHeader(context, avater),
+                  _buildProfileHeader(context, avatar),
                   SizedBox(height: 60.h),
                   Text(
                     name,
@@ -88,18 +51,238 @@ class OthersProfile extends StatelessWidget {
                       color: Color(0xFF5F6CA0),
                     ),
                   ),
-                  SizedBox(height: 15.h),
-                  _buildAboutSection(userName, about),
+                  SizedBox(height: 16.h),
+                  _buildAboutSection(name, about),
                   SizedBox(height: 16.h),
                   Row(
                     children: [
                       _buildChatButton(userId, context, createChatProvider),
                       SizedBox(width: 8.w),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.pushNamed(context, RouteNames.editProfile);
-                        },
-                        child: Image.asset('assets/icons/dots.png', scale: 3.5),
+                      Expanded(
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 6.w,
+                            vertical: 6.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Color(0xFF0A1A29),
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+
+                          child: PopupMenuButton(
+                            color: Color(0xFF030C15AB),
+                            borderRadius: BorderRadius.circular(16.r),
+                            icon: Icon(
+                              Icons.more_horiz,
+                              color: Colors.white,
+                              size: 24.sp,
+                            ),
+                            itemBuilder: (context) {
+                              return [
+                                PopupMenuItem(
+                                  value: "edit",
+                                  child: GestureDetector(
+                                    onTap: () => showDialog(
+                                      context: context,
+                                      barrierDismissible: false,
+                                      builder: (context) {
+                                        return AlertDialog(
+                                          titlePadding: EdgeInsets.symmetric(
+                                            horizontal: 16.w,
+                                          ),
+                                          backgroundColor: Color(0xFF07121D),
+                                          title: Column(
+                                            children: [
+                                              SizedBox(height: 6.h),
+                                              Container(
+                                                width: 33.w,
+                                                height: 4.h,
+                                                decoration: BoxDecoration(
+                                                  color: Color(0xFF5F6CA0),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                        99.r,
+                                                      ),
+                                                ),
+                                              ),
+                                              SizedBox(height: 24.h),
+                                              Image.asset(
+                                                'assets/images/report_img.png',
+                                                width: 48.r,
+                                                height: 48.r,
+                                              ),
+                                              SizedBox(height: 16.h),
+                                              Text(
+                                                "Report Post",
+                                                style: TextStyle(
+                                                  fontSize: 18.sp,
+                                                  color: Color(0xFFFFFFFF),
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                              SizedBox(height: 10.h),
+                                              Text(
+                                                "Are you sure you to Report the User?",
+                                                style: TextStyle(
+                                                  fontSize: 14.sp,
+                                                  color: Color(0xFFB2B5B8),
+                                                  fontWeight: FontWeight.w400,
+                                                ),
+                                              ),
+                                              SizedBox(height: 16.h),
+                                              FilledButton(
+                                                style: FilledButton.styleFrom(
+                                                  fixedSize: Size(335.w, 48.h),
+                                                  backgroundColor: Color(
+                                                    0xFFE9201D,
+                                                  ),
+                                                ),
+                                                onPressed: () {
+                                                  Navigator.pushNamed(
+                                                    context,
+                                                    RouteNames.reportListPage,
+                                                  );
+                                                },
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    SvgPicture.asset(
+                                                      'assets/icons/report_icon.svg',
+                                                    ),
+                                                    SizedBox(width: 10.w),
+                                                    Text(
+                                                      "Yes, Report",
+                                                      style: TextStyle(
+                                                        fontSize: 16.sp,
+                                                        color: Color(
+                                                          0xFFFFFFFF,
+                                                        ),
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              SizedBox(height: 16.h),
+                                              OutlinedButton(
+                                                style: OutlinedButton.styleFrom(
+                                                  fixedSize: Size(335.w, 48.h),
+                                                  side: BorderSide(
+                                                    color: Color(0xFF3D4566),
+                                                  ),
+                                                ),
+                                                onPressed: () {
+                                                  Navigator.pop(context);
+                                                },
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.cancel_outlined,
+                                                      color: Colors.white,
+                                                      size: 16.sp,
+                                                    ),
+                                                    SizedBox(width: 10.w),
+                                                    Text(
+                                                      "Cancel",
+                                                      style: TextStyle(
+                                                        fontSize: 16.sp,
+                                                        color: Color(
+                                                          0xFFFFFFFF,
+                                                        ),
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              SizedBox(height: 16.h),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 6.h,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Color(0xFF3D4566),
+                                        borderRadius: BorderRadius.circular(
+                                          4.r,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          SvgPicture.asset(
+                                            "assets/icons/report_icon.svg",
+                                          ),
+                                          SizedBox(width: 6.w),
+                                          Text(
+                                            "Report",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12.sp,
+                                              fontWeight: FontWeight.w400,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                PopupMenuItem(
+                                  value: "share",
+                                  child: GestureDetector(
+                                    onTap: () {},
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 6.h,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Color(0xFF3D4566),
+                                        borderRadius: BorderRadius.circular(
+                                          4.r,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Image.asset(
+                                            "assets/icons/share.png",
+                                            width: 18.w,
+                                            height: 18.h,
+                                          ),
+                                          SizedBox(width: 6.w),
+                                          Text(
+                                            "Share",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12.sp,
+                                              fontWeight: FontWeight.w400,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ];
+                            },
+                            // onSelected: (value) {
+                            //   if (value == "delete") {
+                            //     _deletePost(feed.id ?? "");
+                            //   }
+                            // },
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -258,10 +441,7 @@ class OthersProfile extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20.r),
                 onSelected: (String result) {
                   if (result == 'Share') {
-                    onPostShare(context);
-                  } else if (result == 'Report') {
-                    onPostReport(context);
-                  }
+                  } else if (result == 'Report') {}
                 },
                 itemBuilder: (BuildContext context) {
                   return [

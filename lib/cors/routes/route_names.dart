@@ -16,11 +16,11 @@ class RouteNames {
   static const String myCourseScreen = '/myCourseScreen';
   static const String courseModuleScreen = '/courseModuleScreen';
   static const String startEnrollment = '/startEnrollment';
+  static const String allAssignmentsScreen = '/allAssignmentsScreen';
   static const String selectCourse = '/selectCourse';
   static const String courseModule = '/courseModule';
   static const String audioCallScreen = '/audioCallScreen';
   static const String videoCallScreen = '/videoCallScreen';
-
 
   static const String personalInfoScreen = '/personalInfoScreen';
   static const String subscriptionScreen = '/subscriptionScreen';
@@ -46,7 +46,6 @@ class RouteNames {
   static const String changeStripe = '/changeStripe';
   static const String contractAndDocumentScreen = '/contractAndDocumentScreen';
 
-
   static const String feedbackPage = '/feedbackPage';
   static const String certificate = '/certificate';
   static const String supportUser = '/supportUser';
@@ -60,6 +59,7 @@ class RouteNames {
   static const String editProfile = '/editProfile';
   static const String othersProfile = '/othersProfile';
   static const String reportListPage = '/reportListPage';
+  static const String reportUserScreen = '/reportUserScreen';
   static const String newMessageScreens = '/newMessageScreens';
   static const String createGroupScreen = '/createGroupScreen';
   static const String oneTwoOneChatScreen = '/oneTwoOneChatScreen';
@@ -71,8 +71,12 @@ class RouteNames {
   static const String eventDetails = '/eventDetails';
   static const String completePayment = '/completePayment';
   static const String prosHome = '/prosHome';
+  static const String allAssignmentDetails = '/allAssignmentDetails';
   static const String myCourse = '/myCourse';
+  static const String courseScreen = '/courseScreen';
   static const String courseModules = '/courseModules';
+  static const String homeAssetsCoursesScreen = '/homeAssetsCoursesScreen';
+  static const String homeMyCourseScreen = '/homeMyCourseScreen';
   static const String parentScreenTwo = '/parentScreenTwo';
   static const String allEvents = '/allEvents';
   static const String assetsPdfVideo = '/assetsPdfVideo';

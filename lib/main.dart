@@ -20,12 +20,12 @@ Future<void> main() async {
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light, 
-      statusBarBrightness: Brightness.dark, 
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.light,
     ),
   );
 
- // cameras = await availableCameras();
+  // cameras = await availableCameras();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   await Hive.initFlutter();
@@ -33,13 +33,12 @@ Future<void> main() async {
 
   await ScreenUtil.ensureScreenSize();
 
-
   await configureDependencies();
 
   // Initialize notifications
   await initNotifications();
 
-  runApp( ProviderScope(child: const MyApp()));
+  runApp(ProviderScope(child: const MyApp()));
 }
 
 // main.dart - Add this after MaterialApp
@@ -56,8 +55,11 @@ class MyApp extends StatelessWidget {
         minTextAdapt: true,
         builder: (context, child) {
           return MaterialApp(
+            title: 'Abbas',
             navigatorKey: navigatorKey,
             theme: AppTheme.lightTheme,
+            themeMode: ThemeMode.dark,
+            darkTheme: ThemeData.dark(),
             debugShowCheckedModeBanner: false,
             initialRoute: AppRoutes.initialRoute,
             routes: AppRoutes.routes,
@@ -77,10 +79,9 @@ class MyApp extends StatelessWidget {
 
 Future<void> initNotifications() async {
   const AndroidInitializationSettings androidInit =
-  AndroidInitializationSettings('@mipmap/ic_launcher');
+      AndroidInitializationSettings('@mipmap/ic_launcher');
 
-  const DarwinInitializationSettings iosInit =
-  DarwinInitializationSettings();
+  const DarwinInitializationSettings iosInit = DarwinInitializationSettings();
 
   const InitializationSettings initSettings = InitializationSettings(
     android: androidInit,

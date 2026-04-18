@@ -1,3 +1,4 @@
+import 'package:abbas/presentation/views/course_screen/view_model/get_all_courses_provider.dart';
 import 'package:abbas/presentation/views/home/view_model/get_home_data_provider.dart';
 import 'package:abbas/presentation/widgets/animated_loading.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +8,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 import '../../../../cors/routes/route_names.dart';
 import '../../../../cors/theme/app_colors.dart';
-import '../../../viewmodels/home/home_viewmodel.dart';
 import '../../../widgets/custom_appbar.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -18,8 +18,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  late final HomeViewModel vm;
-
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -79,6 +77,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final upComingAssignmentsValues = homeData?.upcomingAssignments;
     final upComingEventsValues = homeData?.upcomingEvents;
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: Column(
         children: [
           CustomAppbar(
@@ -86,10 +85,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             subtitle: "Welcome back!",
           ),
 
+          SizedBox(height: 24.h),
           Expanded(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: ListView(
+                padding: EdgeInsets.zero,
                 children: [
                   Text(
                     "Quick Access",
@@ -110,9 +111,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       QuickAction(
                         icon: 'book',
                         label: 'My Course',
-                        onTap: () {
-                          Navigator.pushNamed(context, RouteNames.prosHome);
-                        },
+                        onTap: () {},
                       ),
                       QuickAction(
                         icon: 'note',
@@ -126,7 +125,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                     ],
                   ),
-                  SizedBox(height: 24.h),
+                  SizedBox(height: 16.h),
                   Text(
                     "Upcoming Class",
                     style: TextStyle(
@@ -136,8 +135,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                   ),
 
-                  if(homeDataWatch.isLoading)
-                    AnimatedLoading(),
+                  if (homeDataWatch.isLoading) AnimatedLoading(),
+
                   /// ----------- Up Coming Class --------------------------
                   SizedBox(height: 12.h),
                   Container(
@@ -145,10 +144,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       gradient: RadialGradient(
                         center: Alignment(0.85, -1.8),
                         radius: 2,
-                        colors: [
-                          AppColors.splashRed,
-                          AppColors.cardBackground,
-                        ],
+                        colors: [AppColors.splashRed, AppColors.cardBackground],
                       ),
                       borderRadius: BorderRadius.circular(14.r),
                     ),
@@ -182,9 +178,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             ),
                             SizedBox(width: 6.w),
                             Text(
-                              formattedDate(
-                                upComingClassesValues?.startDate,
-                              ) ,
+                              formattedDate(upComingClassesValues?.startDate),
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 12.sp,
@@ -221,14 +215,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     width: 2,
                                   ),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      12.r,
-                                    ),
+                                    borderRadius: BorderRadius.circular(12.r),
                                   ),
                                 ),
                                 child: Row(
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     SvgPicture.asset(
@@ -261,14 +252,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   fixedSize: Size.fromHeight(48.h),
                                   backgroundColor: AppColors.splashRed,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      12.r,
-                                    ),
+                                    borderRadius: BorderRadius.circular(12.r),
                                   ),
                                 ),
                                 child: Row(
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     SvgPicture.asset(
@@ -298,39 +286,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ],
                     ),
                   ),
-                  SizedBox(height: 24.h),
+                  SizedBox(height: 16.h),
 
                   /// --------------- Assignments --------------------------
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Assignments",
-                        style: TextStyle(
-                          fontSize: 18.sp,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Text(
-                        "View All",
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          color: Color(0xFFDFE1E7),
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    "Upcoming Assignments",
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                   SizedBox(height: 12.h),
                   Container(
                     decoration: BoxDecoration(
                       color: AppColors.cardBackground,
                       borderRadius: BorderRadius.circular(14.r),
-                      border: Border.all(
-                        color: Color(0xFF0A1A29),
-                        width: 1.w,
-                      ),
+                      border: Border.all(color: Color(0xFF0A1A29), width: 1.w),
                     ),
                     padding: EdgeInsets.all(16.r),
                     child: Column(
@@ -402,7 +374,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           children: [
                             Expanded(
                               child: OutlinedButton(
-                                onPressed: () {},
+                                onPressed: () async {
+                                  await ref
+                                      .read(
+                                        getAssignmentDetailsProvider.notifier,
+                                      )
+                                      .getAssignmentDetails(
+                                        assignmentId:
+                                            upComingAssignmentsValues?.id ?? "",
+                                      );
+                                  if (context.mounted) {
+                                    Navigator.pushNamed(
+                                      context,
+                                      RouteNames.dueAssignmentScreen,
+                                      arguments: upComingAssignmentsValues?.id,
+                                    );
+                                  }
+                                },
                                 style: OutlinedButton.styleFrom(
                                   fixedSize: Size.fromHeight(48.h),
                                   foregroundColor: Colors.white,
@@ -411,9 +399,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     width: 2.w,
                                   ),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      12.r,
-                                    ),
+                                    borderRadius: BorderRadius.circular(12.r),
                                   ),
                                 ),
                                 child: Text(
@@ -427,25 +413,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               ),
                             ),
                             SizedBox(width: 14.w),
-                            SizedBox(
-                              width: 174.w,
-                              child: ElevatedButton(
-                                onPressed: () {},
-                                style: ElevatedButton.styleFrom(
-                                  fixedSize: Size.fromHeight(48.h),
-                                  backgroundColor: AppColors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      12.r,
+                            Expanded(
+                              child: SizedBox(
+                                width: 174.w,
+                                child: ElevatedButton(
+                                  onPressed: () {},
+                                  style: ElevatedButton.styleFrom(
+                                    padding: EdgeInsets.zero,
+                                    fixedSize: Size.fromHeight(48.h),
+                                    backgroundColor: AppColors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12.r),
                                     ),
                                   ),
-                                ),
-                                child: Text(
-                                  'Submit Assignment',
-                                  style: TextStyle(
-                                    fontSize: 14.sp,
-                                    color: Color(0xFF030C15),
-                                    fontWeight: FontWeight.w500,
+                                  child: Text(
+                                    'Submit Assignment',
+                                    style: TextStyle(
+                                      fontSize: 14.sp,
+                                      color: Color(0xFF030C15),
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -455,29 +442,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ],
                     ),
                   ),
-                  SizedBox(height: 24.h),
+                  SizedBox(height: 16.h),
 
                   /// ------------- Upcoming Events ------------------------
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Upcoming Events",
-                        style: TextStyle(
-                          fontSize: 18.sp,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Text(
-                        "View All",
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          color: Color(0xFFDFE1E7),
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    "Upcoming Events",
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                   SizedBox(height: 12.h),
                   Container(
@@ -485,10 +459,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       gradient: RadialGradient(
                         center: Alignment(-0.85, -1.8),
                         radius: 1.5,
-                        colors: [
-                          AppColors.splashRed,
-                          AppColors.cardBackground,
-                        ],
+                        colors: [AppColors.splashRed, AppColors.cardBackground],
                       ),
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -577,9 +548,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     width: 2,
                                   ),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      12.r,
-                                    ),
+                                    borderRadius: BorderRadius.circular(12.r),
                                   ),
                                 ),
                                 child: Text(
@@ -605,14 +574,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   backgroundColor: AppColors.splashRed,
                                   foregroundColor: Colors.white,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      12.r,
-                                    ),
+                                    borderRadius: BorderRadius.circular(12.r),
                                   ),
                                 ),
                                 child: Row(
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.center,
+                                  mainAxisAlignment: MainAxisAlignment.center,
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     SvgPicture.asset(
@@ -641,6 +607,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ],
                     ),
                   ),
+                  SizedBox(height: 16.h),
                 ],
               ),
             ),
@@ -685,13 +652,13 @@ class _QuickGrid extends StatelessWidget {
         Navigator.pushNamed(context, RouteNames.scanner);
         break;
       case 'book':
-        Navigator.pushNamed(context, RouteNames.prosHome);
+        Navigator.pushNamed(context, RouteNames.homeMyCourseScreen);
         break;
       case 'note':
-        Navigator.pushNamed(context, RouteNames.scanner);
+        Navigator.pushNamed(context, RouteNames.allAssignmentsScreen);
         break;
       case 'folder':
-        Navigator.pushNamed(context, RouteNames.scanner);
+        Navigator.pushNamed(context, RouteNames.homeAssetsCoursesScreen);
         break;
       default:
         Navigator.pushNamed(context, RouteNames.scanner);
@@ -701,6 +668,7 @@ class _QuickGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GridView.builder(
+      padding: EdgeInsets.zero,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(

@@ -1,11 +1,13 @@
 import 'package:abbas/cors/services/token_storage.dart';
-import 'package:abbas/presentation/views/profile/view_model/profil_screen_provider.dart';
+import 'package:abbas/cors/theme/app_colors.dart';
+import 'package:abbas/presentation/views/profile/view_model/profile_screen_provider.dart';
 import 'package:abbas/presentation/views/profile/widgets/option_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
 import '../../../cors/routes/route_names.dart';
+import '../../../cors/utils/app_utils.dart';
 import '../../widgets/custom_appbar.dart';
 import '../../widgets/custom_bottom_sheet.dart';
 
@@ -32,6 +34,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final textTheme = Theme.of(context).textTheme;
     final TokenStorage _tokenStorage = TokenStorage();
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: Consumer<ProfileScreenProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading) {
@@ -124,7 +127,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             SizedBox(height: 12.h),
 
                             OptionCard(
-                              title: "Feedback & Certificates",
+                              title: "Certificates",
                               iconPath: "assets/icons/certificate.svg",
                               route: RouteNames.feedbackScreen,
                             ),
@@ -132,7 +135,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             SizedBox(height: 12.h),
 
                             OptionCard(
-                              title: "Push Notification",
+                              title: "Notifications",
                               iconPath: "assets/icons/notification.svg",
                               route: RouteNames.pushNotifications,
                             ),
@@ -158,6 +161,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   final token = await _tokenStorage.getToken();
 
                                   if (token == null) {
+                                    Utils.showToast(
+                                      msg: "Logout Successfully",
+                                      backgroundColor: Colors.green,
+                                      textColor: Colors.white,
+                                    );
                                     Navigator.pushNamedAndRemoveUntil(
                                       context,
                                       RouteNames.loginScreen,
