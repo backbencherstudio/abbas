@@ -22,9 +22,16 @@ class ApiResponseHandle {
     logger.i("Response Status: $statusCode");
     logger.i("Response Body: $body");
 
+    /// Check both HTTP status code and the 'success' field in the response body
     bool success = statusCode >= 200 && statusCode < 300;
     if (body is Map<String, dynamic> && body.containsKey('success')) {
       success = body['success'] == true;
+    }
+
+    String parseMessage(dynamic msg) {
+      if (msg == null) return '';
+      if (msg is List) return msg.join(', ');
+      return msg.toString();
     }
 
     if (success) {
@@ -32,7 +39,7 @@ class ApiResponseHandle {
         success: true,
         data: body,
         message: body is Map<String, dynamic> && body.containsKey('message')
-            ? body['message']
+            ? parseMessage(body['message'])
             : 'Success',
       );
     } else {
@@ -40,7 +47,7 @@ class ApiResponseHandle {
         success: false,
         data: body,
         message: body is Map<String, dynamic> && body.containsKey('message')
-            ? body['message']
+            ? parseMessage(body['message'])
             : (body is Map<String, dynamic> && body.containsKey('error')
                 ? body['error'].toString()
                 : 'Error $statusCode'),
