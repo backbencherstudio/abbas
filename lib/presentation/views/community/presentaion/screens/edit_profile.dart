@@ -164,7 +164,7 @@ class _EditProfileState extends State<EditProfile> {
                         child: Stack(
                           children: [
                             Container(
-                              padding:  EdgeInsets.all(1.r),
+                              padding: EdgeInsets.all(1.r),
                               decoration: BoxDecoration(
                                 color: Colors.black54,
                                 shape: BoxShape.circle,
@@ -281,7 +281,9 @@ class _EditProfileState extends State<EditProfile> {
                                   );
 
                               if (res.success) {
-                                context.read<CommunityScreenProvider>().fetchFeeds();
+                                context
+                                    .read<CommunityScreenProvider>()
+                                    .fetchFeeds();
                                 Utils.showToast(
                                   msg: res.message,
                                   backgroundColor: Colors.green,

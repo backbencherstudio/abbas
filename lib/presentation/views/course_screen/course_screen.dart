@@ -56,6 +56,27 @@ class _CourseScreenState extends ConsumerState<CourseScreen> {
 
                 /// Loading
                 if (myCourses.isLoading) const AnimatedLoading(),
+                if (myCourses.value?.data?.myCourses?.isEmpty ?? true)
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.book_outlined,
+                        size: 48.sp,
+                        color: Colors.white70,
+                      ),
+                      SizedBox(height: 16.h),
+                      Text(
+                        "No Courses Available",
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          color: Colors.white70,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
 
                 ...((myCourses.value?.data?.myCourses ?? []).map((course) {
                   return InkWell(
