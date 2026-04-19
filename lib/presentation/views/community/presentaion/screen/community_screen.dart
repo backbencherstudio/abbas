@@ -71,14 +71,12 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
   /// ---------------------------- time ago --------------------------
   String _getTimeAgo(String? createdAt, String? updatedAt) {
-    /// If no timestamps available
     if ((createdAt == null || createdAt.isEmpty) &&
         (updatedAt == null || updatedAt.isEmpty)) {
       return "time : N/A";
     }
 
     try {
-      /// Parse dates
       final DateTime? createdDateTime =
           createdAt != null && createdAt.isNotEmpty
           ? DateTime.parse(createdAt).toLocal()
@@ -88,12 +86,10 @@ class _CommunityScreenState extends State<CommunityScreen> {
           ? DateTime.parse(updatedAt).toLocal()
           : null;
 
-      /// Determine which time to show
       DateTime displayTime;
       bool isUpdated = false;
 
       if (updatedDateTime != null && createdDateTime != null) {
-        /// If updated time is different from created time (post was edited)
         if (updatedDateTime.isAfter(createdDateTime)) {
           displayTime = updatedDateTime;
           isUpdated = true;
@@ -136,8 +132,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
   /// -------------------- Social Platform Sharing -----------------------------
   static const SocialPlatform platform = SocialPlatform.facebook;
-  final List<String> _mediaPath = [];
-  bool isMultipleShare = true;
 
   @override
   Widget build(BuildContext context) {
@@ -155,7 +149,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             children: [
-              /// ------------------- Community App Bar ------------------------
               const CustomAppbar(title: "Community"),
 
               Padding(
@@ -166,29 +159,30 @@ class _CommunityScreenState extends State<CommunityScreen> {
               Consumer<CommunityScreenProvider>(
                 builder: (context, provider, child) {
                   if (provider.isLoading) {
-                    return const Center(child: AnimatedLoading());
+                    return AnimatedLoading();
                   }
 
                   if (provider.error != null) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          color: Colors.white70,
-                          size: 48.sp,
-                        ),
-                        SizedBox(height: 16.h),
-                        Text(
-                          provider.error!,
-                          style: TextStyle(
-                            fontSize: 16.sp,
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
                             color: Colors.white70,
-                            fontWeight: FontWeight.w500,
+                            size: 48.sp,
                           ),
-                        ),
-                      ],
+                          SizedBox(height: 16.h),
+                          Text(
+                            provider.error!,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.white70,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
                     );
                   }
 
@@ -255,7 +249,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                             Navigator.pushNamed(
                                               context,
                                               RouteNames.myProfilePrivate,
-                                                arguments: feed.id
+                                              arguments: feed.id,
                                             );
                                           }
                                         } else if (authorId != null &&
@@ -297,10 +291,10 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                       children: [
                                         Text(
                                           feed.author?.name ?? "name : N/A",
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             color: Colors.white,
-                                            fontSize: 16.sp,
+                                            fontSize: 16,
                                           ),
                                         ),
                                         SizedBox(height: 5.h),
@@ -309,10 +303,10 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                             feed.createdAt,
                                             feed.updatedAt,
                                           ),
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             fontWeight: FontWeight.bold,
-                                            color: const Color(0xFFD2D2D5),
-                                            fontSize: 12.sp,
+                                            color: Color(0xFFD2D2D5),
+                                            fontSize: 12,
                                           ),
                                         ),
                                       ],
@@ -322,10 +316,10 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                     PopupMenuButton<String>(
                                       color: const Color(0x030C15AB),
                                       borderRadius: BorderRadius.circular(16.r),
-                                      icon: Icon(
+                                      icon: const Icon(
                                         Icons.more_horiz,
                                         color: Colors.white,
-                                        size: 24.sp,
+                                        size: 24,
                                       ),
                                       onSelected: (value) {
                                         if (value == "edit") {
@@ -419,7 +413,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                       feed.pollOptions!.length,
                                       (index) {
                                         final option = feed.pollOptions![index];
-                                        // Calculate which option (if any) the user voted for in this poll
                                         String? votedOptionId;
                                         if (feed.pollOptions != null) {
                                           for (var opt in feed.pollOptions!) {
@@ -481,24 +474,42 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                               title: Text(
                                                 option.title ??
                                                     "Option ${index + 1}",
-                                                style: TextStyle(
+                                                style: const TextStyle(
                                                   color: Colors.white,
-                                                  fontSize: 14.sp,
+                                                  fontSize: 14,
                                                   fontWeight: FontWeight.w400,
                                                 ),
                                               ),
                                               trailing: CircleAvatar(
                                                 radius: 14.r,
                                                 backgroundImage: NetworkImage(
-                                                  feed.author?.avatar ?? '',
+                                                  isOptionSelected
+                                                      ? (profileProvider
+                                                              .profile
+                                                              ?.data
+                                                              ?.avatar ??
+                                                          '')
+                                                      : (feed.author?.avatar ??
+                                                          ''),
                                                 ),
                                                 child:
-                                                    (feed.author?.avatar ==
-                                                            null ||
-                                                        feed
-                                                            .author!
-                                                            .avatar!
-                                                            .isEmpty)
+                                                    (isOptionSelected
+                                                                ? (profileProvider
+                                                                            .profile
+                                                                            ?.data
+                                                                            ?.avatar ==
+                                                                        null ||
+                                                                    profileProvider
+                                                                        .profile!
+                                                                        .data!
+                                                                        .avatar!
+                                                                        .isEmpty)
+                                                                : (feed.author
+                                                                            ?.avatar ==
+                                                                        null ||
+                                                                    feed.author!
+                                                                        .avatar!
+                                                                        .isEmpty))
                                                     ? Icon(
                                                         Icons.person,
                                                         size: 14.sp,
@@ -539,8 +550,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                             SizedBox(width: 4.w),
                                             Text(
                                               '${provider.getPostLikeCount(feed.id ?? '', feed.likeCount ?? 0)}',
-                                              style: TextStyle(
-                                                fontSize: 14.sp,
+                                              style: const TextStyle(
+                                                fontSize: 14,
                                                 color: Colors.white,
                                                 fontWeight: FontWeight.w500,
                                               ),
@@ -558,8 +569,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                             builder: (context, provider, _) {
                                               return Text(
                                                 '${provider.getPostCommentCount(feed.id ?? '', feed.commentCount ?? 0)}',
-                                                style: TextStyle(
-                                                  fontSize: 14.sp,
+                                                style: const TextStyle(
+                                                  fontSize: 14,
                                                   color: Colors.white,
                                                   fontWeight: FontWeight.w500,
                                                 ),
@@ -567,10 +578,10 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                             },
                                           ),
                                           SizedBox(width: 4.w),
-                                          Text(
+                                          const Text(
                                             "comments",
                                             style: TextStyle(
-                                              fontSize: 14.sp,
+                                              fontSize: 14,
                                               color: Colors.white,
                                               fontWeight: FontWeight.w500,
                                             ),
@@ -591,19 +602,19 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                     SizedBox(width: 4.w),
                                     Row(
                                       children: [
-                                        Text(
+                                        const Text(
                                           "3",
                                           style: TextStyle(
-                                            fontSize: 14.sp,
+                                            fontSize: 14,
                                             color: Colors.white,
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),
                                         SizedBox(width: 4.w),
-                                        Text(
+                                        const Text(
                                           "shares",
                                           style: TextStyle(
-                                            fontSize: 14.sp,
+                                            fontSize: 14,
                                             color: Colors.white,
                                             fontWeight: FontWeight.w500,
                                           ),
@@ -644,10 +655,10 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                             height: 24.h,
                                           ),
                                           SizedBox(width: 4.w),
-                                          Text(
+                                          const Text(
                                             "Comment",
                                             style: TextStyle(
-                                              fontSize: 14.sp,
+                                              fontSize: 14,
                                               color: Colors.white,
                                               fontWeight: FontWeight.w500,
                                             ),
@@ -674,10 +685,10 @@ class _CommunityScreenState extends State<CommunityScreen> {
                                             height: 24.h,
                                           ),
                                           SizedBox(width: 4.w),
-                                          Text(
+                                          const Text(
                                             "Share",
                                             style: TextStyle(
-                                              fontSize: 14.sp,
+                                              fontSize: 14,
                                               color: Colors.white,
                                               fontWeight: FontWeight.w500,
                                             ),
@@ -792,10 +803,10 @@ class _CommunityScreenState extends State<CommunityScreen> {
                         color: const Color(0xFFFFFFFF),
                       ),
                       SizedBox(width: 10.w),
-                      Text(
+                      const Text(
                         "Cancel",
                         style: TextStyle(
-                          fontSize: 16.sp,
+                          fontSize: 16,
                           color: Color(0xFFFFFFFF),
                           fontWeight: FontWeight.w500,
                         ),
@@ -811,6 +822,7 @@ class _CommunityScreenState extends State<CommunityScreen> {
       },
     );
   }
+
   Widget _shareItem({
     required String imageText,
     required String label,
@@ -824,16 +836,15 @@ class _CommunityScreenState extends State<CommunityScreen> {
           SizedBox(height: 6.h),
           Text(
             label,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white,
-              fontSize: 12.sp,
+              fontSize: 12,
               fontWeight: FontWeight.w400,
             ),
           ),
         ],
       ),
     );
-
   }
 
   Future<void> _shareTo(SocialPlatform platform, String content) async {
@@ -841,25 +852,8 @@ class _CommunityScreenState extends State<CommunityScreen> {
       await SocialSharingPlus.shareToSocialMedia(
         platform,
         content,
-        media: null, // or add media path if needed
+        media: null,
         isOpenBrowser: true,
-      );
-    } catch (e) {
-      if (mounted) {
-        Utils.showToast(
-          msg: 'Error sharing to $platform: $e',
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-        );
-      }
-    }
-  }
-
-  Future<void> _shareGeneral(String content) async {
-    try {
-      await SocialSharingPlus.shareToSocialMediaWithMultipleMedia(
-        platform,
-        media: _mediaPath,
       );
     } catch (e) {
       if (mounted) {
@@ -950,7 +944,6 @@ class _CommunityScreenState extends State<CommunityScreen> {
   }
 }
 
-// Separate widget for popup menu items
 class _PopupMenuItemContent extends StatelessWidget {
   final String iconPath;
   final String label;

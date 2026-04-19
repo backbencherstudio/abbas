@@ -575,7 +575,6 @@ class CommunityScreenProvider extends ChangeNotifier {
       );
       if (response.success) {
         logger.d(response.message);
-        fetchFeeds();
         return ApiResponseModel(success: true, message: response.message);
       }
       return ApiResponseModel(success: false, message: response.message);

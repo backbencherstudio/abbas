@@ -3,6 +3,7 @@ import 'package:abbas/cors/theme/app_colors.dart';
 import 'package:abbas/cors/utils/app_utils.dart';
 import 'package:abbas/presentation/views/form_fillup_and_rules/model/enroll_personal_info_model.dart';
 import 'package:abbas/presentation/views/form_fillup_and_rules/view_model/form_fill_and_rules_provider.dart';
+import 'package:abbas/presentation/widgets/animated_loading.dart';
 import 'package:abbas/presentation/widgets/validator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -158,8 +159,8 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
       ref.read(selectedDateProvider.notifier).state = pickedDate;
       final formattedDate =
           "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
-      final dobController = ref.read(dobControllerProvider.notifier);
-      dobController.state.text = formattedDate;
+
+      _dateController.text = formattedDate;
     }
   }
 
@@ -205,7 +206,7 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
           child: Container(
             width: 200.w,
             padding: EdgeInsets.symmetric(vertical: 8.h),
-            child: Text('MID-LEVEL', style: TextStyle(fontSize: 14.sp)),
+            child: Text('INTERMEDIATE', style: TextStyle(fontSize: 14.sp)),
           ),
         ),
         PopupMenuItem<String>(
@@ -231,13 +232,14 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
     final courses = getAllCourse.value?.data;
     final experienceController = ref.watch(experienceControllerProvider);
 
-        final targetCourse = courses?.firstWhere(
-          (c) => c.id == widget.courseId,
-          orElse: () => courses.first,
-        );
+    final targetCourse = courses?.firstWhere(
+      (c) => c.id == widget.courseId,
+      orElse: () => courses.first,
+    );
     // Show loading while checking step
     if (_isCheckingStep) {
       return Scaffold(
+        backgroundColor: AppColors.background,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -246,7 +248,7 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
             onPressed: () => Navigator.pop(context),
           ),
         ),
-        body: const Center(child: CircularProgressIndicator()),
+        body: AnimatedLoading(),
       );
     }
 
@@ -451,114 +453,103 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
                     onPressed: _isLoading
                         ? null
                         : () async {
-                      if (_formKey.currentState!.validate()) {
-                        setState(() => _isLoading = true);
+                            if (_formKey.currentState!.validate()) {
+                              setState(() => _isLoading = true);
 
-                        try {
-                          // Get the selected date from provider
-                          final isDate = convertToIso(
-                            _dateController.text,
-                          );
+                              try {
+                                // Get the selected course title
+                                final courseTitle = targetCourse?.title ?? '';
 
-                          // Get the selected course title
-                          final courseTitle =
-                              targetCourse?.title ?? '';
+                                logger.d(
+                                  "Submitting enrollment data: ${{"course_type": courseTitle, "full_name": _fullNameController.text, "email": _emailController.text, "phone": _phoneController.text, "address": _addressController.text, "date_of_birth": convertToIso(_dateController.text), "experience_level": experienceController.text, "acting_goals": _goalsController.text, "course_id": widget.courseId}}",
+                                );
 
-                          logger.d(
-                            "Submitting enrollment data: ${{"course_type": courseTitle, "full_name": _fullNameController.text, "email": _emailController.text, "phone": _phoneController.text, "address": _addressController.text, "date_of_birth": isDate, "experience_level": experienceController.text, "acting_goals": _goalsController.text, "course_id": widget.courseId}}",
-                          );
+                                final result = await ref
+                                    .read(enrollPersonalInfoProvider.notifier)
+                                    .postEnrollPersonalInfo(
+                                      courseType: courseTitle,
+                                      fullName: _fullNameController.text.trim(),
+                                      email: _emailController.text.trim(),
+                                      phone: _phoneController.text.trim(),
+                                      address: _addressController.text.trim(),
+                                      dateOfBirth: convertToIso(
+                                        _dateController.text,
+                                      ),
+                                      experienceLevel:
+                                          experienceController.text,
+                                      actingGoals: _goalsController.text.trim(),
+                                      enrollmentId: widget.courseId,
+                                    );
 
-                          final result = await ref
-                              .read(
-                            enrollPersonalInfoProvider.notifier,
-                          )
-                              .postEnrollPersonalInfo(
-                            courseType: courseTitle,
-                            fullName: _fullNameController.text
-                                .trim(),
-                            email: _emailController.text.trim(),
-                            phone: _phoneController.text.trim(),
-                            address: _addressController.text
-                                .trim(),
-                            dateOfBirth: isDate,
-                            experienceLevel:
-                            experienceController.text,
-                            actingGoals: _goalsController.text
-                                .trim(),
-                            enrollmentId: widget.courseId,
-                          );
+                                logger.d(
+                                  "Enrollment result: ${result.data?.id}",
+                                );
 
-                          logger.d(
-                            "Enrollment result: ${result.data?.id}",
-                          );
+                                if (result.success == true) {
+                                  Utils.showToast(
+                                    msg:
+                                        result.message ??
+                                        "Form submitted successfully!",
+                                    backgroundColor: Colors.green,
+                                    textColor: Colors.white,
+                                  );
 
-                          if (result.success == true) {
-                            Utils.showToast(
-                              msg:
-                              result.message ??
-                                  "Form submitted successfully!",
-                              backgroundColor: Colors.green,
-                              textColor: Colors.white,
-                            );
-
-                            if (context.mounted) {
-                              // After successful submission, check current step again
-                              await _checkCurrentStep();
+                                  if (context.mounted) {
+                                    // After successful submission, check current step again
+                                    await _checkCurrentStep();
+                                  }
+                                } else {
+                                  Utils.showToast(
+                                    msg:
+                                        result.message ??
+                                        "Failed to submit form",
+                                    backgroundColor: Colors.red,
+                                    textColor: Colors.white,
+                                  );
+                                }
+                              } catch (e) {
+                                logger.e("Error submitting form: $e");
+                                Utils.showToast(
+                                  msg: "Error: ${e.toString()}",
+                                  backgroundColor: Colors.red,
+                                  textColor: Colors.white,
+                                );
+                              } finally {
+                                if (mounted) {
+                                  setState(() => _isLoading = false);
+                                }
+                              }
                             }
-                          } else {
-                            Utils.showToast(
-                              msg:
-                              result.message ??
-                                  "Failed to submit form",
-                              backgroundColor: Colors.red,
-                              textColor: Colors.white,
-                            );
-                          }
-                        } catch (e) {
-                          logger.e("Error submitting form: $e");
-                          Utils.showToast(
-                            msg: "Error: ${e.toString()}",
-                            backgroundColor: Colors.red,
-                            textColor: Colors.white,
-                          );
-                        } finally {
-                          if (mounted) {
-                            setState(() => _isLoading = false);
-                          }
-                        }
-                      }
-                    },
+                          },
                     style: ElevatedButton.styleFrom(
                       foregroundColor: _isTextFieldFocused
                           ? Colors.white
                           : (_isLoading
-                          ? Colors.white
-                          : const Color(0xFF3D4566)),
+                                ? Colors.white
+                                : const Color(0xFF3D4566)),
                       backgroundColor: _isTextFieldFocused
                           ? const Color(0xFFE9201D)
                           : (_isLoading
-                          ? const Color(0xFFE9201D)
-                          : const Color(0xFF0A1A29)),
+                                ? const Color(0xFFE9201D)
+                                : const Color(0xFF0A1A29)),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16.r),
                       ),
                     ),
                     child: _isLoading
-                        ? const CircularProgressIndicator(
-                      color: Colors.white,
-                    )
+                        ? const CircularProgressIndicator(color: Colors.white)
                         : Text(
-                      'Save & Continue',
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        color: _isTextFieldFocused
-                            ? Colors.white
-                            : (_isLoading
-                            ? Colors.white
-                            : const Color(0xFF3D4566)),
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                            'Save & Continue',
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              color: _isTextFieldFocused
+                                  ? Colors.white
+                                  : (_isLoading
+                                        ? Colors.white
+                                        : const Color(0xFF3D4566)),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                   ),
                 ),
                 SizedBox(height: 20.h),
@@ -615,19 +606,19 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
         contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 15.h),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(color: const Color(0xFF3D4566), width: 1.5.w),
+          borderSide: BorderSide(color: const Color(0xFF3D4566), width: 1.w),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(color: const Color(0xFF3D4566), width: 1.5.w),
+          borderSide: BorderSide(color: const Color(0xFF3D4566), width: 1.w),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(color: const Color(0xFF3D4566), width: 1.w),
+          borderSide: BorderSide(color: Colors.white, width: 1.w),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(color: Colors.redAccent, width: 1.w),
+          borderSide: BorderSide(color: Color(0xFFE9201D), width: 1.w),
         ),
       ),
       validator: validator,

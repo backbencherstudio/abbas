@@ -6,12 +6,12 @@ class CheckMeModel {
 
   CheckMeModel.fromJson(Map<String, dynamic> json) {
     success = json['success'];
-    data = json['data'] != null ? new Data.fromJson(json['data']) : null;
+    data = json['data'] != null ? Data.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = Map<String, dynamic>();
-    data['success'] = this.success;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['success'] = success;
     if (this.data != null) {
       data['data'] = this.data!.toJson();
     }
@@ -65,14 +65,14 @@ class Data {
     if (json['role_users'] != null) {
       roleUsers = <RoleUsers>[];
       json['role_users'].forEach((v) {
-        roleUsers!.add(new RoleUsers.fromJson(v));
+        roleUsers!.add(RoleUsers.fromJson(v));
       });
     }
     gender = json['gender'];
     dateOfBirth = json['date_of_birth'];
     experienceLevel = json['experience_level'];
     actingGoals = json['ActingGoals'] != null
-        ? new ActingGoals.fromJson(json['ActingGoals'])
+        ? ActingGoals.fromJson(json['ActingGoals'])
         : null;
     createdAt = json['created_at'];
     roles = json['roles'].cast<String>();
@@ -80,26 +80,26 @@ class Data {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['name'] = this.name;
-    data['email'] = this.email;
-    data['avatar'] = this.avatar;
-    data['address'] = this.address;
-    data['phone_number'] = this.phoneNumber;
-    data['type'] = this.type;
-    if (this.roleUsers != null) {
-      data['role_users'] = this.roleUsers!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['name'] = name;
+    data['email'] = email;
+    data['avatar'] = avatar;
+    data['address'] = address;
+    data['phone_number'] = phoneNumber;
+    data['type'] = type;
+    if (roleUsers != null) {
+      data['role_users'] = roleUsers!.map((v) => v.toJson()).toList();
     }
-    data['gender'] = this.gender;
-    data['date_of_birth'] = this.dateOfBirth;
-    data['experience_level'] = this.experienceLevel;
-    if (this.actingGoals != null) {
-      data['ActingGoals'] = this.actingGoals!.toJson();
+    data['gender'] = gender;
+    data['date_of_birth'] = dateOfBirth;
+    data['experience_level'] = experienceLevel;
+    if (actingGoals != null) {
+      data['ActingGoals'] = actingGoals!.toJson();
     }
-    data['created_at'] = this.createdAt;
-    data['roles'] = this.roles;
-    data['user_role'] = this.userRole;
+    data['created_at'] = createdAt;
+    data['roles'] = roles;
+    data['user_role'] = userRole;
     return data;
   }
 }
@@ -110,13 +110,13 @@ class RoleUsers {
   RoleUsers({this.role});
 
   RoleUsers.fromJson(Map<String, dynamic> json) {
-    role = json['role'] != null ? new Role.fromJson(json['role']) : null;
+    role = json['role'] != null ? Role.fromJson(json['role']) : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    if (this.role != null) {
-      data['role'] = this.role!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    if (role != null) {
+      data['role'] = role!.toJson();
     }
     return data;
   }
@@ -134,9 +134,9 @@ class Role {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['name'] = this.name;
-    data['title'] = this.title;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['name'] = name;
+    data['title'] = title;
     return data;
   }
 }
@@ -157,11 +157,11 @@ class ActingGoals {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['acting_goals'] = this.actingGoals;
-    data['userId'] = this.userId;
-    data['enrollmentId'] = this.enrollmentId;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['acting_goals'] = actingGoals;
+    data['userId'] = userId;
+    data['enrollmentId'] = enrollmentId;
     return data;
   }
 }

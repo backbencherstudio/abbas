@@ -17,6 +17,7 @@ class ProfileScreenProvider extends ChangeNotifier {
   final Logger logger = Logger();
 
   bool _isLoading = false;
+
   String? _errorMessage;
   String? _successMessage;
   CheckMeModel? _profile;

@@ -1,4 +1,5 @@
 import 'package:abbas/presentation/views/profile/view_model/profile_screen_provider.dart';
+import 'package:abbas/presentation/widgets/animated_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
@@ -18,7 +19,7 @@ class PersonalInfoScreen extends StatelessWidget {
       body: Consumer<ProfileScreenProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const AnimatedLoading();
           }
 
           if (provider.errorMessage != null) {

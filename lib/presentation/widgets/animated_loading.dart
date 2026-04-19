@@ -8,9 +8,12 @@ class AnimatedLoading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: SpinKitCircle(
-        color: Colors.white,
-        size: 100.sp,
+      child: SizedBox(
+        width: 40.w,
+        height: 40.w,
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation(Colors.white),
+        ),
       ),
     );
   }

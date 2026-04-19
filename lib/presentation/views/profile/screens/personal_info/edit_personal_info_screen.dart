@@ -77,7 +77,7 @@ class _EditPersonalInfoScreenState extends State<EditPersonalInfoScreen> {
         if (_isoDob != null && _isoDob!.isNotEmpty) {
           try {
             final date = DateTime.parse(_isoDob!);
-            dobController.text = DateFormat('dd/MM/yyyy').format(date);
+            dobController.text = DateFormat('yyyy/MM/dd').format(date);
           } catch (e) {
             dobController.text = _isoDob!;
           }
@@ -111,7 +111,7 @@ class _EditPersonalInfoScreenState extends State<EditPersonalInfoScreen> {
     if (pickedDate != null) {
       setState(() {
         _isoDob = pickedDate.toUtc().toIso8601String();
-        dobController.text = DateFormat('dd/MM/yyyy').format(pickedDate);
+        dobController.text = DateFormat('yyyy/MM/dd').format(pickedDate);
       });
     }
   }
@@ -305,7 +305,7 @@ class _EditPersonalInfoScreenState extends State<EditPersonalInfoScreen> {
                     SizedBox(height: 16.h),
 
                     CustomButton(
-                      onTap: () async {
+                      onTap:  () async {
                         bool success = await profileProvider.editProfile(
                           name: nameController.text,
                           phone: phoneController.text,
@@ -334,7 +334,7 @@ class _EditPersonalInfoScreenState extends State<EditPersonalInfoScreen> {
                           );
                         }
                       },
-                      child: profileProvider.isLoading
+                      child: profileProvider.isLoading == true
                           ? CircularProgressIndicator(color: Colors.white)
                           : Text(
                               "Save",
