@@ -141,7 +141,10 @@ class _CommunityScreenState extends State<CommunityScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final profileProvider = Provider.of<ProfileScreenProvider>(context, listen: false);
+    final profileProvider = Provider.of<ProfileScreenProvider>(
+      context,
+      listen: false,
+    );
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -167,15 +170,25 @@ class _CommunityScreenState extends State<CommunityScreen> {
                   }
 
                   if (provider.error != null) {
-                    return Center(
-                      child: Text(
-                        provider.error!,
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          color: Colors.red,
-                          fontWeight: FontWeight.w500,
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          color: Colors.white70,
+                          size: 48.sp,
                         ),
-                      ),
+                        SizedBox(height: 16.h),
+                        Text(
+                          provider.error!,
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            color: Colors.white70,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     );
                   }
 
