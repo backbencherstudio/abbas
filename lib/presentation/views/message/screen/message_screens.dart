@@ -1,11 +1,13 @@
 import 'package:abbas/cors/services/user_id_storage.dart';
+import 'package:abbas/presentation/widgets/animated_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
+
 import '../../../../cors/routes/route_names.dart';
 import '../../../widgets/custom_appbar.dart';
-import '../provider/create_chat_provider.dart';
 import '../model/all_conversation_model.dart';
+import '../provider/create_chat_provider.dart';
 
 class MessageScreens extends StatefulWidget {
   const MessageScreens({super.key});
@@ -16,6 +18,8 @@ class MessageScreens extends StatefulWidget {
 
 class _MessageScreensState extends State<MessageScreens> {
   String? _currentUserId;
+  final TextEditingController _searchController = TextEditingController();
+  String _searchText = '';
 
   @override
   void initState() {
@@ -25,239 +29,321 @@ class _MessageScreensState extends State<MessageScreens> {
 
   Future<void> _loadUserAndConversations() async {
     _currentUserId = await UserIdStorage().getUserId();
+    if (!mounted) return;
 
-    if (mounted) {
-      context.read<CreateChatProvider>().getAllConversation();
-    }
+    await context.read<CreateChatProvider>().getAllConversation();
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<CreateChatProvider>();
-    final List<AllConversationModel> allConversations = provider.allConversationModel;
+    final allConversations = provider.allConversationModel;
 
-    // Filter Logic
     final filteredData = allConversations.where((conv) {
-      final filter = provider.selectedFilter;
-      if (filter == 'Group') return conv.type?.toUpperCase() == 'GROUP';
-      if (filter == 'DM') return conv.type?.toUpperCase() == 'DM';
-      return true; // All
+      final type = (conv.type ?? '').toUpperCase();
+      final selectedFilter = provider.selectedFilter;
+
+      if (selectedFilter == 'Group' && type != 'GROUP') return false;
+      if (selectedFilter == 'DM' && type != 'DM') return false;
+
+      final displayName = _getDisplayName(conv);
+      final lastMsg = _getLastMessage(conv);
+
+      final keyword = _searchText.trim().toLowerCase();
+      if (keyword.isEmpty) return true;
+
+      return displayName.toLowerCase().contains(keyword) ||
+          lastMsg.toLowerCase().contains(keyword);
     }).toList();
 
     return Scaffold(
       backgroundColor: const Color(0xff030D15),
-      body: Column(
-        children: [
-          // AppBar
-          CustomAppbar(
-            title: "Message",
-            image: "assets/icons/edit.png",
-            onTap: () => Navigator.pushNamed(context, RouteNames.addGroupMember),
-          ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            CustomAppbar(
+              title: "Message",
+              image: "assets/icons/edit.png",
+              onTap: () =>
+                  Navigator.pushNamed(context, RouteNames.addGroupMember),
+            ),
 
-          // Search
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 13.w, vertical: 10.h),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    decoration: InputDecoration(
-                      filled: true,
-                      prefixIcon: const Icon(Icons.search, color: Colors.white),
-                      fillColor: const Color(0xff030D15),
-                      hintText: "Search message...",
-                      hintStyle: const TextStyle(color: Color(0xff3D4566)),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(99),
-                        borderSide: const BorderSide(color: Color(0xff3D4566)),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(99),
-                        borderSide: const BorderSide(color: Color(0xff3D4566)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(99),
-                        borderSide: const BorderSide(color: Color(0xff3D4566)),
-                      ),
-                    ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (value) {
+                  setState(() {
+                    _searchText = value;
+                  });
+                },
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  filled: true,
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: Colors.white,
+                    size: 24.sp,
+                  ),
+                  fillColor: const Color(0xff030D15),
+                  hintText: "Search message...",
+                  hintStyle: TextStyle(
+                    color: const Color(0xff3D4566),
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w400,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(100.r),
+                    borderSide: const BorderSide(color: Color(0xff3D4566)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(100.r),
+                    borderSide: const BorderSide(color: Color(0xff3D4566)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(100.r),
+                    borderSide: const BorderSide(color: Colors.white),
                   ),
                 ),
-                SizedBox(width: 13.w),
-              ],
+              ),
             ),
-          ),
 
-          // Filter Tabs
-          SizedBox(
-            height: 40.h,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.symmetric(horizontal: 8.w),
-              children: ['All', 'Group', 'DM'].map((filter) {
-                final isSelected = provider.selectedFilter == filter;
-                return Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 6.w),
-                  child: GestureDetector(
-                    onTap: () => provider.toggleFilter(filter),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: const Color(0xff1F283D), width: 2),
-                        borderRadius: BorderRadius.circular(50),
-                        color: isSelected ? const Color(0xffE9201D) : Colors.transparent,
-                      ),
-                      child: Text(
-                        filter,
-                        style: const TextStyle(color: Colors.white, fontSize: 14),
+            SizedBox(height: 6.h),
+
+            SizedBox(
+              height: 40.h,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: EdgeInsets.symmetric(horizontal: 10.w),
+                children: ['All', 'Group', 'DM'].map((filter) {
+                  final isSelected = provider.selectedFilter == filter;
+                  return Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 6.w),
+                    child: GestureDetector(
+                      onTap: () => provider.toggleFilter(filter),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 20.w,
+                          vertical: 8.h,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: const Color(0xff1F283D),
+                            width: 1.w,
+                          ),
+                          borderRadius: BorderRadius.circular(50.r),
+                          color: isSelected
+                              ? const Color(0xffE9201D)
+                              : Colors.transparent,
+                        ),
+                        child: Text(
+                          filter,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-
-          SizedBox(height: 12.h),
-
-          // Conversation List
-          Expanded(
-            child: provider.isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : filteredData.isEmpty
-                ? const Center(
-              child: Text(
-                "No conversations found",
-                style: TextStyle(color: Colors.white70),
+                  );
+                }).toList(),
               ),
-            )
-                : ListView.builder(
-              itemCount: filteredData.length,
-              itemBuilder: (context, index) {
-                final conv = filteredData[index];
-                final isGroup = conv.type?.toUpperCase() == "GROUP";
+            ),
 
-                // ================== Display Name ==================
-                String displayName = "Unknown Chat";
-                if (isGroup) {
-                  displayName = conv.title?.trim() ?? "Group";
-                } else {
-                  if (_currentUserId != null && conv.creatorId == _currentUserId) {
-                    displayName = conv.receiverTitle?.trim() ?? "Direct Message";
-                  } else {
-                    displayName = conv.senderTitle?.trim() ?? "Direct Message";
-                  }
-                }
+            SizedBox(height: 24.h),
 
-                // ================== Last Message (Corrected according to your model) ==================
-                String lastMsg = "No messages yet";
-                if (conv.messages != null && conv.messages!.isNotEmpty) {
-                  final last = conv.messages!.last;
-                  lastMsg = last.content?.text?.trim() ?? "Attachment";
-                }
+            Expanded(
+              child: provider.isLoading
+                  ? AnimatedLoading()
+                  : filteredData.isEmpty
+                  ? Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.message,
+                    color: Colors.white70,
+                    size: 50.sp,
+                  ),
+                  SizedBox(height: 16.h),
+                  Text(
+                    "No conversations found",
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      color: Colors.white70,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              )
+                  : RefreshIndicator(
+                onRefresh: provider.getAllConversation,
+                child: ListView.builder(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.zero,
+                  itemCount: filteredData.length,
+                  itemBuilder: (context, index) {
+                    final conv = filteredData[index];
+                    final isGroup =
+                        (conv.type ?? '').toUpperCase() == "GROUP";
 
-                // ================== Time ==================
-                String time = "";
-                if (conv.messages != null &&
-                    conv.messages!.isNotEmpty &&
-                    conv.messages!.last.createdAt != null) {
-                  final dt = DateTime.tryParse(conv.messages!.last.createdAt!);
-                  if (dt != null) {
-                    time = "${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
-                  }
-                }
+                    final displayName = _getDisplayName(conv);
+                    final lastMsg = _getLastMessage(conv);
+                    final time = _getLastMessageTime(conv);
+                    final avatarUrl = isGroup
+                        ? null
+                        : (conv.otherUserAvatar ?? '');
 
-                // ================== Avatar (Web এর মতো) ==================
-                String? avatarUrl;
-                if (!isGroup) {
-                  avatarUrl = conv.otherUserAvatar; // Web এ এটাই ব্যবহার করা হয়েছে
-                }
-
-                return GestureDetector(
-                  onTap: () {
-                    if (isGroup) {
-                      Navigator.pushNamed(context, RouteNames.groupChatScreen, arguments: conv.id);
-                    } else {
-                      Navigator.pushNamed(context, RouteNames.oneTwoOneChatScreen, arguments: conv.id);
-                    }
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 12.w),
-                    child: Column(
-                      children: [
-                        Row(
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(
+                          context,
+                          isGroup
+                              ? RouteNames.groupChatScreen
+                              : RouteNames.oneTwoOneChatScreen,
+                          arguments: conv.id,
+                        );
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          vertical: 12.h,
+                          horizontal: 16.w,
+                        ),
+                        child: Column(
                           children: [
-                            // Avatar
-                            Container(
-                              height: 48.h,
-                              width: 48.w,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Color(0xff1F283D),
-                              ),
-                              child: avatarUrl != null && avatarUrl.isNotEmpty
-                                  ? ClipOval(
-                                child: Image.network(
-                                  avatarUrl,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => const Icon(Icons.person, color: Colors.white),
+                            Row(
+                              children: [
+                                // Container(
+                                //   height: 48.h,
+                                //   width: 48.w,
+                                //   decoration: const BoxDecoration(
+                                //     shape: BoxShape.circle,
+                                //     color: Color(0xff1F283D),
+                                //   ),
+                                //   child: avatarUrl.isNotEmpty
+                                //       ? ClipOval(
+                                //     child: Image.network(
+                                //       avatarUrl,
+                                //       fit: BoxFit.cover,
+                                //       errorBuilder:
+                                //           (_, __, ___) =>
+                                //       const Icon(
+                                //         Icons.person,
+                                //         color: Colors.white,
+                                //       ),
+                                //     ),
+                                //   )
+                                //       : const Icon(
+                                //     Icons.person,
+                                //     color: Colors.white,
+                                //   ),
+                                // ),
+                                SizedBox(width: 12.w),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        displayName,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        maxLines: 1,
+                                        overflow:
+                                        TextOverflow.ellipsis,
+                                      ),
+                                      SizedBox(height: 4.h),
+                                      Text(
+                                        lastMsg,
+                                        maxLines: 1,
+                                        overflow:
+                                        TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          color: Color(0xff8C9196),
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              )
-                                  : const Icon(Icons.person, color: Colors.white),
-                            ),
-
-                            SizedBox(width: 12.w),
-
-                            // Name + Last Message
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    displayName,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                                Text(
+                                  time,
+                                  style: const TextStyle(
+                                    color: Color(0xff8C9196),
+                                    fontSize: 12,
                                   ),
-                                  SizedBox(height: 4.h),
-                                  Text(
-                                    lastMsg,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      color: Color(0xff8C9196),
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-
-                            // Time
-                            Text(
-                              time,
-                              style: const TextStyle(
-                                color: Color(0xff8C9196),
-                                fontSize: 12,
-                              ),
+                            SizedBox(height: 10.h),
+                            const Divider(
+                              color: Color(0xff121D2D),
+                              thickness: 1,
                             ),
                           ],
                         ),
-                        SizedBox(height: 10.h),
-                        const Divider(color: Color(0xff121D2D), thickness: 1),
-                      ],
-                    ),
-                  ),
-                );
-              },
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  String _getDisplayName(AllConversationModel conv) {
+    final isGroup = (conv.type ?? '').toUpperCase() == 'GROUP';
+
+    if (isGroup) {
+      return (conv.title ?? '').trim().isNotEmpty
+          ? conv.title!.trim()
+          : 'Group';
+    }
+
+    if (_currentUserId != null && conv.creatorId == _currentUserId) {
+      final name = conv.receiverTitle?.trim() ?? '';
+      return name.isNotEmpty ? name : 'Direct Message';
+    }
+
+    final name = conv.senderTitle?.trim() ?? '';
+    return name.isNotEmpty ? name : 'Direct Message';
+  }
+
+  String _getLastMessage(AllConversationModel conv) {
+    final messages = conv.messages ?? [];
+    if (messages.isEmpty) return 'No messages yet';
+
+    final last = messages.last;
+    final text = last.content?.text?.trim() ?? '';
+    return text.isNotEmpty ? text : 'Attachment';
+  }
+
+  String _getLastMessageTime(AllConversationModel conv) {
+    final messages = conv.messages ?? [];
+    if (messages.isEmpty) return '';
+
+    final createdAt = messages.last.createdAt;
+    if (createdAt == null || createdAt.isEmpty) return '';
+
+    final dt = DateTime.tryParse(createdAt)?.toLocal();
+    if (dt == null) return '';
+
+    final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+    final minute = dt.minute.toString().padLeft(2, '0');
+    final amPm = dt.hour >= 12 ? 'PM' : 'AM';
+    return '$hour:$minute $amPm';
   }
 }

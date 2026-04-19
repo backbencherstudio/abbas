@@ -33,7 +33,7 @@ class _CreatePostState extends State<CreatePost> {
 
   void _onTextChanged() {
     setState(() {
-      _hasText = _goalsController.text.isNotEmpty;
+      _hasText = _goalsController.text.trim().isNotEmpty;
     });
   }
 
@@ -136,9 +136,9 @@ class _CreatePostState extends State<CreatePost> {
   }
 
   Future<void> _createPost(CommunityScreenProvider provider) async {
-    if (!_hasText && provider.selectedMedia == null) {
+    if (_goalsController.text.trim().isEmpty) {
       Utils.showToast(
-        msg: 'Please add text or media',
+        msg: 'content should not be empty',
         backgroundColor: Colors.red,
         textColor: Colors.white,
       );
@@ -152,23 +152,16 @@ class _CreatePostState extends State<CreatePost> {
     );
 
     if (mounted) {
-      if (response is ApiResponseModel && response.success) {
+      if (response.success) {
         Utils.showToast(
-          msg: 'Post created successfully',
+          msg: response.message,
           backgroundColor: Colors.green,
           textColor: Colors.white,
         );
         Navigator.pop(context, true);
       } else {
-        String msg = 'Failed to create post';
-        if (response is ApiResponseModel) {
-          msg = response.message;
-        } else if (response is String) {
-          msg = response;
-        }
-
         Utils.showToast(
-          msg: msg,
+          msg: response.message,
           backgroundColor: Colors.red,
           textColor: Colors.white,
         );
@@ -399,10 +392,7 @@ class _CreatePostState extends State<CreatePost> {
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 ElevatedButton(
-                                  onPressed:
-                                      (_hasText ||
-                                              provider.selectedMedia != null) &&
-                                          !provider.isLoading
+                                  onPressed: !provider.isLoading
                                       ? () => _createPost(provider)
                                       : null,
                                   style: ElevatedButton.styleFrom(

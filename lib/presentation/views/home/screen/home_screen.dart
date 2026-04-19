@@ -50,21 +50,46 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   /// ------------------ Format Class Time -------------------------------------
-  String formatClassTime(String? classTime) {
-    if (classTime == null) return 'N/A';
+  String formatClassTime(String? startDate, String? classTime) {
+    if (startDate == null || classTime == null) return 'N/A';
+
     try {
-      final parts = classTime.split('_');
-      final start = DateFormat('HH:mm').parse(parts[0]);
-      final end = DateFormat('HH:mm').parse(parts[1]);
-      final formattedStart = DateFormat('h:mm a').format(start);
+      // Split time
+      final parts = classTime.split('-');
+      final startTime = parts[0]; // "18:00"
 
-      /// 6.00 PM
-      final formattedEnd = DateFormat('h:mm a').format(end);
+      // Combine date + time
+      final dateTimeString = '${startDate.split('T')[0]} $startTime';
 
-      /// 8.00 PM
-      return '$formattedStart - $formattedEnd';
+      // Parse as UTC
+      final classDateTimeUtc = DateFormat(
+        'yyyy-MM-dd HH:mm',
+      ).parseUtc(dateTimeString);
+
+      // Convert to local time
+      final classLocal = classDateTimeUtc.toLocal();
+
+      final now = DateTime.now();
+
+      final difference = classLocal.difference(now);
+
+      if (difference.isNegative) {
+        return 'Class already started';
+      }
+
+      final days = difference.inDays;
+      final hours = difference.inHours % 24;
+      final minutes = difference.inMinutes % 60;
+
+      if (days > 0) {
+        return 'Starts in ${days}d ${hours}h';
+      } else if (hours > 0) {
+        return 'Starts in ${hours}h ${minutes}m';
+      } else {
+        return 'Starts in ${minutes}m';
+      }
     } catch (e) {
-      return classTime;
+      return 'Invalid time';
     }
   }
 
@@ -193,6 +218,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             SizedBox(width: 6.w),
                             Text(
                               formatClassTime(
+                                upComingClassesValues?.startDate,
                                 upComingClassesValues?.classTime ?? 'N/A',
                               ),
                               style: TextStyle(
@@ -207,7 +233,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           children: [
                             Expanded(
                               child: OutlinedButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  Navigator.pushNamed(
+                                    context,
+                                    RouteNames.assetsScreen,
+                                    arguments: upComingClassesValues?.id,
+                                  );
+                                },
                                 style: OutlinedButton.styleFrom(
                                   fixedSize: Size.fromHeight(48.h),
                                   side: BorderSide(
@@ -223,7 +255,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     SvgPicture.asset(
-                                      'assets/icons/note.svg',
+                                      'assets/icons/folder.svg',
                                       height: 16.h,
                                       width: 16.h,
                                       colorFilter: const ColorFilter.mode(
@@ -233,7 +265,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     ),
                                     SizedBox(width: 6.w),
                                     Text(
-                                      'Materials',
+                                      'Assets',
                                       style: TextStyle(
                                         fontSize: 14.sp,
                                         color: Colors.white,
@@ -445,13 +477,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   SizedBox(height: 16.h),
 
                   /// ------------- Upcoming Events ------------------------
-                  Text(
-                    "Upcoming Events",
-                    style: TextStyle(
-                      fontSize: 18.sp,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Upcoming Events",
+                        style: TextStyle(
+                          fontSize: 18.sp,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushNamed(context, RouteNames.allEvents);
+                        },
+                        child: Text(
+                          "View All",
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   SizedBox(height: 12.h),
                   Container(
@@ -499,6 +549,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             SizedBox(width: 7.w),
                             Text(
                               formatClassTime(
+                                upComingEventsValues?.date,
                                 upComingEventsValues?.time ?? 'N/A',
                               ),
                               style: TextStyle(
@@ -539,7 +590,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           children: [
                             Expanded(
                               child: OutlinedButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  Navigator.pushNamed(
+                                    context,
+                                    RouteNames.eventDetails,
+                                    arguments: upComingEventsValues?.id,
+                                  );
+                                },
                                 style: OutlinedButton.styleFrom(
                                   fixedSize: const Size.fromHeight(56),
                                   foregroundColor: Colors.white,
@@ -566,7 +623,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 onPressed: () {
                                   Navigator.pushNamed(
                                     context,
-                                    RouteNames.allEvents,
+                                    RouteNames.completePayment,
                                   );
                                 },
                                 style: ElevatedButton.styleFrom(

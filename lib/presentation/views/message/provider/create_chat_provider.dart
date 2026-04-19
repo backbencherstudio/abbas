@@ -1,5 +1,4 @@
-// lib/presentation/views/message/provider/create_chat_provider.dart
-
+import 'dart:async';
 import 'package:abbas/presentation/views/message/model/all_conversation_model.dart';
 import 'package:abbas/presentation/views/message/model/create_conversation_model.dart';
 import 'package:abbas/presentation/views/message/model/dm_all_message_model.dart';
@@ -37,16 +36,16 @@ class CreateChatProvider extends ChangeNotifier {
   DmAllMessageModel? get dmAllMessageModel => _dmAllMessageModel;
 
   String? _cursor;
-  final int _limit = 40; // initial batch size
+  final int _limit = 40;
   bool _hasMore = true;
-
   bool get hasMore => _hasMore;
+
+  String? _activeConversationId;
+  StreamSubscription<Map<String, dynamic>>? _messageSubscription;
 
   String selectedFilter = 'All';
   String? statusValue = 'all';
   String? dateValue = 'today';
-
-  // ====================== FILTER METHODS ======================
 
   void toggleFilter(String value) {
     selectedFilter = value;
@@ -62,8 +61,6 @@ class CreateChatProvider extends ChangeNotifier {
     dateValue = value;
     notifyListeners();
   }
-
-  // ====================== CONVERSATION & MESSAGE METHODS ======================
 
   Future<bool> createConversation(String otherId) async {
     _errorMessage = null;
@@ -81,13 +78,13 @@ class CreateChatProvider extends ChangeNotifier {
           response.data,
         );
         return true;
-      } else {
-        _errorMessage = response.message;
-        return false;
       }
+
+      _errorMessage = response.message;
+      return false;
     } catch (error) {
       _errorMessage = error.toString();
-      logger.e("Create Conversation Error: $error");
+      logger.e("Create conversation error: $error");
       return false;
     } finally {
       _isLoading = false;
@@ -106,17 +103,18 @@ class CreateChatProvider extends ChangeNotifier {
       );
 
       if (response.success) {
-        List data = response.data;
+        final data = response.data as List;
         _allConversationModel = data
             .map((e) => AllConversationModel.fromJson(e))
             .toList();
         return true;
-      } else {
-        _errorMessage = response.message;
-        return false;
       }
+
+      _errorMessage = response.message;
+      return false;
     } catch (error) {
       _errorMessage = error.toString();
+      logger.e("Get all conversation error: $error");
       return false;
     } finally {
       _isLoading = false;
@@ -124,18 +122,19 @@ class CreateChatProvider extends ChangeNotifier {
     }
   }
 
-  /// 🔹 Cursor-based message loader
   Future<void> getDmAllMessageRoom(
-    String conversationId, {
-    bool isLoadMore = false,
-  }) async {
-    if (isLoadMore && !_hasMore) return;
+      String conversationId, {
+        bool isLoadMore = false,
+      }) async {
+    if (conversationId.trim().isEmpty) return;
+    if (isLoadMore && (!_hasMore || _isLoading)) return;
 
     _errorMessage = null;
+    _isLoading = true;
 
     if (!isLoadMore) {
-      _isLoading = true;
-      _cursor = null; // reset cursor
+      _cursor = null;
+      _hasMore = true;
     }
 
     notifyListeners();
@@ -145,107 +144,132 @@ class CreateChatProvider extends ChangeNotifier {
         ApiEndpoints.dmAllMessage(conversationId, _limit, _cursor),
       );
 
-      if (response.success) {
-        final newData = DmAllMessageModel.fromJson(response.data);
-        final newItems = newData.items ?? [];
-
-        if (!isLoadMore) {
-          // ✅ Initial load
-          _dmAllMessageModel = newData;
-        } else {
-          // ✅ Pagination: prepend older messages (reverse:true)
-          final existingIds =
-              _dmAllMessageModel?.items?.map((e) => e.id).toSet() ?? <String>{};
-          final filteredNewItems = newItems
-              .where((e) => !existingIds.contains(e.id))
-              .toList();
-
-          _dmAllMessageModel?.items = [
-            ..._dmAllMessageModel!.items ?? [],
-            ...filteredNewItems,
-          ];
-        }
-
-        // ✅ Set cursor to oldest message id of this batch
-        if (newItems.isNotEmpty) {
-          _cursor = newItems.last.id;
-        } else {
-          _hasMore = false;
-        }
-
-        _hasMore = newData.nextCursor != null;
-      } else {
+      if (!response.success) {
         _errorMessage = response.message;
+        return;
       }
+
+      final newData = DmAllMessageModel.fromJson(response.data);
+      final newItems = List<Items>.from(newData.items ?? []);
+
+      if (!isLoadMore || _dmAllMessageModel == null) {
+        _dmAllMessageModel = newData;
+      } else {
+        final existingIds =
+        (_dmAllMessageModel!.items ?? []).map((e) => e.id).toSet();
+
+        final filtered = newItems
+            .where((e) => e.id != null && !existingIds.contains(e.id))
+            .toList();
+
+        _dmAllMessageModel!.items = [
+          ...(_dmAllMessageModel!.items ?? []),
+          ...filtered,
+        ];
+      }
+
+      _cursor = newData.nextCursor;
+      _hasMore = newData.nextCursor != null && newItems.isNotEmpty;
+
+      _sortMessagesAsc();
     } catch (error) {
       _errorMessage = error.toString();
-      logger.e("Pagination Error: $error");
+      logger.e("Get DM messages error: $error");
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  // ====================== REAL-TIME METHODS ======================
-
   Future<void> initializeRealtime(String token, String conversationId) async {
+    if (conversationId.trim().isEmpty) return;
+
     try {
-      logger.i("Starting socket connection for conversation: $conversationId");
+      _activeConversationId = conversationId;
 
       await _socketService.connect(token);
-
-      // Join conversation room
       _socketService.joinConversation(conversationId);
 
-      // Listen for incoming messages
-      _socketService.messageStream.listen((data) {
+      await _messageSubscription?.cancel();
+      _messageSubscription = _socketService.messageStream.listen((data) {
         _handleIncomingRealtimeMessage(data, conversationId);
       });
 
-      logger.i(
-        "✅ Real-time chat initialized for conversation: $conversationId",
-      );
+      logger.i("Realtime initialized for $conversationId");
     } catch (e) {
-      logger.e("Failed to initialize real-time: $e");
+      logger.e("Realtime init error: $e");
     }
   }
 
   void _handleIncomingRealtimeMessage(
-    Map<String, dynamic> data,
-    String currentConversationId,
-  ) {
-    if (data['conversationId'] != currentConversationId) return;
+      Map<String, dynamic> data,
+      String currentConversationId,
+      ) {
+    final incomingConversationId =
+    (data['conversationId'] ??
+        data['conversation_id'] ??
+        data['conversation']?['id'])
+        ?.toString();
+
+    if (incomingConversationId != currentConversationId) return;
 
     try {
+      final newMessage = Items.fromJson(data);
+
       _dmAllMessageModel ??= DmAllMessageModel(items: []);
 
-      final newMessage = Items.fromSocket(data);
+      final list = _dmAllMessageModel!.items ?? [];
 
-      // Insert newest at bottom if reverse:true
-      _dmAllMessageModel!.items?.insert(0, newMessage);
+      final exists = list.any((m) {
+        if (m.id != null && newMessage.id != null) {
+          return m.id == newMessage.id;
+        }
 
-      notifyListeners();
-      logger.i("✅ Real-time message added: ${newMessage.content?.text}");
+        return m.senderId == newMessage.senderId &&
+            m.createdAt == newMessage.createdAt &&
+            m.content?.text == newMessage.content?.text;
+      });
+
+      if (!exists) {
+        list.add(newMessage);
+        _dmAllMessageModel!.items = list;
+        _sortMessagesAsc();
+        notifyListeners();
+      }
     } catch (e) {
-      logger.e("Error processing realtime message: $e");
+      logger.e("Realtime message parse error: $e");
     }
   }
 
-  void sendMessageRealtime({
+  Future<void> sendMessageRealtime({
     required String conversationId,
     required String kind,
     required String text,
-  }) {
-    if (!_socketService.isConnected) {
-      logger.w("Socket not connected yet.");
-      return;
-    }
+  }) async {
+    final trimmedText = text.trim();
+    if (conversationId.trim().isEmpty || trimmedText.isEmpty) return;
 
-    _socketService.sendMessage(
-      conversationId: conversationId,
-      kind: kind,
-      content: {'text': text},
-    );
+    try {
+      if (_socketService.isConnected) {
+        _socketService.sendMessage(
+          conversationId: conversationId,
+          kind: kind,
+          content: {'text': trimmedText},
+        );
+      } else {
+        await dmSendMessage(
+          kind: kind,
+          text: trimmedText,
+          conversationId: conversationId,
+        );
+      }
+    } catch (e) {
+      await dmSendMessage(
+        kind: kind,
+        text: trimmedText,
+        conversationId: conversationId,
+      );
+    }
   }
 
   void sendTyping(String conversationId, bool isTyping) {
@@ -253,27 +277,28 @@ class CreateChatProvider extends ChangeNotifier {
   }
 
   void leaveConversation(String conversationId) {
+    if (_activeConversationId == conversationId) {
+      _activeConversationId = null;
+    }
+
     _socketService.leaveConversation(conversationId);
-    logger.i("Left conversation: $conversationId");
+    _messageSubscription?.cancel();
+    _messageSubscription = null;
   }
 
   void clearMessages() {
     _dmAllMessageModel = null;
     _cursor = null;
     _hasMore = true;
+    _errorMessage = null;
     notifyListeners();
   }
 
-  // ====================== BACKUP HTTP SEND ======================
   Future<void> dmSendMessage({
     required String kind,
     required String text,
     required String conversationId,
   }) async {
-    _errorMessage = null;
-    _isLoading = true;
-    notifyListeners();
-
     final body = {
       'kind': kind,
       'content': {'text': text},
@@ -285,23 +310,40 @@ class CreateChatProvider extends ChangeNotifier {
         body: body,
       );
 
-      if (response.success) {
-        logger.i("Message sent via HTTP backup");
-      } else {
+      if (!response.success) {
         _errorMessage = response.message;
+        notifyListeners();
+        return;
+      }
+
+      final payload = response.data;
+      if (payload is Map<String, dynamic>) {
+        _handleIncomingRealtimeMessage(payload, conversationId);
+      } else {
+        await getDmAllMessageRoom(conversationId);
       }
     } catch (error) {
       _errorMessage = error.toString();
-      logger.e("HTTP Send Error: $error");
-    } finally {
-      _isLoading = false;
+      logger.e("HTTP send error: $error");
       notifyListeners();
     }
   }
 
+  void _sortMessagesAsc() {
+    final items = _dmAllMessageModel?.items;
+    if (items == null) return;
+
+    items.sort((a, b) {
+      final aTime = DateTime.tryParse(a.createdAt ?? '') ?? DateTime(1970);
+      final bTime = DateTime.tryParse(b.createdAt ?? '') ?? DateTime(1970);
+      return aTime.compareTo(bTime);
+    });
+  }
+
   @override
   void dispose() {
-    _socketService.dispose();
+    _messageSubscription?.cancel();
     super.dispose();
   }
 }
+

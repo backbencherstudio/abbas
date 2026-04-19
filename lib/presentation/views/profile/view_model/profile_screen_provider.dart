@@ -183,7 +183,7 @@ class ProfileScreenProvider extends ChangeNotifier {
         _profile = CheckMeModel.fromJson(response.data);
         _successMessage = response.message;
         logger.i("Profile Updated Successfully");
-        _isLoading = false;
+        _isLoading = true;
         notifyListeners();
         return true;
       } else {

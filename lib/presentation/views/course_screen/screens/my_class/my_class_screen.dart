@@ -66,12 +66,16 @@ class _MyClassScreenState extends ConsumerState<MyClassScreen> {
         children: [
           Icon(Icons.error_outline, color: Colors.red, size: 48.sp),
           SizedBox(height: 16.h),
-          Text("Error : $err", style: TextStyle(color: Colors.white, fontSize: 16.sp)),
+          Text(
+            "Error : $err",
+            style: TextStyle(color: Colors.white, fontSize: 16.sp),
+          ),
         ],
       ),
       data: (data) {
         final classValue = data?.data;
         final assignments = classValue?.assignments ?? [];
+
         return Scaffold(
           backgroundColor: Color(0xff030D15),
           body: Column(
@@ -232,6 +236,7 @@ class _MyClassScreenState extends ConsumerState<MyClassScreen> {
                                     Navigator.pushNamed(
                                       context,
                                       RouteNames.assetsScreen,
+                                      arguments: widget.classId,
                                     );
                                   },
                                   child: Row(
@@ -268,14 +273,15 @@ class _MyClassScreenState extends ConsumerState<MyClassScreen> {
                                   onPressed: () {
                                     Navigator.pushNamed(
                                       context,
-                                      RouteNames.assetsScreen,
+                                      RouteNames.classAssignmentsScreen,
+                                      arguments: widget.classId
                                     );
                                   },
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       SvgPicture.asset(
-                                        'assets/icons/folder.svg',
+                                        'assets/icons/assignment_icon.svg',
                                       ),
                                       SizedBox(width: 6.w),
                                       Text(
