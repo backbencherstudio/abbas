@@ -1,11 +1,9 @@
 import 'package:abbas/presentation/views/message/model/dm_all_message_model.dart';
 import 'package:abbas/presentation/views/message/provider/group_chat_provider.dart';
-import 'package:abbas/presentation/widgets/chat_appber.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-
 import '../../../../cors/routes/route_names.dart';
 
 class GroupChatScreen extends StatefulWidget {
@@ -140,7 +138,11 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                 debugPrint("The conv id not found");
               }
             },
-            child: Icon(Icons.call, size: 20.sp, color: const Color(0xffE9201D)),
+            child: Icon(
+              Icons.call,
+              size: 20.sp,
+              color: const Color(0xffE9201D),
+            ),
           ),
 
           SizedBox(width: 16),
@@ -185,41 +187,40 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                   ? const Center(child: CircularProgressIndicator())
                   : provider.messages.isEmpty
                   ? const Center(
-                child: Text(
-                  'No messages yet',
-                  style: TextStyle(color: Colors.white70),
-                ),
-              )
+                      child: Text(
+                        'No messages yet',
+                        style: TextStyle(color: Colors.white70),
+                      ),
+                    )
                   : RefreshIndicator(
-                onRefresh: () => provider.loadInitialMessages(),
-                child: ListView.builder(
-                  controller: _scrollController,
-                  reverse: true,
-                  padding: EdgeInsets.all(16.w),
-                  itemCount: provider.messages.length +
-                      (provider.isLoadingMore ? 1 : 0),
-                  itemBuilder: (context, index) {
-                    if (index == provider.messages.length) {
-                      return const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        child: Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                      );
-                    }
+                      onRefresh: () => provider.loadInitialMessages(),
+                      child: ListView.builder(
+                        controller: _scrollController,
+                        reverse: true,
+                        padding: EdgeInsets.all(16.w),
+                        itemCount:
+                            provider.messages.length +
+                            (provider.isLoadingMore ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index == provider.messages.length) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 12),
+                              child: Center(child: CircularProgressIndicator()),
+                            );
+                          }
 
-                    final msg = provider.messages[index];
-                    final isSentByMe =
-                        (msg.senderId ?? '') == widget.currentUserId;
+                          final msg = provider.messages[index];
+                          final isSentByMe =
+                              (msg.senderId ?? '') == widget.currentUserId;
 
-                    return _buildMessage(
-                      message: msg,
-                      time: _formatTime(msg.createdAt),
-                      isSentByMe: isSentByMe,
-                    );
-                  },
-                ),
-              ),
+                          return _buildMessage(
+                            message: msg,
+                            time: _formatTime(msg.createdAt),
+                            isSentByMe: isSentByMe,
+                          );
+                        },
+                      ),
+                    ),
             ),
             _messageInput(),
           ],
@@ -238,29 +239,31 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: 6.h),
         child: Row(
-          mainAxisAlignment:
-          isSentByMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+          mainAxisAlignment: isSentByMe
+              ? MainAxisAlignment.end
+              : MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             if (!isSentByMe)
               CircleAvatar(
                 radius: 16.r,
                 backgroundColor: Colors.grey[800],
-                child: message.sender?.avatar != null &&
-                    message.sender!.avatar!.isNotEmpty
+                child:
+                    message.sender?.avatar != null &&
+                        message.sender!.avatar!.isNotEmpty
                     ? ClipOval(
-                  child: Image.network(
-                    message.sender!.avatar!,
-                    width: 32.w,
-                    height: 32.h,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Icon(
-                      Icons.person,
-                      color: Colors.white,
-                      size: 20.r,
-                    ),
-                  ),
-                )
+                        child: Image.network(
+                          message.sender!.avatar!,
+                          width: 32.w,
+                          height: 32.h,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Icon(
+                            Icons.person,
+                            color: Colors.white,
+                            size: 20.r,
+                          ),
+                        ),
+                      )
                     : Icon(Icons.person, color: Colors.white, size: 20.r),
               ),
             if (!isSentByMe) SizedBox(width: 8.w),
@@ -290,10 +293,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                       ),
                     Text(
                       message.content?.text ?? '',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14.sp,
-                      ),
+                      style: TextStyle(color: Colors.white, fontSize: 14.sp),
                     ),
                     SizedBox(height: 4.h),
                     Row(
