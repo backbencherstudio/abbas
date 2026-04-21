@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:livekit_client/livekit_client.dart';
 import 'package:logger/logger.dart';
 
 class LiveKitService with ChangeNotifier {
   Room? _room;
+  EventsListener<RoomEvent>? _roomListener;
+
   LocalAudioTrack? _audioTrack;
   LocalVideoTrack? _videoTrack;
 
@@ -15,12 +19,12 @@ class LiveKitService with ChangeNotifier {
   bool _isConnected = false;
   bool _isFrontCamera = true;
 
+  VideoTrack? _remoteVideoTrack;
+
   bool get isConnected => _isConnected && _room != null;
   Room? get room => _room;
-
   VideoTrack? get localVideoTrack => _videoTrack;
   VideoTrack? get remoteVideoTrack => _remoteVideoTrack;
-  VideoTrack? _remoteVideoTrack;
 
   Future<void> connectToRoom({
     required String url,
@@ -29,110 +33,147 @@ class LiveKitService with ChangeNotifier {
     bool audioOnly = false,
   }) async {
     try {
-      if (_room != null) await disconnect();
+      await disconnect();
 
       _room = Room(
-        roomOptions: const RoomOptions(adaptiveStream: true, dynacast: true),
+        roomOptions: const RoomOptions(
+          adaptiveStream: true,
+          dynacast: true,
+        ),
       );
 
-      _setupListeners();
+      _attachRoomListeners();
 
-      logger.i("Connecting to LiveKit room: $roomName at $url");
+      logger.i('Connecting to LiveKit room: $roomName');
       await _room!.connect(url, token);
+
       _isConnected = true;
-      logger.i(" Connected to room");
+      logger.i('Connected to LiveKit room');
 
       _audioTrack = await LocalAudioTrack.create();
       _audioPublication = await _room!.localParticipant!.publishAudioTrack(
         _audioTrack!,
       );
-      logger.i(" Audio track published");
 
       if (!audioOnly) {
         try {
           _videoTrack = await LocalVideoTrack.createCameraTrack(
-            const CameraCaptureOptions(cameraPosition: CameraPosition.front),
+            const CameraCaptureOptions(
+              cameraPosition: CameraPosition.front,
+            ),
           );
           _videoPublication = await _room!.localParticipant!.publishVideoTrack(
             _videoTrack!,
           );
           _isFrontCamera = true;
-          logger.i(" Video track published");
         } catch (e) {
-          logger.e("Video track failed (continuing audio-only): $e");
+          logger.e('Video publish failed, continuing audio-only: $e');
         }
       }
 
+      _refreshRemoteVideoTrack();
       notifyListeners();
     } catch (e) {
-      logger.e(" LiveKit connection failed: $e");
-      _isConnected = false;
-      _room = null;
+      logger.e('LiveKit connect failed: $e');
+      await disconnect();
       rethrow;
     }
   }
 
-  void _setupListeners() {
-    _room?.events.listen((event) {
-      if (event is ParticipantConnectedEvent) {
-        logger.i(" Participant joined: ${event.participant.identity}");
+  void _attachRoomListeners() {
+    final room = _room;
+    if (room == null) return;
+
+    _roomListener?.dispose();
+    _roomListener = room.createListener();
+
+    _roomListener!
+      ..on<ParticipantConnectedEvent>((event) {
+        logger.i('Participant connected: ${event.participant.identity}');
+        _refreshRemoteVideoTrack();
         notifyListeners();
-      }
-
-      if (event is ParticipantDisconnectedEvent) {
-        logger.i(" Participant left: ${event.participant.identity}");
+      })
+      ..on<ParticipantDisconnectedEvent>((event) {
+        logger.i('Participant disconnected: ${event.participant.identity}');
+        _refreshRemoteVideoTrack();
         notifyListeners();
-      }
-
-      if (event is TrackSubscribedEvent) {
+      })
+      ..on<TrackSubscribedEvent>((event) {
+        logger.i('Track subscribed: ${event.track.kind}');
         if (event.track.kind == TrackType.VIDEO) {
-          _remoteVideoTrack = event.track as VideoTrack;
-          logger.i(" Remote video subscribed");
-          notifyListeners();
+          _refreshRemoteVideoTrack();
         }
-        if (event.track.kind == TrackType.AUDIO) {
-          logger.i(" Remote audio subscribed");
-          notifyListeners();
-        }
-      }
-
-      if (event is TrackUnsubscribedEvent) {
+        notifyListeners();
+      })
+      ..on<TrackUnsubscribedEvent>((event) {
+        logger.i('Track unsubscribed: ${event.track.kind}');
         if (event.track.kind == TrackType.VIDEO) {
-          _remoteVideoTrack = null;
-          logger.i(" Remote video unsubscribed");
-          notifyListeners();
+          _refreshRemoteVideoTrack();
         }
-      }
-
-      if (event is RoomDisconnectedEvent) {
-        logger.i(" Room disconnected");
+        notifyListeners();
+      })
+      ..on<TrackMutedEvent>((_) {
+        _refreshRemoteVideoTrack();
+        notifyListeners();
+      })
+      ..on<TrackUnmutedEvent>((_) {
+        _refreshRemoteVideoTrack();
+        notifyListeners();
+      })
+      ..on<TrackStreamStateUpdatedEvent>((_) {
+        _refreshRemoteVideoTrack();
+        notifyListeners();
+      })
+      ..on<RoomDisconnectedEvent>((event) {
+        logger.i('Room disconnected: ${event.reason}');
         _isConnected = false;
-        _room = null;
         _remoteVideoTrack = null;
         notifyListeners();
+      });
+  }
+
+  void _refreshRemoteVideoTrack() {
+    final room = _room;
+    if (room == null) {
+      _remoteVideoTrack = null;
+      return;
+    }
+
+    VideoTrack? remote;
+
+    for (final participant in room.remoteParticipants.values) {
+      for (final publication in participant.videoTrackPublications) {
+        if (!publication.subscribed) continue;
+        if (publication.muted) continue;
+        if (publication.streamState != StreamState.active) continue;
+
+        final track = publication.track;
+        if (track is VideoTrack) {
+          remote = track;
+          break;
+        }
       }
-    });
+      if (remote != null) break;
+    }
+
+    _remoteVideoTrack = remote;
   }
 
   Future<void> enableAudio() async {
     try {
-      if (_audioPublication != null) {
-        await _audioPublication!.unmute();
-        notifyListeners();
-      }
+      await _audioPublication?.unmute();
+      notifyListeners();
     } catch (e) {
-      logger.e("Enable audio failed: $e");
+      logger.e('Enable audio failed: $e');
     }
   }
 
   Future<void> disableAudio() async {
     try {
-      if (_audioPublication != null) {
-        await _audioPublication!.mute();
-        notifyListeners();
-      }
+      await _audioPublication?.mute();
+      notifyListeners();
     } catch (e) {
-      logger.e("Disable audio failed: $e");
+      logger.e('Disable audio failed: $e');
     }
   }
 
@@ -154,35 +195,34 @@ class LiveKitService with ChangeNotifier {
       }
       notifyListeners();
     } catch (e) {
-      logger.e("Enable video failed: $e");
+      logger.e('Enable video failed: $e');
     }
   }
 
   Future<void> disableVideo() async {
     try {
-      if (_videoPublication != null) {
-        await _videoPublication!.mute();
-        notifyListeners();
-      }
+      await _videoPublication?.mute();
+      notifyListeners();
     } catch (e) {
-      logger.e("Disable video failed: $e");
+      logger.e('Disable video failed: $e');
     }
   }
 
   Future<void> switchCamera() async {
     try {
       if (_videoTrack == null) return;
+
       _isFrontCamera = !_isFrontCamera;
-      final newPosition = _isFrontCamera
-          ? CameraPosition.front
-          : CameraPosition.back;
       await _videoTrack!.restartTrack(
-        CameraCaptureOptions(cameraPosition: newPosition),
+        CameraCaptureOptions(
+          cameraPosition: _isFrontCamera
+              ? CameraPosition.front
+              : CameraPosition.back,
+        ),
       );
-      logger.i(" Camera switched to ${newPosition.name}");
       notifyListeners();
     } catch (e) {
-      logger.e("Switch camera failed: $e");
+      logger.e('Switch camera failed: $e');
       _isFrontCamera = !_isFrontCamera;
       notifyListeners();
     }
@@ -190,12 +230,19 @@ class LiveKitService with ChangeNotifier {
 
   Future<void> disconnect() async {
     try {
+      await _roomListener?.dispose();
+      _roomListener = null;
       await _room?.disconnect();
     } catch (e) {
-      logger.e("Disconnect error: $e");
+      logger.e('Disconnect error: $e');
     } finally {
-      await _videoTrack?.stop();
-      await _audioTrack?.stop();
+      try {
+        await _videoTrack?.stop();
+      } catch (_) {}
+      try {
+        await _audioTrack?.stop();
+      } catch (_) {}
+
       _room = null;
       _audioTrack = null;
       _videoTrack = null;

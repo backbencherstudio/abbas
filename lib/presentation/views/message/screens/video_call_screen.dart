@@ -68,8 +68,7 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
 
   Future<void> _endCall() async {
     _callStarted = false;
-    final provider = context.read<CallProvider>();
-    await provider.endCall(widget.conversationId);
+    await context.read<CallProvider>().endCall(widget.conversationId);
     if (mounted) Navigator.pop(context);
   }
 
@@ -105,15 +104,17 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
                     ),
                   )
                 else
-                  _waitingBackground(provider.isLoading, hasError, provider.errorMessage),
-
+                  _waitingBackground(
+                    provider.isLoading,
+                    hasError,
+                    provider.errorMessage,
+                  ),
                 if (localTrack != null)
                   Positioned(
                     top: 40.h,
                     right: 16.w,
                     child: _localVideo(localTrack),
                   ),
-
                 Positioned(
                   top: 16.h,
                   left: 0,
@@ -144,7 +145,6 @@ class _VideoCallScreenState extends State<VideoCallScreen> {
                     ),
                   ),
                 ),
-
                 Positioned(
                   bottom: 48.h,
                   left: 0,
