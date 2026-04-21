@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:abbas/cors/constants/api_endpoints.dart';
 import 'package:abbas/cors/routes/route_names.dart';
 import 'package:abbas/cors/services/api_client.dart';
@@ -71,7 +69,6 @@ class CallProvider extends ChangeNotifier {
       'conversationId',
       'conversation_id',
     ]);
-
     if (conversationId.isEmpty) return;
 
     if (_isInCall || _incomingScreenOpen) {
@@ -108,7 +105,7 @@ class CallProvider extends ChangeNotifier {
     _incomingCallData = {
       'conversationId': conversationId,
       'fromUserId': fromUserId,
-      'fromName': callerName.isEmpty ? 'Unknown Caller' : callerName,
+      'fromName': callerName.isEmpty ? (fromUserId.isEmpty ? 'Unknown Caller' : fromUserId) : callerName,
       'fromAvatar': callerAvatar,
       'kind': kind.isEmpty ? 'VIDEO' : kind,
       'at': at,
@@ -139,10 +136,7 @@ class CallProvider extends ChangeNotifier {
     _incomingScreenOpen = false;
   }
 
-  Future<bool> startCall(
-      String conversationId, {
-        String kind = 'VIDEO',
-      }) async {
+  Future<bool> startCall(String conversationId, {String kind = 'VIDEO'}) async {
     await _ensureSocketConnected();
 
     _isLoading = true;
@@ -152,9 +146,7 @@ class CallProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      if (liveKitService.isConnected) {
-        await liveKitService.disconnect();
-      }
+      await liveKitService.disconnect();
 
       final response = await _apiClient.post(
         ApiEndpoints.startCall(conversationId),
@@ -186,10 +178,7 @@ class CallProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> joinCall(
-      String conversationId, {
-        String kind = 'VIDEO',
-      }) async {
+  Future<bool> joinCall(String conversationId, {String kind = 'VIDEO'}) async {
     await _ensureSocketConnected();
 
     _isLoading = true;
@@ -199,9 +188,7 @@ class CallProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      if (liveKitService.isConnected) {
-        await liveKitService.disconnect();
-      }
+      await liveKitService.disconnect();
 
       final joinResponse = await _apiClient.post(
         ApiEndpoints.joinCall(conversationId),
@@ -260,7 +247,7 @@ class CallProvider extends ChangeNotifier {
         url: url,
         token: token,
         roomName: roomName,
-        audioOnly: kind.toUpperCase() == 'AUDIO',
+        audioOnly: kind == 'AUDIO',
       );
 
       return true;
@@ -292,9 +279,7 @@ class CallProvider extends ChangeNotifier {
     if (context != null) {
       Navigator.pushReplacementNamed(
         context,
-        kind == 'AUDIO'
-            ? RouteNames.audioCallScreen
-            : RouteNames.videoCallScreen,
+        kind == 'AUDIO' ? RouteNames.audioCallScreen : RouteNames.videoCallScreen,
         arguments: {
           'conversationId': conversationId,
           'callKind': kind,
@@ -347,9 +332,7 @@ class CallProvider extends ChangeNotifier {
 
   Future<void> _cleanupAfterCall() async {
     try {
-      if (liveKitService.isConnected) {
-        await liveKitService.disconnect();
-      }
+      await liveKitService.disconnect();
     } catch (e) {
       logger.e('LiveKit cleanup error: $e');
     }
@@ -373,8 +356,7 @@ class CallProvider extends ChangeNotifier {
 
     logger.i('call:ended => $conversationId');
 
-    if (_currentConversationId != null &&
-        _currentConversationId == conversationId) {
+    if (_currentConversationId != null && _currentConversationId == conversationId) {
       await _cleanupAfterCall();
       final context = navigatorKey.currentContext;
       if (context != null) {
