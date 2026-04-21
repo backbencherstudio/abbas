@@ -9,8 +9,6 @@ import 'package:abbas/presentation/views/home/screen/home_my_course_screen.dart'
 import 'package:abbas/presentation/views/home/screen/all_assignments_screen.dart';
 import 'package:abbas/presentation/views/home/screen/screens/home_course_assets_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/legacy.dart';
-import 'package:path/path.dart';
 import '../../presentation/views/auth/forgot_password/screen/forgot_password_screen.dart';
 import '../../presentation/views/auth/login/presentaion/screen/login_screen.dart';
 import '../../presentation/views/auth/otp_verify/screen/otp_verify_screen.dart';
@@ -180,6 +178,7 @@ class AppRoutes {
 
       return RulesRegulations(enrollmentId: enrollmentId);
     },
+
     RouteNames.digitalContractSigning: (context) {
       final args = ModalRoute.of(context)?.settings.arguments;
       final enrollmentId = args is String ? args : '';
