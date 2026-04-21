@@ -9,6 +9,7 @@ import 'package:abbas/presentation/views/home/screen/home_my_course_screen.dart'
 import 'package:abbas/presentation/views/home/screen/all_assignments_screen.dart';
 import 'package:abbas/presentation/views/home/screen/screens/home_course_assets_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:path/path.dart';
 import '../../presentation/views/auth/forgot_password/screen/forgot_password_screen.dart';
 import '../../presentation/views/auth/login/presentaion/screen/login_screen.dart';
@@ -229,8 +230,31 @@ class AppRoutes {
     },
     RouteNames.newMessageScreens: (context) => NewMessageScreens(),
     RouteNames.createGroupScreen: (context) => CreateGroupScreen(),
-    RouteNames.oneTwoOneChatScreen: (context) => OneTwoOneChatScreen(),
-    RouteNames.groupChatScreen: (context) => GroupChatScreen(),
+    RouteNames.oneTwoOneChatScreen: (context) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
+
+      return OneToOneChatScreen(
+        conversationId: (args['conversationId'] ?? '').toString(),
+        token: (args['token'] ?? '').toString(),
+        myUserId: (args['currentUserId'] ?? '').toString(),
+        receiverName: (args['receiverName'] ?? 'Chat').toString(),
+      );
+    },
+
+    RouteNames.groupChatScreen: (context) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
+
+      return GroupChatScreen(
+        conversationId: (args['conversationId'] ?? '').toString(),
+        token: (args['token'] ?? '').toString(),
+        currentUserId: (args['currentUserId'] ?? '').toString(),
+        groupName: (args['groupName'] ?? args['receiverName'] ?? 'Group Chat')
+            .toString(),
+      );
+    },
+
     RouteNames.userProfileScreen: (context) => UserProfileScreen(),
     RouteNames.groupProfileScreen: (context) => GroupProfileScreen(),
     RouteNames.addGroupMember: (context) => AddGroupMember(),
