@@ -86,4 +86,5 @@ class RouteNames {
   static const String videoPlayerScreen = '/videoPlayerScreen';
   static const String pdfWidget = '/pdfWidget';
   static const String pdfViewerScreen = '/pdfViewerScreen';
+  static const String incomingCallScreen = '/incomingCallScreen';
 }
