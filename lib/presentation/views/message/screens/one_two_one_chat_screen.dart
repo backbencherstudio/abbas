@@ -117,8 +117,14 @@ class _OneToOneChatScreenState extends State<OneToOneChatScreen> {
                 Navigator.pushNamed(
                   context,
                   RouteNames.audioCallScreen,
-                  arguments: widget.conversationId,
+                  arguments: {
+                    'conversationId': widget.conversationId,
+                    'callKind': 'AUDIO',
+                    'autoStart': true,
+                    'callerName': widget.receiverName,
+                  },
                 );
+
               } else {
                 debugPrint("The conv id not found");
               }
@@ -134,8 +140,13 @@ class _OneToOneChatScreenState extends State<OneToOneChatScreen> {
                 Navigator.pushNamed(
                   context,
                   RouteNames.videoCallScreen,
-                  arguments: widget.conversationId,
+                  arguments: {
+                    'conversationId': widget.conversationId,
+                    'callKind': 'VIDEO',
+                    'autoStart': true,
+                  },
                 );
+
               } else {
                 debugPrint("The conv id not found");
               }

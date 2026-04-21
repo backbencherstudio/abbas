@@ -199,14 +199,29 @@ class AppRoutes {
     RouteNames.feedbackPage: (context) => const FeedbackScreen(),
     RouteNames.helpSupportScreen: (context) => const SupportScreen(),
     RouteNames.audioCallScreen: (context) {
-      final args = ModalRoute.of(context)!.settings.arguments as String;
-      return AudioCallScreen(conversationId: args);
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
+
+      return AudioCallScreen(
+        conversationId: (args['conversationId'] ?? '').toString(),
+        callKind: (args['callKind'] ?? 'AUDIO').toString(),
+        autoStart: args['autoStart'] == false ? false : true,
+        callerName: args['callerName']?.toString(),
+        callerAvatar: args['callerAvatar']?.toString(),
+      );
     },
 
     RouteNames.videoCallScreen: (context) {
-      final args = ModalRoute.of(context)!.settings.arguments as String;
-      return VideoCallScreen(conversationId: args);
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
+
+      return VideoCallScreen(
+        conversationId: (args['conversationId'] ?? '').toString(),
+        callKind: (args['callKind'] ?? 'VIDEO').toString(),
+        autoStart: args['autoStart'] == false ? false : true,
+      );
     },
+
     RouteNames.certificate: (context) => const Certificate(),
     RouteNames.supportUser: (context) => const SupportUser(),
     RouteNames.pushNotifications: (context) => const PushNotifications(),

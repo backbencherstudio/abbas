@@ -69,245 +69,246 @@ class _MessageScreensState extends State<MessageScreens> {
 
     return Scaffold(
       backgroundColor: const Color(0xff030D15),
-      body: SafeArea(
-        child: Column(
-          children: [
-            CustomAppbar(
-              title: "Message",
-              image: "assets/icons/edit.png",
-              onTap: () =>
-                  Navigator.pushNamed(context, RouteNames.addGroupMember),
-            ),
+      body: Column(
+        children: [
+          CustomAppbar(
+            title: "Message",
+            image: "assets/icons/edit.png",
+            onTap: () =>
+                Navigator.pushNamed(context, RouteNames.addGroupMember),
+          ),
 
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
-              child: TextField(
-                controller: _searchController,
-                onChanged: (value) {
-                  setState(() {
-                    _searchText = value;
-                  });
-                },
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  filled: true,
-                  prefixIcon: Icon(
-                    Icons.search,
-                    color: Colors.white,
-                    size: 24.sp,
-                  ),
-                  fillColor: const Color(0xff030D15),
-                  hintText: "Search message...",
-                  hintStyle: TextStyle(
-                    color: const Color(0xff3D4566),
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w400,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(100.r),
-                    borderSide: const BorderSide(color: Color(0xff3D4566)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(100.r),
-                    borderSide: const BorderSide(color: Color(0xff3D4566)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(100.r),
-                    borderSide: const BorderSide(color: Colors.white),
-                  ),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (value) {
+                setState(() {
+                  _searchText = value;
+                });
+              },
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                filled: true,
+                prefixIcon: Icon(
+                  Icons.search,
+                  color: Colors.white,
+                  size: 24.sp,
+                ),
+                fillColor: const Color(0xff030D15),
+                hintText: "Search message...",
+                hintStyle: TextStyle(
+                  color: const Color(0xff3D4566),
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.w400,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(100.r),
+                  borderSide: const BorderSide(color: Color(0xff3D4566)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(100.r),
+                  borderSide: const BorderSide(color: Color(0xff3D4566)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(100.r),
+                  borderSide: const BorderSide(color: Colors.white),
                 ),
               ),
             ),
+          ),
 
-            SizedBox(height: 6.h),
+          SizedBox(height: 6.h),
 
-            SizedBox(
-              height: 40.h,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.symmetric(horizontal: 10.w),
-                children: ['All', 'Group', 'DM'].map((filter) {
-                  final isSelected = provider.selectedFilter == filter;
-                  return Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 6.w),
-                    child: GestureDetector(
-                      onTap: () => provider.toggleFilter(filter),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 20.w,
-                          vertical: 8.h,
+          SizedBox(
+            height: 40.h,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: EdgeInsets.symmetric(horizontal: 10.w),
+              children: ['All', 'Group', 'DM'].map((filter) {
+                final isSelected = provider.selectedFilter == filter;
+                return Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 6.w),
+                  child: GestureDetector(
+                    onTap: () => provider.toggleFilter(filter),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20.w,
+                        vertical: 8.h,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: const Color(0xff1F283D),
+                          width: 1.w,
                         ),
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: const Color(0xff1F283D),
-                            width: 1.w,
-                          ),
-                          borderRadius: BorderRadius.circular(50.r),
-                          color: isSelected
-                              ? const Color(0xffE9201D)
-                              : Colors.transparent,
-                        ),
-                        child: Text(
-                          filter,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w400,
-                          ),
+                        borderRadius: BorderRadius.circular(50.r),
+                        color: isSelected
+                            ? const Color(0xffE9201D)
+                            : Colors.transparent,
+                      ),
+                      child: Text(
+                        filter,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
                     ),
-                  );
-                }).toList(),
-              ),
+                  ),
+                );
+              }).toList(),
             ),
+          ),
 
-            SizedBox(height: 24.h),
+          SizedBox(height: 24.h),
 
-            Expanded(
-              child: provider.isLoading
-                  ? AnimatedLoading()
-                  : filteredData.isEmpty
-                  ? Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.message, color: Colors.white70, size: 50.sp),
-                        SizedBox(height: 16.h),
-                        Text(
-                          "No conversations found",
-                          style: TextStyle(
-                            fontSize: 16.sp,
-                            color: Colors.white70,
-                            fontWeight: FontWeight.w400,
-                          ),
+          Expanded(
+            child: provider.isLoading
+                ? AnimatedLoading()
+                : filteredData.isEmpty
+                ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.message, color: Colors.white70, size: 50.sp),
+                      SizedBox(height: 16.h),
+                      Text(
+                        "No conversations found",
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          color: Colors.white70,
+                          fontWeight: FontWeight.w400,
                         ),
-                      ],
-                    )
-                  : RefreshIndicator(
-                      onRefresh: provider.getAllConversation,
-                      child: ListView.builder(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: EdgeInsets.zero,
-                        itemCount: filteredData.length,
-                        itemBuilder: (context, index) {
-                          final conv = filteredData[index];
-                          final isGroup =
-                              (conv.type ?? '').toUpperCase() == "GROUP";
+                      ),
+                    ],
+                  )
+                : RefreshIndicator(
+                    onRefresh: provider.getAllConversation,
+                    child: ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.zero,
+                      itemCount: filteredData.length,
+                      itemBuilder: (context, index) {
+                        final conv = filteredData[index];
+                        final isGroup =
+                            (conv.type ?? '').toUpperCase() == "GROUP";
 
-                          final displayName = _getDisplayName(conv);
-                          final lastMsg = _getLastMessage(conv);
-                          final time = _getLastMessageTime(conv);
-                          final avatarUrl = isGroup
-                              ? null
-                              : (conv.otherUserAvatar ?? '');
+                        final displayName = _getDisplayName(conv);
+                        final lastMsg = _getLastMessage(conv);
+                        final time = _getLastMessageTime(conv);
+                        final avatarUrl = isGroup
+                            ? null
+                            : (conv.otherUserAvatar ?? '');
 
-                          return GestureDetector(
-                            onTap: () {
-                              if (conv.id == null || _token == null || _currentUserId == null) return;
+                        return GestureDetector(
+                          onTap: () {
+                            if (conv.id == null ||
+                                _token == null ||
+                                _currentUserId == null)
+                              return;
 
-                              final displayName = _getDisplayName(conv);
+                            final displayName = _getDisplayName(conv);
 
-                              Navigator.pushNamed(
-                                context,
-                                isGroup
-                                    ? RouteNames.groupChatScreen
-                                    : RouteNames.oneTwoOneChatScreen,
-                                arguments: {
-                                  "conversationId": conv.id!,
-                                  "token": _token!,
-                                  "currentUserId": _currentUserId!,
-                                  "receiverName": displayName,
-                                  "groupName": displayName,
-                                },
-                              );
-                            },
+                            Navigator.pushNamed(
+                              context,
+                              isGroup
+                                  ? RouteNames.groupChatScreen
+                                  : RouteNames.oneTwoOneChatScreen,
+                              arguments: {
+                                "conversationId": conv.id!,
+                                "token": _token!,
+                                "currentUserId": _currentUserId!,
+                                "receiverName": displayName,
+                                "groupName": displayName,
+                              },
+                            );
+                          },
 
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                vertical: 12.h,
-                                horizontal: 16.w,
-                              ),
-                              child: Column(
-                                children: [
-                                  Row(
-                                    children: [
-                                      Container(
-                                        height: 48.h,
-                                        width: 48.w,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: Color(0xff1F283D),
-                                        ),
-                                        child: avatarUrl != null
-                                            ? ClipOval(
-                                                child: Image.network(
-                                                  avatarUrl,
-                                                  fit: BoxFit.cover,
-                                                  errorBuilder: (_, __, ___) =>
-                                                      Icon(
-                                                        Icons.person,
-                                                        color: Colors.white,
-                                                      ),
-                                                ),
-                                              )
-                                            : Icon(
-                                                Icons.person,
-                                                color: Colors.white,
-                                              ),
-                                      ),
-                                      SizedBox(width: 12.w),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              displayName,
-                                              style: const TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            SizedBox(height: 4.h),
-                                            Text(
-                                              lastMsg,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(
-                                                color: Color(0xff8C9196),
-                                                fontSize: 14,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Text(
-                                        time,
-                                        style: const TextStyle(
-                                          color: Color(0xff8C9196),
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(height: 10.h),
-                                  const Divider(
-                                    color: Color(0xff121D2D),
-                                    thickness: 1,
-                                  ),
-                                ],
-                              ),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              vertical: 12.h,
+                              horizontal: 16.w,
                             ),
-                          );
-                        },
-                      ),
+                            child: Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Container(
+                                      height: 48.h,
+                                      width: 48.w,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Color(0xff1F283D),
+                                      ),
+                                      child: avatarUrl != null
+                                          ? ClipOval(
+                                              child: Image.network(
+                                                avatarUrl,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (_, __, ___) =>
+                                                    Icon(
+                                                      Icons.person,
+                                                      color: Colors.white,
+                                                    ),
+                                              ),
+                                            )
+                                          : Icon(
+                                              Icons.person,
+                                              color: Colors.white,
+                                            ),
+                                    ),
+                                    SizedBox(width: 12.w),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            displayName,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          SizedBox(height: 4.h),
+                                          Text(
+                                            lastMsg,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              color: Color(0xff8C9196),
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Text(
+                                      time,
+                                      style: const TextStyle(
+                                        color: Color(0xff8C9196),
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 10.h),
+                                const Divider(
+                                  color: Color(0xff121D2D),
+                                  thickness: 1,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
                     ),
-            ),
-          ],
-        ),
+                  ),
+          ),
+        ],
       ),
     );
   }
