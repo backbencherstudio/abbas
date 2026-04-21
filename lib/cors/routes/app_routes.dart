@@ -55,6 +55,7 @@ import '../../presentation/views/message/screens/audio_call_screen.dart';
 import '../../presentation/views/message/screens/create_group_screen.dart';
 import '../../presentation/views/message/screens/group_chat_screen.dart';
 import '../../presentation/views/message/screens/group_profile_screen.dart';
+import '../../presentation/views/message/screens/incomming_call_screen.dart';
 import '../../presentation/views/message/screens/new_message_screens.dart';
 import '../../presentation/views/message/screens/one_two_one_chat_screen.dart';
 import '../../presentation/views/message/screens/see_group_member_screen.dart';
@@ -221,6 +222,19 @@ class AppRoutes {
         autoStart: args['autoStart'] == false ? false : true,
       );
     },
+    RouteNames.incomingCallScreen: (context) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
+
+      return IncomingCallScreen(
+        conversationId: (args['conversationId'] ?? '').toString(),
+        callerName: (args['callerName'] ?? 'Unknown Caller').toString(),
+        callerAvatar: (args['callerAvatar'] ?? '').toString(),
+        callKind: (args['callKind'] ?? 'VIDEO').toString(),
+      );
+    },
+
+
 
     RouteNames.certificate: (context) => const Certificate(),
     RouteNames.supportUser: (context) => const SupportUser(),

@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:abbas/cors/constants/api_endpoints.dart';
+import 'package:abbas/cors/routes/route_names.dart';
 import 'package:abbas/cors/services/api_client.dart';
 import 'package:abbas/cors/services/live_kit_service.dart';
 import 'package:abbas/cors/services/socket_call.dart';
 import 'package:abbas/cors/services/token_storage.dart';
-import 'package:abbas/cors/routes/route_names.dart';
 import 'package:abbas/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -26,7 +26,7 @@ class CallProvider extends ChangeNotifier {
   bool _isInCall = false;
   bool _isMuted = false;
   bool _isVideoEnabled = true;
-  bool _incomingDialogOpen = false;
+  bool _incomingScreenOpen = false;
 
   String? _currentConversationId;
   String? _currentRoomName;
@@ -67,64 +67,76 @@ class CallProvider extends ChangeNotifier {
   Future<void> _handleIncomingCall(Map<String, dynamic> data) async {
     logger.i('Incoming call => $data');
 
-    final conversationId = (data['conversationId'] ?? '').toString();
+    final conversationId = _pick(data, const [
+      'conversationId',
+      'conversation_id',
+    ]);
+
     if (conversationId.isEmpty) return;
 
-    if (_isInCall || _incomingDialogOpen) {
-      logger.w('Ignoring incoming call because already busy');
+    if (_isInCall || _incomingScreenOpen) {
+      logger.w('Ignoring incoming call because user is busy');
       return;
     }
 
+    final callerName = _pick(data, const [
+      'fromName',
+      'callerName',
+      'name',
+      'senderName',
+      'userName',
+    ]);
+
+    final callerAvatar = _pick(data, const [
+      'fromAvatar',
+      'callerAvatar',
+      'avatarUrl',
+      'avatar',
+      'senderAvatar',
+    ]);
+
+    final fromUserId = _pick(data, const [
+      'fromUserId',
+      'from_user_id',
+      'userId',
+      'senderId',
+    ]);
+
+    final kind = _pick(data, const ['kind', 'callKind']).toUpperCase();
+    final at = _pick(data, const ['at', 'createdAt']);
+
     _incomingCallData = {
       'conversationId': conversationId,
-      'fromUserId': (data['fromUserId'] ?? '').toString(),
-      'kind': ((data['kind'] ?? 'VIDEO').toString()).toUpperCase(),
-      'at': (data['at'] ?? '').toString(),
+      'fromUserId': fromUserId,
+      'fromName': callerName.isEmpty ? 'Unknown Caller' : callerName,
+      'fromAvatar': callerAvatar,
+      'kind': kind.isEmpty ? 'VIDEO' : kind,
+      'at': at,
     };
 
     notifyListeners();
     HapticFeedback.heavyImpact();
-    await _showIncomingCallDialog();
+    await _openIncomingCallScreen();
   }
 
-  Future<void> _showIncomingCallDialog() async {
+  Future<void> _openIncomingCallScreen() async {
     final context = navigatorKey.currentContext;
     if (context == null || _incomingCallData == null) return;
 
-    _incomingDialogOpen = true;
+    _incomingScreenOpen = true;
 
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) {
-        final kind = (_incomingCallData!['kind'] ?? 'VIDEO').toString();
-        final fromUser = (_incomingCallData!['fromUserId'] ?? 'Unknown').toString();
-
-        return AlertDialog(
-          title: Text('Incoming $kind Call'),
-          content: Text('From: $fromUser'),
-          actions: [
-            TextButton(
-              onPressed: () async {
-                Navigator.pop(dialogContext);
-                await rejectIncomingCall();
-              },
-              child: const Text('Decline'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.pop(dialogContext);
-                final success = await acceptIncomingCall();
-                if (!success) return;
-              },
-              child: const Text('Accept'),
-            ),
-          ],
-        );
+    await Navigator.pushNamed(
+      context,
+      RouteNames.incomingCallScreen,
+      arguments: {
+        'conversationId': _incomingCallData!['conversationId'],
+        'callerName': _incomingCallData!['fromName'],
+        'callerAvatar': _incomingCallData!['fromAvatar'],
+        'callKind': _incomingCallData!['kind'],
       },
     );
 
-    _incomingDialogOpen = false;
+    _incomingScreenOpen = false;
   }
 
   Future<bool> startCall(
@@ -136,7 +148,7 @@ class CallProvider extends ChangeNotifier {
     _isLoading = true;
     _errorMessage = null;
     _currentConversationId = conversationId;
-    _currentCallKind = kind.toUpperCase();
+    _currentCallKind = kind.trim().toUpperCase();
     notifyListeners();
 
     try {
@@ -166,6 +178,7 @@ class CallProvider extends ChangeNotifier {
       notifyListeners();
       return connected;
     } catch (e) {
+      logger.e('startCall error: $e');
       _errorMessage = e.toString();
       _isLoading = false;
       notifyListeners();
@@ -182,7 +195,7 @@ class CallProvider extends ChangeNotifier {
     _isLoading = true;
     _errorMessage = null;
     _currentConversationId = conversationId;
-    _currentCallKind = kind.toUpperCase();
+    _currentCallKind = kind.trim().toUpperCase();
     notifyListeners();
 
     try {
@@ -211,6 +224,7 @@ class CallProvider extends ChangeNotifier {
       notifyListeners();
       return connected;
     } catch (e) {
+      logger.e('joinCall error: $e');
       _errorMessage = e.toString();
       _isLoading = false;
       notifyListeners();
@@ -263,6 +277,8 @@ class CallProvider extends ChangeNotifier {
 
     final conversationId = (data['conversationId'] ?? '').toString();
     final kind = (data['kind'] ?? 'VIDEO').toString().toUpperCase();
+    final callerName = (data['fromName'] ?? 'Unknown Caller').toString();
+    final callerAvatar = (data['fromAvatar'] ?? '').toString();
 
     if (conversationId.isEmpty) return false;
 
@@ -274,7 +290,7 @@ class CallProvider extends ChangeNotifier {
 
     final context = navigatorKey.currentContext;
     if (context != null) {
-      Navigator.pushNamed(
+      Navigator.pushReplacementNamed(
         context,
         kind == 'AUDIO'
             ? RouteNames.audioCallScreen
@@ -283,7 +299,8 @@ class CallProvider extends ChangeNotifier {
           'conversationId': conversationId,
           'callKind': kind,
           'autoStart': false,
-          'callerName': data['fromUserId'] ?? 'Unknown',
+          'callerName': callerName,
+          'callerAvatar': callerAvatar,
         },
       );
     }
@@ -333,7 +350,9 @@ class CallProvider extends ChangeNotifier {
       if (liveKitService.isConnected) {
         await liveKitService.disconnect();
       }
-    } catch (_) {}
+    } catch (e) {
+      logger.e('LiveKit cleanup error: $e');
+    }
 
     _isLoading = false;
     _isInCall = false;
@@ -347,7 +366,11 @@ class CallProvider extends ChangeNotifier {
   }
 
   Future<void> _handleCallEnded(Map<String, dynamic> data) async {
-    final conversationId = (data['conversationId'] ?? '').toString();
+    final conversationId = _pick(data, const [
+      'conversationId',
+      'conversation_id',
+    ]);
+
     logger.i('call:ended => $conversationId');
 
     if (_currentConversationId != null &&
@@ -387,6 +410,7 @@ class CallProvider extends ChangeNotifier {
     try {
       await liveKitService.switchCamera();
     } catch (e) {
+      logger.e('switchCamera error: $e');
       _errorMessage = 'Failed to switch camera';
       notifyListeners();
     }
@@ -395,6 +419,16 @@ class CallProvider extends ChangeNotifier {
   void clearError() {
     _errorMessage = null;
     notifyListeners();
+  }
+
+  String _pick(Map<String, dynamic> data, List<String> keys) {
+    for (final key in keys) {
+      final value = data[key];
+      if (value == null) continue;
+      final text = value.toString().trim();
+      if (text.isNotEmpty) return text;
+    }
+    return '';
   }
 
   @override
