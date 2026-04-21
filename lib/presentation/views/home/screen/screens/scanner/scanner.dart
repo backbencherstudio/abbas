@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-
 import '../../../../../../cors/routes/route_names.dart';
 import '../../../../../widgets/secondary_appber.dart';
 
