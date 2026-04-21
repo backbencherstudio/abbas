@@ -169,7 +169,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           SizedBox(width: 16.w),
 
           Icon(Icons.info, size: 20.sp, color: Color(0xff8D9CDC)),
-          SizedBox(width: 12.w,),
+          SizedBox(width: 12.w),
         ],
       ),
       body: SafeArea(
