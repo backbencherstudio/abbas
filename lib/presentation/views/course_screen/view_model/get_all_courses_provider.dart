@@ -52,6 +52,11 @@ class SubmitAssignmentProvider extends StateNotifier<ResponseModel> {
         ApiEndpoints.submitAssignment(assignmentId),
         formData,
       );
+
+      if (response is ResponseModel) {
+        return response;
+      }
+
       if (response['success']) {
         return ResponseModel(success: true, message: response['message']);
       } else {
@@ -81,6 +86,12 @@ class GetAllCoursesProvider
     state = const AsyncValue.loading();
     try {
       final res = await dioClient.getHttp(ApiEndpoints.getAllCourses);
+
+      if (res is ResponseModel) {
+        state = AsyncValue.error(res.message, StackTrace.current);
+        return;
+      }
+
       if (res['success']) {
         logger.d("${res['success']}");
         final model = GetAllCoursesModel.fromJson(res);
@@ -113,6 +124,11 @@ class MyCourseProvider extends StateNotifier<AsyncValue<MyCoursesModel?>> {
     try {
       final res = await dioClient.getHttp(ApiEndpoints.getMyCourses);
 
+      if (res is ResponseModel) {
+        state = AsyncError(res.message, StackTrace.current);
+        return;
+      }
+
       if (res['success'] == true) {
         final data = MyCoursesModel.fromJson(res);
 
@@ -139,14 +155,20 @@ class MyCourseDetailsProvider
   DioClient dioClient;
 
   MyCourseDetailsProvider({required this.dioClient})
-    : super(AsyncValue.data(null));
+    : super(const AsyncValue.data(null));
 
   Future<void> myCourseDetails({required String courseId}) async {
-    state = AsyncValue.loading();
+    state = const AsyncValue.loading();
     try {
       final res = await dioClient.getHttp(
         ApiEndpoints.myCourseDetails(courseId),
       );
+
+      if (res is ResponseModel) {
+        state = AsyncError(res.message, StackTrace.current);
+        return;
+      }
+
       if (res['success']) {
         final model = MyCourseDetailsModel.fromJson(res);
         state = AsyncValue.data(model);
@@ -176,14 +198,20 @@ class GetModuleDetailsProvider
   DioClient dioClient;
 
   GetModuleDetailsProvider({required this.dioClient})
-    : super(AsyncValue.data(null));
+    : super(const AsyncValue.data(null));
 
   Future<void> getModuleDetails({required String moduleId}) async {
-    state = AsyncValue.loading();
+    state = const AsyncValue.loading();
     try {
       final res = await dioClient.getHttp(
         ApiEndpoints.getModuleDetails(moduleId),
       );
+
+      if (res is ResponseModel) {
+        state = AsyncValue.error(res.message, StackTrace.current);
+        return;
+      }
+
       if (res['success']) {
         final model = GetModuleDetailsModel.fromJson(res);
         state = AsyncValue.data(model);
@@ -211,7 +239,7 @@ class GetClassDetailsProvider
   DioClient dioClient;
 
   GetClassDetailsProvider({required this.dioClient})
-    : super(AsyncValue.data(null));
+    : super(const AsyncValue.data(null));
 
   Future<bool?> getClassDetails({required String classId}) async {
     state = const AsyncValue.loading();
@@ -219,6 +247,12 @@ class GetClassDetailsProvider
       final res = await dioClient.getHttp(
         ApiEndpoints.getClassDetails(classId),
       );
+
+      if (res is ResponseModel) {
+        state = AsyncValue.error(res.message, StackTrace.current);
+        return false;
+      }
+
       if (res['success']) {
         final model = GetClassDetailsModel.fromJson(res);
         state = AsyncValue.data(model);
@@ -245,7 +279,7 @@ class GetMyAssignmentsProvider
     extends StateNotifier<AsyncValue<GetMyAssignmentsModel?>> {
   DioClient dioClient;
 
-  GetMyAssignmentsProvider({required this.dioClient}) : super(AsyncData(null));
+  GetMyAssignmentsProvider({required this.dioClient}) : super(const AsyncData(null));
 
   Future<void> getMyAssignments({required String courseId}) async {
     state = const AsyncLoading();
@@ -253,6 +287,12 @@ class GetMyAssignmentsProvider
       final res = await dioClient.getHttp(
         ApiEndpoints.getMyAssignments(courseId),
       );
+
+      if (res is ResponseModel) {
+        state = AsyncError(res.message, StackTrace.current);
+        return;
+      }
+
       if (res['success']) {
         logger.d("${res['success']}");
         final model = GetMyAssignmentsModel.fromJson(res);
@@ -280,7 +320,7 @@ class GetAssignmentDetailsProvider
   DioClient dioClient;
 
   GetAssignmentDetailsProvider({required this.dioClient})
-    : super(AsyncValue.data(null));
+    : super(const AsyncValue.data(null));
 
   Future<void> getAssignmentDetails({required String assignmentId}) async {
     state = const AsyncValue.loading();
@@ -288,6 +328,12 @@ class GetAssignmentDetailsProvider
       final res = await dioClient.getHttp(
         ApiEndpoints.getAssignmentDetails(assignmentId),
       );
+
+      if (res is ResponseModel) {
+        state = AsyncValue.error(res.message, StackTrace.current);
+        return;
+      }
+
       if (res['success']) {
         final model = GetAssignmentDetailsModel.fromJson(res);
         state = AsyncValue.data(model);
@@ -312,13 +358,19 @@ class GetCourseAssetsProvider
   DioClient dioClient;
 
   GetCourseAssetsProvider({required this.dioClient})
-    : super(AsyncValue.loading());
+    : super(const AsyncValue.loading());
 
   Future<void> getCourseAssets({required String courseId}) async {
     try {
       final res = await dioClient.getHttp(
         ApiEndpoints.getCourseAssets(courseId),
       );
+
+      if (res is ResponseModel) {
+        state = AsyncValue.error(res.message, StackTrace.current);
+        return;
+      }
+
       final model = GetCourseAssetsModel.fromJson(res);
       state = AsyncValue.data(model);
     } catch (e, stackTrace) {
@@ -350,6 +402,11 @@ class GetCourseDetailsProvider
       final res = await dioClient.getHttp(
         ApiEndpoints.getCourseDetails(courseId),
       );
+
+      if (res is ResponseModel) {
+        state = AsyncValue.error(res.message, StackTrace.current);
+        return;
+      }
 
       if (res['success']) {
         logger.d("${res['success']}");

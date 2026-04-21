@@ -41,11 +41,14 @@ class _CreatePostState extends State<CreatePost> {
     try {
       context.read<CommunityScreenProvider>().setIsPickingImage(true);
 
-      final List<XFile>? image = await _imagePicker.pickMultiImage();
+      final XFile? image = await _imagePicker.pickImage(
+        source: source,
+        imageQuality: 85,
+      );
 
       if (image != null) {
         context.read<CommunityScreenProvider>().setSelectedMedia(
-          File(image.first.path),
+          File(image.path),
           'PHOTO',
         );
       }
@@ -158,6 +161,8 @@ class _CreatePostState extends State<CreatePost> {
           backgroundColor: Colors.green,
           textColor: Colors.white,
         );
+        _goalsController.clear();
+        provider.removeMedia();
         Navigator.pop(context, true);
       } else {
         Utils.showToast(

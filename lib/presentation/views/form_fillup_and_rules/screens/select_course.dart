@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../cors/network/api_error_handle.dart';
 import '../../../../cors/routes/route_names.dart';
 import '../../../../cors/theme/app_colors.dart';
 import '../../course_screen/view_model/get_all_courses_provider.dart';
@@ -65,6 +64,7 @@ class _SelectCourseState extends ConsumerState<SelectCourse> {
                 ),
                 Expanded(
                   child: ListView.builder(
+                    padding: EdgeInsets.zero,
                     itemCount: data?.data?.length,
                     itemBuilder: (BuildContext context, int index) {
                       final value = data?.data?[index];

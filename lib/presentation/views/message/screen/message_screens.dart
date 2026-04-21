@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../cors/routes/route_names.dart';
+import '../../../../cors/services/token_storage.dart';
 import '../../../widgets/custom_appbar.dart';
 import '../model/all_conversation_model.dart';
 import '../provider/create_chat_provider.dart';
@@ -18,6 +19,7 @@ class MessageScreens extends StatefulWidget {
 
 class _MessageScreensState extends State<MessageScreens> {
   String? _currentUserId;
+  String? _token;
   final TextEditingController _searchController = TextEditingController();
   String _searchText = '';
 
@@ -29,6 +31,8 @@ class _MessageScreensState extends State<MessageScreens> {
 
   Future<void> _loadUserAndConversations() async {
     _currentUserId = await UserIdStorage().getUserId();
+    _token = await TokenStorage().getToken();
+
     if (!mounted) return;
 
     await context.read<CreateChatProvider>().getAllConversation();
@@ -165,138 +169,142 @@ class _MessageScreensState extends State<MessageScreens> {
                   ? AnimatedLoading()
                   : filteredData.isEmpty
                   ? Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.message,
-                    color: Colors.white70,
-                    size: 50.sp,
-                  ),
-                  SizedBox(height: 16.h),
-                  Text(
-                    "No conversations found",
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      color: Colors.white70,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ],
-              )
-                  : RefreshIndicator(
-                onRefresh: provider.getAllConversation,
-                child: ListView.builder(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsets.zero,
-                  itemCount: filteredData.length,
-                  itemBuilder: (context, index) {
-                    final conv = filteredData[index];
-                    final isGroup =
-                        (conv.type ?? '').toUpperCase() == "GROUP";
-
-                    final displayName = _getDisplayName(conv);
-                    final lastMsg = _getLastMessage(conv);
-                    final time = _getLastMessageTime(conv);
-                    final avatarUrl = isGroup
-                        ? null
-                        : (conv.otherUserAvatar ?? '');
-
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(
-                          context,
-                          isGroup
-                              ? RouteNames.groupChatScreen
-                              : RouteNames.oneTwoOneChatScreen,
-                          arguments: conv.id,
-                        );
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          vertical: 12.h,
-                          horizontal: 16.w,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.message, color: Colors.white70, size: 50.sp),
+                        SizedBox(height: 16.h),
+                        Text(
+                          "No conversations found",
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            color: Colors.white70,
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
-                        child: Column(
-                          children: [
-                            Row(
-                              children: [
-                                // Container(
-                                //   height: 48.h,
-                                //   width: 48.w,
-                                //   decoration: const BoxDecoration(
-                                //     shape: BoxShape.circle,
-                                //     color: Color(0xff1F283D),
-                                //   ),
-                                //   child: avatarUrl.isNotEmpty
-                                //       ? ClipOval(
-                                //     child: Image.network(
-                                //       avatarUrl,
-                                //       fit: BoxFit.cover,
-                                //       errorBuilder:
-                                //           (_, __, ___) =>
-                                //       const Icon(
-                                //         Icons.person,
-                                //         color: Colors.white,
-                                //       ),
-                                //     ),
-                                //   )
-                                //       : const Icon(
-                                //     Icons.person,
-                                //     color: Colors.white,
-                                //   ),
-                                // ),
-                                SizedBox(width: 12.w),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                      ],
+                    )
+                  : RefreshIndicator(
+                      onRefresh: provider.getAllConversation,
+                      child: ListView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: EdgeInsets.zero,
+                        itemCount: filteredData.length,
+                        itemBuilder: (context, index) {
+                          final conv = filteredData[index];
+                          final isGroup =
+                              (conv.type ?? '').toUpperCase() == "GROUP";
+
+                          final displayName = _getDisplayName(conv);
+                          final lastMsg = _getLastMessage(conv);
+                          final time = _getLastMessageTime(conv);
+                          final avatarUrl = isGroup
+                              ? null
+                              : (conv.otherUserAvatar ?? '');
+
+                          return GestureDetector(
+                            onTap: () {
+                              if (conv.id == null || _token == null || _currentUserId == null) return;
+
+                              final displayName = _getDisplayName(conv);
+
+                              Navigator.pushNamed(
+                                context,
+                                isGroup
+                                    ? RouteNames.groupChatScreen
+                                    : RouteNames.oneTwoOneChatScreen,
+                                arguments: {
+                                  "conversationId": conv.id!,
+                                  "token": _token!,
+                                  "currentUserId": _currentUserId!,
+                                  "receiverName": displayName,
+                                  "groupName": displayName,
+                                },
+                              );
+                            },
+
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                vertical: 12.h,
+                                horizontal: 16.w,
+                              ),
+                              child: Column(
+                                children: [
+                                  Row(
                                     children: [
-                                      Text(
-                                        displayName,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
+                                      Container(
+                                        height: 48.h,
+                                        width: 48.w,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: Color(0xff1F283D),
                                         ),
-                                        maxLines: 1,
-                                        overflow:
-                                        TextOverflow.ellipsis,
+                                        child: avatarUrl != null
+                                            ? ClipOval(
+                                                child: Image.network(
+                                                  avatarUrl,
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder: (_, __, ___) =>
+                                                      Icon(
+                                                        Icons.person,
+                                                        color: Colors.white,
+                                                      ),
+                                                ),
+                                              )
+                                            : Icon(
+                                                Icons.person,
+                                                color: Colors.white,
+                                              ),
                                       ),
-                                      SizedBox(height: 4.h),
+                                      SizedBox(width: 12.w),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              displayName,
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                            SizedBox(height: 4.h),
+                                            Text(
+                                              lastMsg,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: const TextStyle(
+                                                color: Color(0xff8C9196),
+                                                fontSize: 14,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                       Text(
-                                        lastMsg,
-                                        maxLines: 1,
-                                        overflow:
-                                        TextOverflow.ellipsis,
+                                        time,
                                         style: const TextStyle(
                                           color: Color(0xff8C9196),
-                                          fontSize: 14,
+                                          fontSize: 12,
                                         ),
                                       ),
                                     ],
                                   ),
-                                ),
-                                Text(
-                                  time,
-                                  style: const TextStyle(
-                                    color: Color(0xff8C9196),
-                                    fontSize: 12,
+                                  SizedBox(height: 10.h),
+                                  const Divider(
+                                    color: Color(0xff121D2D),
+                                    thickness: 1,
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                            SizedBox(height: 10.h),
-                            const Divider(
-                              color: Color(0xff121D2D),
-                              thickness: 1,
-                            ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
-              ),
+                    ),
             ),
           ],
         ),

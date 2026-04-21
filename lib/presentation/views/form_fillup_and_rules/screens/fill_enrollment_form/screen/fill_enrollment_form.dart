@@ -100,7 +100,6 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
               arguments: enrollmentId,
             );
           } else if (currentStep == 'PAYMENT') {
-            CircularProgressIndicator(color: Colors.white);
             Navigator.pushReplacementNamed(
               context,
               RouteNames.payment,
@@ -202,7 +201,7 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
           ),
         ),
         PopupMenuItem<String>(
-          value: 'MID-LEVEL',
+          value: 'INTERMEDIATE',
           child: Container(
             width: 200.w,
             padding: EdgeInsets.symmetric(vertical: 8.h),
@@ -229,8 +228,13 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
   @override
   Widget build(BuildContext context) {
     final getAllCourse = ref.watch(getAllCoursesProvider);
+    final courses = getAllCourse.value?.data;
     final experienceController = ref.watch(experienceControllerProvider);
 
+        final targetCourse = courses?.firstWhere(
+          (c) => c.id == widget.courseId,
+          orElse: () => courses.first,
+        );
     // Show loading while checking step
     if (_isCheckingStep) {
       return Scaffold(
@@ -258,309 +262,310 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
       ),
 
       /// ---------------------- Fetching data from server ---------------------
-      body: getAllCourse.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text("Error : $error")),
-        data: (data) {
-          final course = data;
-          if (course == null) {
-            return const Center(child: Text("No selected course available"));
-          }
+      // body: getAllCourse.when(
+      //   loading: () => const Center(child: CircularProgressIndicator()),
+      //   error: (error, stack) => Center(child: Text("Error : $error")),
+      //   data: (data) {
+      //     final course = data;
+      //     if (course == null) {
+      //       return const Center(child: Text("No selected course available"));
+      //     }
+      //
+      //     final courses = course.data;
+      //
+      //     // Check if courses is empty
+      //     if (courses == null || courses.isEmpty) {
+      //       return const Center(child: Text("No courses available"));
+      //     }
+      //
+      //     final targetCourse = courses.firstWhere(
+      //       (c) => c.id == widget.courseId,
+      //       orElse: () => courses.first,
+      //     );
+      //
+      //     return
+      //   },
+      // ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.all(16.w),
+          child: Form(
+            key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Fill Enrollment Form',
+                  style: TextStyle(
+                    fontSize: 24.sp,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                Text(
+                  'Join our acting program and take your first\nstep towards your dreams',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    color: const Color(0xFFA5A5AB),
+                  ),
+                ),
+                SizedBox(height: 16.h),
 
-          final courses = course.data;
+                /// -------------------- Selected Course -------------------
+                Text(
+                  "Selected Course",
+                  style: TextStyle(
+                    color: const Color(0xFF8C9196),
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                _buildTextField(
+                  'selected course',
+                  initialValue: targetCourse?.title ?? 'N/A',
+                  readOnly: true,
+                ),
 
-          // Check if courses is empty
-          if (courses == null || courses.isEmpty) {
-            return const Center(child: Text("No courses available"));
-          }
+                /// ------------------ Full Name ---------------------------
+                _buildFormSection(
+                  'Full Name',
+                  _buildTextField(
+                    'enter your full name',
+                    textInputAction: TextInputAction.next,
+                    controller: _fullNameController,
+                    focusNode: _fullNameFocus,
+                    validator: nameValidator,
+                  ),
+                ),
 
-          final targetCourse = courses.firstWhere(
-            (c) => c.id == widget.courseId,
-            orElse: () => courses.first,
-          );
+                /// ------------------- Email ------------------------------
+                _buildFormSection(
+                  'Email',
+                  _buildTextField(
+                    'your email',
+                    textInputAction: TextInputAction.next,
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    focusNode: _emailFocus,
+                    validator: emailValidator,
+                  ),
+                ),
 
-          return SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.all(16.w),
-              child: Form(
-                key: _formKey,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Fill Enrollment Form',
-                      style: TextStyle(
-                        fontSize: 24.sp,
-                        fontWeight: FontWeight.w500,
+                /// ----------------- Phone --------------------------------
+                _buildFormSection(
+                  'Phone',
+                  _buildTextField(
+                    'e.g., +32123 456 789',
+                    textInputAction: TextInputAction.next,
+                    controller: _phoneController,
+                    keyboardType: TextInputType.phone,
+                    focusNode: _phoneFocus,
+                    validator: phoneValidator,
+                  ),
+                ),
+
+                /// ------------------- Address ----------------------------
+                _buildFormSection(
+                  'Address',
+                  _buildTextField(
+                    'Street, City, Country',
+                    textInputAction: TextInputAction.next,
+                    controller: _addressController,
+                    focusNode: _addressFocus,
+                    validator: addressValidator,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+
+                /// ----------------- Date of Birth ------------------------
+                Text(
+                  "Date of Birth",
+                  style: TextStyle(
+                    color: const Color(0xFF8C9196),
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                _buildTextField(
+                  'select date of birth',
+                  controller: _dateController,
+                  readOnly: true,
+                  validator: dateOfBirthValidator,
+                  suffixIcon: GestureDetector(
+                    onTap: _selectedDate,
+                    child: Icon(Icons.calendar_month, color: Colors.white),
+                  ),
+                ),
+
+                /// ------------------- Experience Level -------------------
+                SizedBox(height: 8.h),
+                Text(
+                  "Experience Level",
+                  style: TextStyle(
+                    color: const Color(0xFF8C9196),
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                Container(
+                  key: _experienceFieldKey,
+                  child: _buildTextField(
+                    'select experience level',
+                    controller: experienceController,
+                    readOnly: true,
+                    validator: experienceLevelValidator,
+                    suffixIcon: GestureDetector(
+                      onTap: _showExperienceLevelPopup,
+                      child: Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        size: 32.sp,
                         color: Colors.white,
                       ),
                     ),
-                    SizedBox(height: 8.h),
-                    Text(
-                      'Join our acting program and take your first\nstep towards your dreams',
+                  ),
+                ),
+
+                /// ----------------- Acting Goals -------------------------
+                _buildFormSection(
+                  'Acting Goals / Interests',
+                  _buildTextField(
+                    'tell us why you\'re here...',
+                    controller: _goalsController,
+                    maxLines: 5,
+                    focusNode: _goalsFocus,
+                    validator: actingGoalsValidator,
+                  ),
+                ),
+                SizedBox(height: 40.h),
+
+                /// --------------- Save and Continue Button ---------------
+                SizedBox(
+                  width: double.infinity,
+                  height: 60.h,
+                  child: ElevatedButton(
+                    onPressed: _isLoading
+                        ? null
+                        : () async {
+                      if (_formKey.currentState!.validate()) {
+                        setState(() => _isLoading = true);
+
+                        try {
+                          // Get the selected date from provider
+                          final isDate = convertToIso(
+                            _dateController.text,
+                          );
+
+                          // Get the selected course title
+                          final courseTitle =
+                              targetCourse?.title ?? '';
+
+                          logger.d(
+                            "Submitting enrollment data: ${{"course_type": courseTitle, "full_name": _fullNameController.text, "email": _emailController.text, "phone": _phoneController.text, "address": _addressController.text, "date_of_birth": isDate, "experience_level": experienceController.text, "acting_goals": _goalsController.text, "course_id": widget.courseId}}",
+                          );
+
+                          final result = await ref
+                              .read(
+                            enrollPersonalInfoProvider.notifier,
+                          )
+                              .postEnrollPersonalInfo(
+                            courseType: courseTitle,
+                            fullName: _fullNameController.text
+                                .trim(),
+                            email: _emailController.text.trim(),
+                            phone: _phoneController.text.trim(),
+                            address: _addressController.text
+                                .trim(),
+                            dateOfBirth: isDate,
+                            experienceLevel:
+                            experienceController.text,
+                            actingGoals: _goalsController.text
+                                .trim(),
+                            enrollmentId: widget.courseId,
+                          );
+
+                          logger.d(
+                            "Enrollment result: ${result.data?.id}",
+                          );
+
+                          if (result.success == true) {
+                            Utils.showToast(
+                              msg:
+                              result.message ??
+                                  "Form submitted successfully!",
+                              backgroundColor: Colors.green,
+                              textColor: Colors.white,
+                            );
+
+                            if (context.mounted) {
+                              // After successful submission, check current step again
+                              await _checkCurrentStep();
+                            }
+                          } else {
+                            Utils.showToast(
+                              msg:
+                              result.message ??
+                                  "Failed to submit form",
+                              backgroundColor: Colors.red,
+                              textColor: Colors.white,
+                            );
+                          }
+                        } catch (e) {
+                          logger.e("Error submitting form: $e");
+                          Utils.showToast(
+                            msg: "Error: ${e.toString()}",
+                            backgroundColor: Colors.red,
+                            textColor: Colors.white,
+                          );
+                        } finally {
+                          if (mounted) {
+                            setState(() => _isLoading = false);
+                          }
+                        }
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: _isTextFieldFocused
+                          ? Colors.white
+                          : (_isLoading
+                          ? Colors.white
+                          : const Color(0xFF3D4566)),
+                      backgroundColor: _isTextFieldFocused
+                          ? const Color(0xFFE9201D)
+                          : (_isLoading
+                          ? const Color(0xFFE9201D)
+                          : const Color(0xFF0A1A29)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16.r),
+                      ),
+                    ),
+                    child: _isLoading
+                        ? const CircularProgressIndicator(
+                      color: Colors.white,
+                    )
+                        : Text(
+                      'Save & Continue',
                       style: TextStyle(
                         fontSize: 16.sp,
-                        color: const Color(0xFFA5A5AB),
-                      ),
-                    ),
-                    SizedBox(height: 16.h),
-
-                    /// -------------------- Selected Course -------------------
-                    Text(
-                      "Selected Course",
-                      style: TextStyle(
-                        color: const Color(0xFF8C9196),
-                        fontSize: 14.sp,
+                        color: _isTextFieldFocused
+                            ? Colors.white
+                            : (_isLoading
+                            ? Colors.white
+                            : const Color(0xFF3D4566)),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    SizedBox(height: 8.h),
-                    _buildTextField(
-                      'selected course',
-                      initialValue: targetCourse.title ?? 'N/A',
-                      readOnly: true,
-                    ),
-
-                    /// ------------------ Full Name ---------------------------
-                    _buildFormSection(
-                      'Full Name',
-                      _buildTextField(
-                        'enter your full name',
-                        textInputAction: TextInputAction.next,
-                        controller: _fullNameController,
-                        focusNode: _fullNameFocus,
-                        validator: nameValidator,
-                      ),
-                    ),
-
-                    /// ------------------- Email ------------------------------
-                    _buildFormSection(
-                      'Email',
-                      _buildTextField(
-                        'your email',
-                        textInputAction: TextInputAction.next,
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        focusNode: _emailFocus,
-                        validator: emailValidator,
-                      ),
-                    ),
-
-                    /// ----------------- Phone --------------------------------
-                    _buildFormSection(
-                      'Phone',
-                      _buildTextField(
-                        'e.g., +32123 456 789',
-                        textInputAction: TextInputAction.next,
-                        controller: _phoneController,
-                        keyboardType: TextInputType.phone,
-                        focusNode: _phoneFocus,
-                        validator: phoneValidator,
-                      ),
-                    ),
-
-                    /// ------------------- Address ----------------------------
-                    _buildFormSection(
-                      'Address',
-                      _buildTextField(
-                        'Street, City, Country',
-                        textInputAction: TextInputAction.next,
-                        controller: _addressController,
-                        focusNode: _addressFocus,
-                        validator: addressValidator,
-                      ),
-                    ),
-                    SizedBox(height: 8.h),
-
-                    /// ----------------- Date of Birth ------------------------
-                    Text(
-                      "Date of Birth",
-                      style: TextStyle(
-                        color: const Color(0xFF8C9196),
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    SizedBox(height: 8.h),
-                    _buildTextField(
-                      'select date of birth',
-                      controller: _dateController,
-                      readOnly: true,
-                      validator: dateOfBirthValidator,
-                      suffixIcon: GestureDetector(
-                        onTap: _selectedDate,
-                        child: Icon(Icons.calendar_month, color: Colors.white),
-                      ),
-                    ),
-
-                    /// ------------------- Experience Level -------------------
-                    SizedBox(height: 8.h),
-                    Text(
-                      "Experience Level",
-                      style: TextStyle(
-                        color: const Color(0xFF8C9196),
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    SizedBox(height: 8.h),
-                    Container(
-                      key: _experienceFieldKey,
-                      child: _buildTextField(
-                        'select experience level',
-                        controller: experienceController,
-                        readOnly: true,
-                        validator: experienceLevelValidator,
-                        suffixIcon: GestureDetector(
-                          onTap: _showExperienceLevelPopup,
-                          child: Icon(
-                            Icons.keyboard_arrow_down_rounded,
-                            size: 32.sp,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    /// ----------------- Acting Goals -------------------------
-                    _buildFormSection(
-                      'Acting Goals / Interests',
-                      _buildTextField(
-                        'tell us why you\'re here...',
-                        controller: _goalsController,
-                        maxLines: 5,
-                        focusNode: _goalsFocus,
-                        validator: actingGoalsValidator,
-                      ),
-                    ),
-                    SizedBox(height: 40.h),
-
-                    /// --------------- Save and Continue Button ---------------
-                    SizedBox(
-                      width: double.infinity,
-                      height: 60.h,
-                      child: ElevatedButton(
-                        onPressed: _isLoading
-                            ? null
-                            : () async {
-                                if (_formKey.currentState!.validate()) {
-                                  setState(() => _isLoading = true);
-
-                                  try {
-                                    // Get the selected date from provider
-                                    final isDate = convertToIso(
-                                      _dateController.text,
-                                    );
-
-                                    // Get the selected course title
-                                    final courseTitle =
-                                        targetCourse.title ?? '';
-
-                                    logger.d(
-                                      "Submitting enrollment data: ${{"course_type": courseTitle, "full_name": _fullNameController.text, "email": _emailController.text, "phone": _phoneController.text, "address": _addressController.text, "date_of_birth": isDate, "experience_level": experienceController.text, "acting_goals": _goalsController.text, "course_id": widget.courseId}}",
-                                    );
-
-                                    final result = await ref
-                                        .read(
-                                          enrollPersonalInfoProvider.notifier,
-                                        )
-                                        .postEnrollPersonalInfo(
-                                          courseType: courseTitle,
-                                          fullName: _fullNameController.text
-                                              .trim(),
-                                          email: _emailController.text.trim(),
-                                          phone: _phoneController.text.trim(),
-                                          address: _addressController.text
-                                              .trim(),
-                                          dateOfBirth: isDate,
-                                          experienceLevel:
-                                              experienceController.text,
-                                          actingGoals: _goalsController.text
-                                              .trim(),
-                                          enrollmentId: widget.courseId,
-                                        );
-
-                                    logger.d(
-                                      "Enrollment result: ${result.data?.id}",
-                                    );
-
-                                    if (result.success == true) {
-                                      Utils.showToast(
-                                        msg:
-                                            result.message ??
-                                            "Form submitted successfully!",
-                                        backgroundColor: Colors.green,
-                                        textColor: Colors.white,
-                                      );
-
-                                      if (context.mounted) {
-                                        // After successful submission, check current step again
-                                        await _checkCurrentStep();
-                                      }
-                                    } else {
-                                      Utils.showToast(
-                                        msg:
-                                            result.message ??
-                                            "Failed to submit form",
-                                        backgroundColor: Colors.red,
-                                        textColor: Colors.white,
-                                      );
-                                    }
-                                  } catch (e) {
-                                    logger.e("Error submitting form: $e");
-                                    Utils.showToast(
-                                      msg: "Error: ${e.toString()}",
-                                      backgroundColor: Colors.red,
-                                      textColor: Colors.white,
-                                    );
-                                  } finally {
-                                    if (mounted) {
-                                      setState(() => _isLoading = false);
-                                    }
-                                  }
-                                }
-                              },
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: _isTextFieldFocused
-                              ? Colors.white
-                              : (_isLoading
-                                    ? Colors.white
-                                    : const Color(0xFF3D4566)),
-                          backgroundColor: _isTextFieldFocused
-                              ? const Color(0xFFE9201D)
-                              : (_isLoading
-                                    ? const Color(0xFFE9201D)
-                                    : const Color(0xFF0A1A29)),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16.r),
-                          ),
-                        ),
-                        child: _isLoading
-                            ? const CircularProgressIndicator(
-                                color: Colors.white,
-                              )
-                            : Text(
-                                'Save & Continue',
-                                style: TextStyle(
-                                  fontSize: 16.sp,
-                                  color: _isTextFieldFocused
-                                      ? Colors.white
-                                      : (_isLoading
-                                            ? Colors.white
-                                            : const Color(0xFF3D4566)),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                      ),
-                    ),
-                    SizedBox(height: 20.h),
-                  ],
+                  ),
                 ),
-              ),
+                SizedBox(height: 20.h),
+              ],
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }

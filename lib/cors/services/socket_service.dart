@@ -1,169 +1,118 @@
-import 'dart:async';
-import 'package:logger/logger.dart';
+import 'package:abbas/cors/constants/api_endpoints.dart';
+import 'package:flutter/foundation.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
 class SocketService {
+  SocketService._internal();
   static final SocketService _instance = SocketService._internal();
   factory SocketService() => _instance;
-  SocketService._internal();
 
   io.Socket? _socket;
-  final Logger _logger = Logger();
-
-  final StreamController<Map<String, dynamic>> _messageController =
-  StreamController<Map<String, dynamic>>.broadcast();
-
-  Stream<Map<String, dynamic>> get messageStream => _messageController.stream;
-
-  final Set<String> _joinedConversations = {};
-  Completer<void>? _connectionCompleter;
-
+  bool isConnected = false;
   bool _isConnecting = false;
-  String? _lastToken;
+  String? _activeConversationId;
 
-  bool get isConnected => _socket?.connected ?? false;
+  io.Socket? get socket => _socket;
 
-  Future<void> connect(String token) async {
-    if (isConnected) {
-      _logger.i('Socket already connected');
-      return;
-    }
-
-    if (_isConnecting) {
-      await _connectionCompleter?.future;
+  void connect(String token) {
+    if (_socket != null && (_socket!.connected || _isConnecting)) {
+      debugPrint('✅ Socket already connected/connecting');
       return;
     }
 
     _isConnecting = true;
-    _lastToken = token;
-    _connectionCompleter = Completer<void>();
-
-    _socket?.dispose();
-    _socket = null;
 
     _socket = io.io(
-      'http://192.168.7.14:4000/ws',
+      ApiEndpoints.socketNamespace,
       io.OptionBuilder()
           .setTransports(['websocket', 'polling'])
           .disableAutoConnect()
           .enableReconnection()
-          .setReconnectionAttempts(10)
-          .setReconnectionDelay(1500)
-          .setTimeout(15000)
+          .setReconnectionAttempts(20)
+          .setReconnectionDelay(1000)
+          .setTimeout(20000)
           .setAuth({'token': token})
+          .setExtraHeaders({'Authorization': 'Bearer $token'})
           .build(),
     );
 
-    _setupListeners();
-    _socket!.connect();
-
-    try {
-      await _connectionCompleter!.future.timeout(
-        const Duration(seconds: 15),
-        onTimeout: () => throw Exception('Socket connection timeout'),
-      );
-    } finally {
-      _isConnecting = false;
-    }
-  }
-
-  void _setupListeners() {
-    if (_socket == null) return;
-
     _socket!.onConnect((_) {
-      _logger.i('Socket connected: ${_socket!.id}');
-      if (!(_connectionCompleter?.isCompleted ?? true)) {
-        _connectionCompleter?.complete();
-      }
+      isConnected = true;
+      _isConnecting = false;
+      debugPrint('✅ Socket connected: ${_socket?.id}');
 
-      final rooms = List<String>.from(_joinedConversations);
-      _joinedConversations.clear();
-
-      for (final room in rooms) {
-        joinConversation(room);
+      final conversationId = _activeConversationId;
+      if (conversationId != null && conversationId.trim().isNotEmpty) {
+        joinConversation(conversationId);
       }
     });
 
     _socket!.onDisconnect((reason) {
-      _logger.w('Socket disconnected: $reason');
+      isConnected = false;
+      _isConnecting = false;
+      debugPrint('❌ Socket disconnected: $reason');
     });
 
     _socket!.onConnectError((error) {
-      _logger.e('Socket connect error: $error');
-      if (!(_connectionCompleter?.isCompleted ?? true)) {
-        _connectionCompleter?.completeError(error);
-      }
+      isConnected = false;
+      _isConnecting = false;
+      debugPrint('❌ Socket connect error: $error');
     });
 
     _socket!.onError((error) {
-      _logger.e('Socket error: $error');
+      debugPrint('❌ Socket error: $error');
     });
 
     _socket!.on('connection:ok', (data) {
-      _logger.i('Socket auth ok: $data');
+      debugPrint('✅ connection:ok => $data');
     });
 
-    _socket!.on('message:new', _handleIncomingMessage);
-    _socket!.on('newMessage', _handleIncomingMessage);
-    _socket!.on('message', _handleIncomingMessage);
-  }
+    _socket!.on('connection:error', (data) {
+      debugPrint('❌ connection:error => $data');
+    });
 
-  void _handleIncomingMessage(dynamic data) {
-    try {
-      if (data is Map) {
-        _messageController.add(Map<String, dynamic>.from(data));
-      }
-    } catch (e) {
-      _logger.e('Incoming message parse error: $e');
-    }
+    _socket!.connect();
   }
 
   void joinConversation(String conversationId) {
-    if (conversationId.trim().isEmpty) return;
+    final trimmed = conversationId.trim();
+    if (trimmed.isEmpty) return;
 
-    _joinedConversations.add(conversationId);
+    _activeConversationId = trimmed;
 
-    if (!isConnected) return;
-
-    _socket!.emit('conversation:join', {
-      'conversationId': conversationId,
-    });
-
-    _logger.i('Joined conversation: $conversationId');
+    if (_socket != null && _socket!.connected) {
+      _socket!.emit('conversation:join', {
+        'conversationId': trimmed,
+      });
+      debugPrint('✅ conversation:join => $trimmed');
+    } else {
+      debugPrint('⚠️ join pending until socket connected');
+    }
   }
 
-  void leaveConversation(String conversationId) {
-    if (conversationId.trim().isEmpty) return;
-
-    _joinedConversations.remove(conversationId);
-
-    if (!isConnected) return;
-
-    _socket!.emit('conversation:leave', {
-      'conversationId': conversationId,
-    });
-
-    _logger.i('Left conversation: $conversationId');
-  }
-
-  void sendMessage({
+  void sendTextMessage({
     required String conversationId,
-    required String kind,
-    required Map<String, dynamic> content,
+    required String text,
   }) {
-    if (!isConnected) return;
+    if (_socket == null || !_socket!.connected) {
+      debugPrint('⚠️ Socket not connected, cannot send');
+      return;
+    }
 
     _socket!.emit('message:send', {
       'conversationId': conversationId,
-      'kind': kind,
-      'content': content,
+      'kind': 'TEXT',
+      'content': {
+        'text': text.trim(),
+      },
     });
-
-    _logger.i('Sent realtime message to $conversationId');
   }
 
-  void sendTyping(String conversationId, bool isTyping) {
-    if (!isConnected) return;
+  void sendTyping({
+    required String conversationId,
+    required bool isTyping,
+  }) {
+    if (_socket == null || !_socket!.connected) return;
 
     _socket!.emit('typing', {
       'conversationId': conversationId,
@@ -171,16 +120,69 @@ class SocketService {
     });
   }
 
-  void disconnect() {
-    _joinedConversations.clear();
-    _socket?.disconnect();
-    _socket?.dispose();
-    _socket = null;
-    _connectionCompleter = null;
-    _isConnecting = false;
+  void sendRead({
+    required String conversationId,
+    String? at,
+  }) {
+    if (_socket == null || !_socket!.connected) return;
+
+    _socket!.emit('message:read', {
+      'conversationId': conversationId,
+      if (at != null) 'at': at,
+    });
   }
 
-  void dispose() {
-    disconnect();
+  void onNewMessage(Function(dynamic data) callback) {
+    _socket?.off('message:new');
+    _socket?.on('message:new', callback);
+  }
+
+  void onMessageAck(Function(dynamic data) callback) {
+    _socket?.off('message:ack');
+    _socket?.on('message:ack', callback);
+  }
+
+  void onTyping(Function(dynamic data) callback) {
+    _socket?.off('typing');
+    _socket?.on('typing', callback);
+  }
+
+  void onMessageRead(Function(dynamic data) callback) {
+    _socket?.off('message:read');
+    _socket?.on('message:read', callback);
+  }
+
+  void onConversationJoined(Function(dynamic data) callback) {
+    _socket?.off('conversation:joined');
+    _socket?.on('conversation:joined', callback);
+  }
+
+  void onCallIncoming(Function(dynamic data) callback) {
+    _socket?.off('call:incoming');
+    _socket?.on('call:incoming', callback);
+  }
+
+  void onCallEnded(Function(dynamic data) callback) {
+    _socket?.off('call:ended');
+    _socket?.on('call:ended', callback);
+  }
+
+  void offNewMessage() => _socket?.off('message:new');
+  void offMessageAck() => _socket?.off('message:ack');
+  void offTyping() => _socket?.off('typing');
+  void offMessageRead() => _socket?.off('message:read');
+  void offConversationJoined() => _socket?.off('conversation:joined');
+  void offCallIncoming() => _socket?.off('call:incoming');
+  void offCallEnded() => _socket?.off('call:ended');
+
+  void clearListeners() {
+    _socket?.clearListeners();
+  }
+
+  void disconnect() {
+    _socket?.disconnect();
+    isConnected = false;
+    _isConnecting = false;
+    debugPrint('Socket disconnected manually');
   }
 }

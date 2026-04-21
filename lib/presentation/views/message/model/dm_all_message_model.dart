@@ -2,16 +2,14 @@ class DmAllMessageModel {
   List<Items>? items;
   String? nextCursor;
 
-  DmAllMessageModel({
-    this.items,
-    this.nextCursor,
-  });
+  DmAllMessageModel({this.items, this.nextCursor});
 
   factory DmAllMessageModel.fromJson(Map<String, dynamic> json) {
     return DmAllMessageModel(
       items: (json['items'] as List?)
-          ?.map((e) => Items.fromJson(e))
-          .toList(),
+          ?.map((e) => Items.fromJson(Map<String, dynamic>.from(e)))
+          .toList() ??
+          [],
       nextCursor: json['nextCursor']?.toString(),
     );
   }
@@ -26,107 +24,132 @@ class DmAllMessageModel {
 
 class Items {
   String? id;
-  String? receiverId;
-  Content? content;
   String? conversationId;
+  String? senderId;
+  String? receiverId;
+  String? kind;
+  Content? content;
+  String? mediaUrl;
   String? createdAt;
   String? deletedAt;
   String? deletedById;
-  String? kind;
-  String? senderId;
-  String? senderUserId;
   String? readAt;
-  String? mediaUrl;
   Sender? sender;
+  String? status;
 
   Items({
     this.id,
-    this.receiverId,
-    this.content,
     this.conversationId,
+    this.senderId,
+    this.receiverId,
+    this.kind,
+    this.content,
+    this.mediaUrl,
     this.createdAt,
     this.deletedAt,
     this.deletedById,
-    this.kind,
-    this.senderId,
-    this.senderUserId,
     this.readAt,
-    this.mediaUrl,
     this.sender,
+    this.status,
   });
 
-  // ==================== Existing fromJson (keep this) ====================
   factory Items.fromJson(Map<String, dynamic> json) {
     return Items(
       id: json['id']?.toString(),
-      receiverId: json['receiver_id']?.toString(),
-      content: json['content'] != null ? Content.fromJson(json['content']) : null,
       conversationId: json['conversationId']?.toString(),
+      senderId: json['senderId']?.toString(),
+      receiverId: json['receiver_id']?.toString() ?? json['receiverId']?.toString(),
+      kind: json['kind']?.toString(),
+      content: json['content'] is Map<String, dynamic>
+          ? Content.fromJson(Map<String, dynamic>.from(json['content']))
+          : null,
+      mediaUrl: json['media_Url']?.toString() ?? json['mediaUrl']?.toString(),
       createdAt: json['createdAt']?.toString(),
       deletedAt: json['deletedAt']?.toString(),
       deletedById: json['deletedById']?.toString(),
-      kind: json['kind']?.toString(),
-      senderId: json['senderId']?.toString(),
-      senderUserId: json['sender_user_id']?.toString(),
       readAt: json['readAt']?.toString(),
-      mediaUrl: json['media_Url']?.toString(),
-      sender: json['sender'] != null ? Sender.fromJson(json['sender']) : null,
+      sender: json['sender'] is Map<String, dynamic>
+          ? Sender.fromJson(Map<String, dynamic>.from(json['sender']))
+          : null,
+      status: json['status']?.toString() ?? 'sent',
     );
   }
 
-  // ==================== NEW: fromSocket for Real-time Messages ====================
-  factory Items.fromSocket(Map<String, dynamic> json) {
+  factory Items.fromSocket(Map<String, dynamic> raw) {
+    Map<String, dynamic> json = raw;
+
+    if (raw['data'] is Map<String, dynamic>) {
+      json = Map<String, dynamic>.from(raw['data']);
+    }
+
     return Items(
       id: json['id']?.toString(),
       conversationId: json['conversationId']?.toString(),
       senderId: json['senderId']?.toString(),
-      kind: json['kind']?.toString(),
+      receiverId: json['receiver_id']?.toString() ?? json['receiverId']?.toString(),
+      kind: json['kind']?.toString() ?? 'TEXT',
+      content: json['content'] is Map<String, dynamic>
+          ? Content.fromJson(Map<String, dynamic>.from(json['content']))
+          : null,
+      mediaUrl: json['media_Url']?.toString() ?? json['mediaUrl']?.toString(),
       createdAt: json['createdAt']?.toString() ?? DateTime.now().toIso8601String(),
-      content: json['content'] != null
-          ? Content.fromJson(json['content'] as Map<String, dynamic>)
-          : null,
-      sender: json['sender'] != null
-          ? Sender.fromJson(json['sender'] as Map<String, dynamic>)
-          : null,
-      receiverId: json['receiverId']?.toString(),
+      deletedAt: json['deletedAt']?.toString(),
+      deletedById: json['deletedById']?.toString(),
       readAt: json['readAt']?.toString(),
-      // You can add more fields later if needed
+      sender: json['sender'] is Map<String, dynamic>
+          ? Sender.fromJson(Map<String, dynamic>.from(json['sender']))
+          : null,
+      status: json['status']?.toString() ?? 'sent',
     );
   }
 
-  // ==================== toJson (keep this) ====================
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'receiver_id': receiverId,
-      'content': content?.toJson(),
       'conversationId': conversationId,
+      'senderId': senderId,
+      'receiver_id': receiverId,
+      'kind': kind,
+      'content': content?.toJson(),
+      'media_Url': mediaUrl,
       'createdAt': createdAt,
       'deletedAt': deletedAt,
       'deletedById': deletedById,
-      'kind': kind,
-      'senderId': senderId,
-      'sender_user_id': senderUserId,
       'readAt': readAt,
-      'media_Url': mediaUrl,
       'sender': sender?.toJson(),
+      'status': status,
     };
   }
 }
+
 class Content {
   String? text;
+  String? fileName;
+  int? size;
+  String? mimeType;
 
-  Content({this.text});
+  Content({
+    this.text,
+    this.fileName,
+    this.size,
+    this.mimeType,
+  });
 
   factory Content.fromJson(Map<String, dynamic> json) {
     return Content(
       text: json['text']?.toString(),
+      fileName: json['fileName']?.toString(),
+      size: json['size'] is int ? json['size'] as int : int.tryParse('${json['size']}'),
+      mimeType: json['mimeType']?.toString(),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'text': text,
+      'fileName': fileName,
+      'size': size,
+      'mimeType': mimeType,
     };
   }
 }
