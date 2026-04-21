@@ -2,8 +2,6 @@ class ApiEndpoints {
   ApiEndpoints._();
 
   static const String baseUrl = 'http://192.168.7.14:4000';
-  static const String socketUrl =
-      "https://train-cnet-suit-reviews.trycloudflare.com";
   static const String register = '$baseUrl/api/auth/register';
   static const String login = '$baseUrl/api/auth/login';
   static const String refreshToken = '$baseUrl/api/auth/refresh-token';
@@ -18,7 +16,6 @@ class ApiEndpoints {
       '$baseUrl/api/auth/request-email-change';
   static const String updateProfile = '$baseUrl/api/auth/update';
   static const String getProfile = '$baseUrl/api/auth/me';
-
   static String getOtherProfile(String userId) =>
       '$baseUrl/api/community/profile/$userId';
   static const String editProfile = '$baseUrl/api/auth/update';
@@ -112,14 +109,34 @@ class ApiEndpoints {
   static String voteOnAPoll(String postId, String optionId) =>
       '$baseUrl/api/community/vote/$postId/$optionId';
 
-  // chat
 
+  // chat
   static const String createConversation = '$baseUrl/api/conversations/dm';
   static const String allConversationList = '$baseUrl/api/conversations';
+  static const String groupConversationList =
+      '$baseUrl/api/conversations/group-conversations';
+  static const String createGroupChat = '$baseUrl/api/conversations/group';
 
   static String searchUser(String query) =>
       '$baseUrl/api/users/suggest?q=$query';
-  static const String createGroupChat = '$baseUrl/api/conversations/group';
+
+  static String getConversationUnread(String conversationId) =>
+      '$baseUrl/api/conversations/$conversationId/unread';
+
+  static String markConversationRead(String conversationId) =>
+      '$baseUrl/api/conversations/$conversationId/read';
+
+  static String clearConversation(String conversationId) =>
+      '$baseUrl/api/conversations/$conversationId/clear';
+
+  static String conversationMembers(String conversationId) =>
+      '$baseUrl/api/conversations/$conversationId/members';
+
+  static String updateMemberRole(String conversationId, String userId) =>
+      '$baseUrl/api/conversations/$conversationId/members/$userId/role';
+
+  static String removeMember(String conversationId, String userId) =>
+      '$baseUrl/api/conversations/$conversationId/members/$userId/remove';
 
   static String dmAllMessage(String conversationId, int take, String? cursor) {
     if (cursor != null && cursor.isNotEmpty) {
@@ -129,10 +146,46 @@ class ApiEndpoints {
     }
   }
 
-  static String dmSendMessage(String conversationId) =>
-      '$baseUrl/api/conversations/$conversationId/messages';
+  static String uploadConversationMessage(String conversationId) =>
+      '$baseUrl/api/conversations/$conversationId/messages/upload';
 
-  //call
+  static String deleteMessage(String messageId) =>
+      '$baseUrl/api/messages/$messageId';
+
+  static String reportMessage(String messageId) =>
+      '$baseUrl/api/messages/$messageId/report';
+
+  static String searchMessages({
+    required String query,
+    String? conversationId,
+    int take = 20,
+    int skip = 0,
+  }) {
+    final conversationPart = (conversationId != null && conversationId.isNotEmpty)
+        ? '&conversationId=$conversationId'
+        : '';
+    return '$baseUrl/api/messages/search?q=$query$conversationPart&take=$take&skip=$skip';
+  }
+
+  static String conversationMedia(String conversationId, {int take = 20, String? cursor}) {
+    final cursorPart = (cursor != null && cursor.isNotEmpty) ? '&cursor=$cursor' : '';
+    return '$baseUrl/api/conversations/$conversationId/media?take=$take$cursorPart';
+  }
+
+  static String conversationFiles(String conversationId, {int take = 20, String? cursor}) {
+    final cursorPart = (cursor != null && cursor.isNotEmpty) ? '&cursor=$cursor' : '';
+    return '$baseUrl/api/conversations/$conversationId/files?take=$take$cursorPart';
+  }
+
+  static String blockUser(String userId) =>
+      '$baseUrl/api/users/$userId/block';
+
+  static String unblockUser(String userId) =>
+      '$baseUrl/api/users/$userId/block';
+
+  static const String socketNamespace = '$baseUrl/ws';
+
+// call
   static String startCall(String conversationId) =>
       '$baseUrl/api/rtc/conversations/$conversationId/start';
 
@@ -147,5 +200,44 @@ class ApiEndpoints {
 
   static String getToken(String conversationId) =>
       '$baseUrl/api/rtc/conversations/$conversationId/token';
+
   static const String rtcHealth = '$baseUrl/api/rtc/health';
+
+
+  // chat
+  //
+  // static const String createConversation = '$baseUrl/api/conversations/dm';
+  // static const String allConversationList = '$baseUrl/api/conversations';
+  //
+  // static String searchUser(String query) =>
+  //     '$baseUrl/api/users/suggest?q=$query';
+  // static const String createGroupChat = '$baseUrl/api/conversations/group';
+  //
+  // static String dmAllMessage(String conversationId, int take, String? cursor) {
+  //   if (cursor != null && cursor.isNotEmpty) {
+  //     return '$baseUrl/api/conversations/$conversationId/messages?take=$take&cursor=$cursor';
+  //   } else {
+  //     return '$baseUrl/api/conversations/$conversationId/messages?take=$take';
+  //   }
+  // }
+
+  static String dmSendMessage(String conversationId) =>
+      '$baseUrl/api/conversations/$conversationId/messages';
+
+  //call
+  // static String startCall(String conversationId) =>
+  //     '$baseUrl/api/rtc/conversations/$conversationId/start';
+  //
+  // static String joinCall(String conversationId) =>
+  //     '$baseUrl/api/rtc/conversations/$conversationId/join';
+  //
+  // static String endCall(String conversationId) =>
+  //     '$baseUrl/api/rtc/conversations/$conversationId/end';
+  //
+  // static String leaveCall(String conversationId) =>
+  //     '$baseUrl/api/rtc/conversations/$conversationId/leave';
+  //
+  // static String getToken(String conversationId) =>
+  //     '$baseUrl/api/rtc/conversations/$conversationId/token';
+  // static const String rtcHealth = '$baseUrl/api/rtc/health';
 }
