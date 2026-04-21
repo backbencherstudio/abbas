@@ -1,21 +1,19 @@
 import 'package:abbas/cors/constants/api_endpoints.dart';
-import 'package:abbas/cors/network/api_error_handle.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:socket_io_client/socket_io_client.dart' as io;
 
 class SocketCall with ChangeNotifier {
   SocketCall._internal();
   static final SocketCall instance = SocketCall._internal();
   factory SocketCall() => instance;
-  static const String _baseUrl ="http://192.168.7.14:4000/ws";
- // static const String _namespace = '/ws';
 
-  IO.Socket? _socket;
+  io.Socket? _socket;
   final Logger logger = Logger(printer: PrettyPrinter(methodCount: 0));
+
   bool _isConnected = false;
   bool get isConnected => _isConnected;
-  IO.Socket? get socket => _socket;
+  io.Socket? get socket => _socket;
 
   Function(Map<String, dynamic>)? onIncomingCall;
   Function(Map<String, dynamic>)? onCallEnded;
@@ -25,28 +23,25 @@ class SocketCall with ChangeNotifier {
   Function(String conversationId)? onConversationJoined;
 
   void connect(String token) {
-    if (_socket != null && _isConnected) {
-      logger.i(" Socket already connected");
+    if (_socket != null && (_socket!.connected || _isConnected)) {
+      logger.i('Socket already connected');
       return;
     }
 
-    if (_socket != null) {
-      try {
-        _socket!.dispose();
-      } catch (_) {}
-      _socket = null;
-    }
-    logger.i(" Connecting socket to $_baseUrl$_baseUrl ...");
-    _socket = IO.io(
-      '$_baseUrl',
-      IO.OptionBuilder()
-          .setTransports(['websocket'])
-          .setAuth({'token': token})
+    disconnect();
+
+    logger.i('Connecting socket to ${ApiEndpoints.socketNamespace}');
+    _socket = io.io(
+      ApiEndpoints.socketNamespace,
+      io.OptionBuilder()
+          .setTransports(['websocket', 'polling'])
+          .disableAutoConnect()
           .enableReconnection()
-          .setReconnectionAttempts(8)
+          .setReconnectionAttempts(10)
           .setReconnectionDelay(1000)
           .setTimeout(10000)
-          .enableAutoConnect()
+          .setAuth({'token': token})
+          .setExtraHeaders({'Authorization': 'Bearer $token'})
           .build(),
     );
 
@@ -57,49 +52,44 @@ class SocketCall with ChangeNotifier {
   void _attachListeners() {
     _socket?.onConnect((_) {
       _isConnected = true;
-      logger.i(" Socket connected — id: ${_socket?.id}");
+      logger.i('Socket connected: ${_socket?.id}');
       notifyListeners();
     });
 
-    _socket?.onDisconnect((_) {
+    _socket?.onDisconnect((reason) {
       _isConnected = false;
-      logger.w(" Socket disconnected");
+      logger.w('Socket disconnected: $reason');
       notifyListeners();
     });
 
-    _socket?.onConnectError((err) {
+    _socket?.onConnectError((error) {
       _isConnected = false;
-      logger.e(" Socket connect error: $err");
+      logger.e('Socket connect error: $error');
       notifyListeners();
     });
 
-    _socket?.onError((err) {
-      logger.e("Socket error: $err");
+    _socket?.onError((error) {
+      logger.e('Socket error: $error');
     });
 
     _socket?.on('connection:ok', (data) {
-      logger.i(" Server confirmed connection: $data");
+      logger.i('connection:ok => $data');
     });
 
     _socket?.on('connection:error', (data) {
-      logger.e(" Server rejected connection: $data");
-      disconnect();
+      logger.e('connection:error => $data');
     });
 
-    // ── Call events ──────────────────────────────────────────────────
     _socket?.on('call:incoming', (data) {
-      logger.i(" call:incoming → $data");
       final map = _toMap(data);
       if (map != null) onIncomingCall?.call(map);
     });
 
     _socket?.on('call:ended', (data) {
-      logger.i(" call:ended → $data");
       final map = _toMap(data);
       if (map != null) onCallEnded?.call(map);
     });
 
-    // ── Chat events ──────────────────────────────────────────────────
     _socket?.on('message:new', (data) {
       final map = _toMap(data);
       if (map != null) onNewMessage?.call(map);
@@ -116,10 +106,9 @@ class SocketCall with ChangeNotifier {
     });
 
     _socket?.on('conversation:joined', (data) {
-      logger.i(" conversation:joined → $data");
       final map = _toMap(data);
       if (map != null) {
-        onConversationJoined?.call(map['conversationId'] ?? '');
+        onConversationJoined?.call((map['conversationId'] ?? '').toString());
       }
     });
   }
@@ -136,34 +125,36 @@ class SocketCall with ChangeNotifier {
     _emit('message:send', {
       'conversationId': conversationId,
       'kind': 'TEXT',
-      'content': {'text': text},
+      'content': {'text': text.trim()},
+    });
+  }
+
+  void sendRead(String conversationId, {String? at}) {
+    _emit('message:read', {
+      'conversationId': conversationId,
+      if (at != null) 'at': at,
     });
   }
 
   void _emit(String event, Map<String, dynamic> data) {
     if (!_isConnected || _socket == null) {
-      logger.w(" Cannot emit '$event' — socket not connected");
+      logger.w("Cannot emit '$event' - socket not connected");
       return;
     }
-    logger.d(" emit '$event': $data");
+    logger.d("emit '$event' => $data");
     _socket!.emit(event, data);
   }
 
   void disconnect() {
     try {
+      _socket?.clearListeners();
       _socket?.disconnect();
       _socket?.dispose();
     } catch (e) {
-      logger.e("Socket disconnect error: $e");
+      logger.e('Socket disconnect error: $e');
     } finally {
       _socket = null;
       _isConnected = false;
-      // onIncomingCall = null;
-      // onCallEnded = null;
-      // onNewMessage = null;
-      // onTyping = null;
-      // onPresenceUpdate = null;
-      // onConversationJoined = null;
       notifyListeners();
     }
   }

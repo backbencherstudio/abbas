@@ -203,40 +203,7 @@ class ApiEndpoints {
   static const String rtcHealth = '$baseUrl/api/rtc/health';
 
 
-  // chat
-  //
-  // static const String createConversation = '$baseUrl/api/conversations/dm';
-  // static const String allConversationList = '$baseUrl/api/conversations';
-  //
-  // static String searchUser(String query) =>
-  //     '$baseUrl/api/users/suggest?q=$query';
-  // static const String createGroupChat = '$baseUrl/api/conversations/group';
-  //
-  // static String dmAllMessage(String conversationId, int take, String? cursor) {
-  //   if (cursor != null && cursor.isNotEmpty) {
-  //     return '$baseUrl/api/conversations/$conversationId/messages?take=$take&cursor=$cursor';
-  //   } else {
-  //     return '$baseUrl/api/conversations/$conversationId/messages?take=$take';
-  //   }
-  // }
-
   static String dmSendMessage(String conversationId) =>
       '$baseUrl/api/conversations/$conversationId/messages';
 
-  //call
-  // static String startCall(String conversationId) =>
-  //     '$baseUrl/api/rtc/conversations/$conversationId/start';
-  //
-  // static String joinCall(String conversationId) =>
-  //     '$baseUrl/api/rtc/conversations/$conversationId/join';
-  //
-  // static String endCall(String conversationId) =>
-  //     '$baseUrl/api/rtc/conversations/$conversationId/end';
-  //
-  // static String leaveCall(String conversationId) =>
-  //     '$baseUrl/api/rtc/conversations/$conversationId/leave';
-  //
-  // static String getToken(String conversationId) =>
-  //     '$baseUrl/api/rtc/conversations/$conversationId/token';
-  // static const String rtcHealth = '$baseUrl/api/rtc/health';
 }
