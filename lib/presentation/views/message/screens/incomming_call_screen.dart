@@ -1,6 +1,5 @@
 import 'dart:ui';
 
-import 'package:abbas/cors/routes/route_names.dart';
 import 'package:abbas/presentation/views/message/provider/call_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -24,102 +23,102 @@ class IncomingCallScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final isAudio = callKind.toUpperCase() == 'AUDIO';
 
-    return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          if (callerAvatar.isNotEmpty)
-            Image.network(
-              callerAvatar,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _fallbackBg(),
-            )
-          else
-            _fallbackBg(),
-          Container(color: Colors.black.withValues(alpha: 0.45)),
-          SafeArea(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
-              child: Column(
-                children: [
-                  const Spacer(),
-                  CircleAvatar(
-                    radius: 58.r,
-                    backgroundColor: Colors.white12,
-                    backgroundImage: callerAvatar.isNotEmpty
-                        ? NetworkImage(callerAvatar)
-                        : null,
-                    child: callerAvatar.isEmpty
-                        ? Icon(Icons.person, color: Colors.white, size: 42.r)
-                        : null,
-                  ),
-                  SizedBox(height: 18.h),
-                  Text(
-                    callerName,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 28.sp,
-                      fontWeight: FontWeight.w600,
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (callerAvatar.isNotEmpty)
+              Image.network(
+                callerAvatar,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _fallbackBg(),
+              )
+            else
+              _fallbackBg(),
+            Container(color: Colors.black.withValues(alpha: 0.45)),
+            SafeArea(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+                child: Column(
+                  children: [
+                    const Spacer(),
+                    CircleAvatar(
+                      radius: 58.r,
+                      backgroundColor: Colors.white12,
+                      backgroundImage: callerAvatar.isNotEmpty
+                          ? NetworkImage(callerAvatar)
+                          : null,
+                      child: callerAvatar.isEmpty
+                          ? Icon(Icons.person, color: Colors.white, size: 42.r)
+                          : null,
                     ),
-                  ),
-                  SizedBox(height: 8.h),
-                  Text(
-                    isAudio ? 'Incoming audio call...' : 'Incoming video call...',
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 15.sp,
+                    SizedBox(height: 18.h),
+                    Text(
+                      callerName,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 28.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                  const Spacer(),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(36.r),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 18.w,
-                          vertical: 16.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.10),
-                          borderRadius: BorderRadius.circular(36.r),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.15),
+                    SizedBox(height: 8.h),
+                    Text(
+                      isAudio ? 'Incoming audio call...' : 'Incoming video call...',
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 15.sp,
+                      ),
+                    ),
+                    const Spacer(),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(36.r),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 18.w,
+                            vertical: 16.h,
                           ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            _actionButton(
-                              label: 'Decline',
-                              color: Colors.redAccent,
-                              icon: Icons.call_end,
-                              onTap: () async {
-                                await context.read<CallProvider>().rejectIncomingCall();
-                                if (context.mounted) Navigator.pop(context);
-                              },
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.10),
+                            borderRadius: BorderRadius.circular(36.r),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.15),
                             ),
-                            _actionButton(
-                              label: 'Accept',
-                              color: Colors.green,
-                              icon: Icons.call,
-                              onTap: () async {
-                                final ok = await context.read<CallProvider>().acceptIncomingCall();
-                                if (ok && context.mounted) {
-                                  Navigator.pop(context);
-                                }
-                              },
-                            ),
-                          ],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              _actionButton(
+                                label: 'Decline',
+                                color: Colors.redAccent,
+                                icon: Icons.call_end,
+                                onTap: () async {
+                                  await context.read<CallProvider>().rejectIncomingCall();
+                                  if (context.mounted) Navigator.pop(context);
+                                },
+                              ),
+                              _actionButton(
+                                label: 'Accept',
+                                color: Colors.green,
+                                icon: Icons.call,
+                                onTap: () async {
+                                  await context.read<CallProvider>().acceptIncomingCall();
+                                },
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

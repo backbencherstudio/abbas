@@ -199,9 +199,23 @@ class AppRoutes {
         const FeedbackAndCertificatesScreen(),
     RouteNames.feedbackPage: (context) => const FeedbackScreen(),
     RouteNames.helpSupportScreen: (context) => const SupportScreen(),
+    RouteNames.incomingCallScreen: (context) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
+          {};
+
+      return IncomingCallScreen(
+        conversationId: (args['conversationId'] ?? '').toString(),
+        callerName: (args['callerName'] ?? 'Unknown Caller').toString(),
+        callerAvatar: (args['callerAvatar'] ?? '').toString(),
+        callKind: (args['callKind'] ?? 'VIDEO').toString(),
+      );
+    },
+
     RouteNames.audioCallScreen: (context) {
       final args =
-          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
+          {};
 
       return AudioCallScreen(
         conversationId: (args['conversationId'] ?? '').toString(),
@@ -214,7 +228,8 @@ class AppRoutes {
 
     RouteNames.videoCallScreen: (context) {
       final args =
-          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
+          {};
 
       return VideoCallScreen(
         conversationId: (args['conversationId'] ?? '').toString(),
@@ -222,19 +237,6 @@ class AppRoutes {
         autoStart: args['autoStart'] == false ? false : true,
       );
     },
-    RouteNames.incomingCallScreen: (context) {
-      final args =
-          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
-
-      return IncomingCallScreen(
-        conversationId: (args['conversationId'] ?? '').toString(),
-        callerName: (args['callerName'] ?? 'Unknown Caller').toString(),
-        callerAvatar: (args['callerAvatar'] ?? '').toString(),
-        callKind: (args['callKind'] ?? 'VIDEO').toString(),
-      );
-    },
-
-
 
     RouteNames.certificate: (context) => const Certificate(),
     RouteNames.supportUser: (context) => const SupportUser(),
@@ -261,7 +263,8 @@ class AppRoutes {
     RouteNames.createGroupScreen: (context) => CreateGroupScreen(),
     RouteNames.oneTwoOneChatScreen: (context) {
       final args =
-          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
+          {};
 
       return OneToOneChatScreen(
         conversationId: (args['conversationId'] ?? '').toString(),
@@ -273,7 +276,8 @@ class AppRoutes {
 
     RouteNames.groupChatScreen: (context) {
       final args =
-          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
+          {};
 
       return GroupChatScreen(
         conversationId: (args['conversationId'] ?? '').toString(),

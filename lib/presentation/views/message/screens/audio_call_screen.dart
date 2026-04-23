@@ -28,7 +28,6 @@ class AudioCallScreen extends StatefulWidget {
 class _AudioCallScreenState extends State<AudioCallScreen> {
   Timer? _timer;
   int _seconds = 0;
-  bool _didStart = false;
   bool _callActive = false;
 
   @override
@@ -51,8 +50,6 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
         _callActive = true;
         _startTimer();
       }
-
-      _didStart = true;
     });
   }
 
@@ -72,8 +69,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
 
   Future<void> _endCall() async {
     _callActive = false;
-    final provider = context.read<CallProvider>();
-    await provider.endCall(widget.conversationId);
+    await context.read<CallProvider>().endCall(widget.conversationId);
     if (mounted) Navigator.pop(context);
   }
 
@@ -93,27 +89,9 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
     return Scaffold(
       backgroundColor: const Color(0xff030D15),
       body: SafeArea(
-        child: provider.isLoading && !_didStart
-            ? _buildLoading()
-            : provider.errorMessage != null && !provider.isInCall
+        child: provider.errorMessage != null && !provider.isInCall
             ? _buildError(provider)
-            : _buildCallUI(provider),
-      ),
-    );
-  }
-
-  Widget _buildLoading() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const CircularProgressIndicator(color: Colors.white),
-          SizedBox(height: 20.h),
-          Text(
-            'Connecting audio call...',
-            style: TextStyle(color: Colors.white, fontSize: 16.sp),
-          ),
-        ],
+            : _buildBody(provider),
       ),
     );
   }
@@ -143,7 +121,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
     );
   }
 
-  Widget _buildCallUI(CallProvider provider) {
+  Widget _buildBody(CallProvider provider) {
     return Column(
       children: [
         Expanded(
@@ -154,10 +132,11 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
                 CircleAvatar(
                   radius: 58.r,
                   backgroundColor: Colors.white12,
-                  backgroundImage: widget.callerAvatar != null
+                  backgroundImage: (widget.callerAvatar != null &&
+                      widget.callerAvatar!.isNotEmpty)
                       ? NetworkImage(widget.callerAvatar!)
                       : null,
-                  child: widget.callerAvatar == null
+                  child: (widget.callerAvatar == null || widget.callerAvatar!.isEmpty)
                       ? Icon(Icons.person, color: Colors.white, size: 44.r)
                       : null,
                 ),
