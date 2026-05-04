@@ -123,6 +123,7 @@ class AcceptRulesRegulationsProvider
     required String enrollmentId,
   }) async {
     try {
+
       var body = {
         'accepted': accepted,
         'full_name': fullName,

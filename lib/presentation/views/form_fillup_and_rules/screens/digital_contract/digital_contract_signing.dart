@@ -1,3 +1,4 @@
+import 'package:abbas/cors/theme/app_colors.dart';
 import 'package:abbas/cors/utils/app_utils.dart';
 import 'package:abbas/presentation/views/form_fillup_and_rules/view_model/form_fill_and_rules_provider.dart';
 import 'package:abbas/presentation/widgets/validator.dart';
@@ -25,6 +26,14 @@ class _DigitalContractSigningState
       TextEditingController();
   final TextEditingController _dateController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    final now = DateTime.now();
+    _dateController.text =
+        "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+    super.initState();
+  }
 
   /// ---------------------- Selected Date -------------------------------------
   Future<void> _selectedDate() async {
@@ -59,6 +68,7 @@ class _DigitalContractSigningState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -116,7 +126,7 @@ class _DigitalContractSigningState
                   ),
                   SizedBox(height: 8.h),
                   Text(
-                    'This agreement is entered into between the\nStudent and Acting Academy',
+                    'This agreement is entered into between the Student and Acting Academy',
                     style: TextStyle(
                       fontWeight: FontWeight.w400,
                       fontSize: 15.sp,
@@ -130,13 +140,13 @@ class _DigitalContractSigningState
                   ),
                   SizedBox(height: 12.h),
                   const _RulePoint(
-                    ' Intellectual Property: All course materials, including scripts, exercises, and teaching methods, remain the intellectual property of Acting Academy. Students may not reproduce, distribute, or use these materials outside of the course without written permission.',
+                    'Intellectual Property: All course materials, including scripts, exercises, and teaching methods, remain the intellectual property of Acting Academy. Students may not reproduce, distribute, or use these materials outside of the course without written permission.',
                     '',
                   ),
                   SizedBox(height: 12.h),
                   const _RulePoint(
                     '',
-                    ' Liability and Insurence: Students participate in physical activities at their own risk. Acting Academy maintains general liability insurance but recommends students have personal health insurance. The academy is not liable for personal injuries or property damage during course activities.',
+                    'Liability and Insurence: Students participate in physical activities at their own risk. Acting Academy maintains general liability insurance but recommends students have personal health insurance. The academy is not liable for personal injuries or property damage during course activities.',
                   ),
                   SizedBox(height: 12.h),
                   const _RulePoint(
@@ -186,7 +196,7 @@ class _DigitalContractSigningState
                 fontWeight: FontWeight.w500,
               ),
             ),
-            SizedBox(height: 10.h),
+
             Form(
               key: _formKey,
               autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -197,19 +207,21 @@ class _DigitalContractSigningState
                     _buildTextField(
                       'Enter your full name',
                       controller: _fullNameController,
+                      textInputAction: TextInputAction.next,
                       validator: nameValidator,
                     ),
                   ),
-                  SizedBox(height: 10.h),
+
                   _buildFormSection(
                     'Digital Signature',
                     _buildTextField(
                       'Type your full name as signature',
                       controller: _digitalSignatureController,
+                      textInputAction: TextInputAction.done,
                       validator: digitalSignatureValidator,
                     ),
                   ),
-                  SizedBox(height: 10.h),
+
                   _buildFormSection(
                     'Date',
                     _buildTextField(
@@ -225,7 +237,7 @@ class _DigitalContractSigningState
                 ],
               ),
             ),
-            SizedBox(height: 16.h),
+            SizedBox(height: 24.h),
             SizedBox(
               width: double.infinity,
               child: PrimaryButton(
@@ -233,13 +245,13 @@ class _DigitalContractSigningState
                   if (_formKey.currentState!.validate()) {
                     if (!ref.watch(acknowledgeProvider)) {
                       Utils.showToast(
-                        msg: "Please accept rules and regulations",
+                        msg: "Please accept contract signing",
                         backgroundColor: Colors.red,
                         textColor: Colors.white,
                       );
                       return;
                     }
-                    final isoDate = convertToIso(_dateController.text);
+
                     logger.d(
                       "Submitting with enrollmentId: ${widget.enrollmentId}",
                     );
@@ -247,11 +259,13 @@ class _DigitalContractSigningState
                     final result = await ref
                         .read(acceptContractTermsProvider.notifier)
                         .acceptContractTerms(
-                          accepted: true,
+                          accepted: ref.watch(acknowledgeProvider),
                           fullName: _fullNameController.text.trim(),
                           digitalSignature: _digitalSignatureController.text
                               .trim(),
-                          digitalSignatureDate: isoDate,
+                          digitalSignatureDate: convertToIso(
+                            _dateController.text,
+                          ),
                           enrollmentId: widget.enrollmentId,
                         );
 
@@ -321,7 +335,7 @@ class _RulePoint extends StatelessWidget {
   final String title;
   final String description;
 
-  const _RulePoint(this.title, this.description, {super.key});
+  const _RulePoint(this.title, this.description);
 
   @override
   Widget build(BuildContext context) {
@@ -363,6 +377,7 @@ Widget _buildTextField(
   String hintText, {
   int? maxLines,
   TextInputType? keyboardType,
+  TextInputAction? textInputAction,
   TextEditingController? controller,
   FocusNode? focusNode,
   Widget? suffixIcon,
@@ -373,21 +388,26 @@ Widget _buildTextField(
     focusNode: focusNode,
     keyboardType: keyboardType,
     maxLines: maxLines,
+    textInputAction: textInputAction,
     decoration: InputDecoration(
       hintText: hintText,
       suffixIcon: suffixIcon,
       contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 15.h),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.r),
-        borderSide: BorderSide(color: const Color(0xFF3D4566), width: 1.5.w),
+        borderSide: BorderSide(color: const Color(0xFF3D4566), width: 1.w),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.r),
-        borderSide: BorderSide(color: const Color(0xFF3D4566), width: 1.5.w),
+        borderSide: BorderSide(color: const Color(0xFF3D4566), width: 1.w),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16.r),
-        borderSide: BorderSide(color: const Color(0xFF3D4566), width: 1.w),
+        borderRadius: BorderRadius.circular(12.r),
+        borderSide: BorderSide(color: Colors.white, width: 1.w),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.r),
+        borderSide: BorderSide(color: Color(0xFFE9201D), width: 1.w),
       ),
     ),
     validator: validator,

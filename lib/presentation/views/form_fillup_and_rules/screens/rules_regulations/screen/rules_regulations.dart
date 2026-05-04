@@ -1,4 +1,5 @@
 import 'package:abbas/cors/routes/route_names.dart';
+import 'package:abbas/cors/theme/app_colors.dart';
 import 'package:abbas/cors/utils/app_utils.dart';
 import 'package:abbas/presentation/views/form_fillup_and_rules/view_model/form_fill_and_rules_provider.dart';
 import 'package:abbas/presentation/widgets/validator.dart';
@@ -23,6 +24,8 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
       TextEditingController();
   final TextEditingController _dateController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+
+  final bool _isLoading = false;
 
   @override
   void initState() {
@@ -65,6 +68,7 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -202,6 +206,7 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
                     _buildTextField(
                       'Enter your full name',
                       controller: _fullNameController,
+                      textInputAction: TextInputAction.next,
                       validator: nameValidator,
                     ),
                   ),
@@ -211,6 +216,7 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
                     _buildTextField(
                       'Type your full name as signature',
                       controller: _digitalSignatureController,
+                      textInputAction: TextInputAction.done,
                       validator: digitalSignatureValidator,
                     ),
                   ),
@@ -246,7 +252,7 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
                           );
                           return;
                         }
-                        final isoDate = convertToIso(_dateController.text);
+
                         logger.d(
                           "Submitting with enrollmentId: ${widget.enrollmentId}",
                         );
@@ -254,13 +260,19 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
                         final result = await ref
                             .read(acceptRulesRegulationsProvider.notifier)
                             .acceptRulesRegulations(
-                              accepted: true,
+                              accepted: ref.watch(acknowledgeProvider),
                               fullName: _fullNameController.text.trim(),
                               digitalSignature: _digitalSignatureController.text
                                   .trim(),
-                              digitalSignatureDate: isoDate,
+                              digitalSignatureDate: convertToIso(
+                                _dateController.text,
+                              ),
                               enrollmentId: widget.enrollmentId,
                             );
+
+                        logger.d(
+                          "Accepted : ${ref.watch(acknowledgeProvider)}, Full Name : ${_fullNameController.text.trim()}, Digital Signature : ${_digitalSignatureController.text.trim()}, Digital Signature Date : ${convertToIso(_dateController.text)} , Enrollment Id : ${widget.enrollmentId}",
+                        );
 
                         if (result.success) {
                           Utils.showToast(
@@ -272,6 +284,7 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
                             Navigator.pushNamed(
                               context,
                               RouteNames.digitalContractSigning,
+                              arguments: widget.enrollmentId
                             );
                           }
                         } else {
@@ -286,14 +299,16 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
                     color: const Color(0xFFE9201D),
                     textColor: Colors.white,
                     icon: '',
-                    child: Text(
-                      "Submit Acknowledge",
-                      style: TextStyle(
-                        fontSize: 16.sp,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                    child: _isLoading
+                        ? CircularProgressIndicator(color: Colors.white)
+                        : Text(
+                            "Submit Acknowledge",
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                   ),
                 ],
               ),
@@ -391,19 +406,19 @@ Widget _buildTextField(
       contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 15.h),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.r),
-        borderSide: BorderSide(color: const Color(0xFF3D4566), width: 1.5.w),
+        borderSide: BorderSide(color: const Color(0xFF3D4566), width: 1.w),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.r),
-        borderSide: BorderSide(color: const Color(0xFF3D4566), width: 1.5.w),
+        borderSide: BorderSide(color: const Color(0xFF3D4566), width: 1.w),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.r),
-        borderSide: BorderSide(color: const Color(0xFFE9201D), width: 1.5.w),
+        borderSide: BorderSide(color: Colors.white, width: 1.w),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12.r),
-        borderSide: BorderSide(color: Colors.redAccent, width: 1.w),
+        borderSide: BorderSide(color: Color(0xFFE9201D), width: 1.w),
       ),
     ),
     validator: validator,

@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:abbas/cors/utils/app_utils.dart';
 import 'package:abbas/presentation/views/community/presentaion/provider/community/community_screen_provider.dart';
 import 'package:abbas/presentation/views/profile/view_model/profile_screen_provider.dart';
@@ -113,215 +112,236 @@ class _EditProfileState extends State<EditProfile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF030C15),
+      backgroundColor: const Color(0xFF030C15),
       body: Column(
         children: [
-          SecondaryAppBar(title: 'Edit Profile', hasButton: true),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
+          const SecondaryAppBar(title: 'Edit Profile', hasButton: true),
+          Expanded(
             child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  SizedBox(height: 15.h),
-                  Stack(
-                    children: [
-                      Stack(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                child: Column(
+                  children: [
+                    SizedBox(height: 15.h),
+                    // Main profile header stack
+                    SizedBox(
+                      height: 180.h,
+                      width: double.infinity,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        alignment: Alignment.topCenter,
                         children: [
-                          SizedBox(
-                            height: 130.h,
-                            width: double.infinity,
-                            child:
-                                context
-                                        .watch<CommunityScreenProvider>()
-                                        .selectImage ==
-                                    null
-                                ? Image.asset(
-                                    'assets/images/profile_cover.png',
-                                    fit: BoxFit.cover,
-                                  )
-                                : Image.file(
+                          // Cover Image
+                          Stack(
+                            children: [
+                              SizedBox(
+                                height: 130.h,
+                                width: double.infinity,
+                                child:
                                     context
-                                        .watch<CommunityScreenProvider>()
-                                        .selectImage!,
+                                            .watch<CommunityScreenProvider>()
+                                            .selectImage ==
+                                        null
+                                    ? Image.asset(
+                                        'assets/images/profile_cover.png',
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Image.file(
+                                        context
+                                            .watch<CommunityScreenProvider>()
+                                            .selectImage!,
+                                        fit: BoxFit.cover,
+                                      ),
+                              ),
+                              Positioned(
+                                right: 16.w,
+                                bottom: 16.h,
+                                child: GestureDetector(
+                                  onTap: _pickerImage,
+                                  child: Image.asset(
+                                    'assets/icons/button.png',
+                                    scale: 3.sp,
                                     fit: BoxFit.cover,
                                   ),
-                          ),
-                          Positioned(
-                            right: 16.r,
-                            bottom: 16,
-                            child: GestureDetector(
-                              onTap: _pickerImage,
-                              child: Image.asset(
-                                'assets/icons/button.png',
-                                scale: 3.sp,
+                                ),
                               ),
+                            ],
+                          ),
+                          // Profile Picture
+                          Positioned(
+                            top: 80.h, // 130h cover - 50h (half of avatar)
+                            child: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.all(1.r),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.black54,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: CircleAvatar(
+                                    radius: 50.r,
+                                    backgroundImage:
+                                        context
+                                                .watch<
+                                                  CommunityScreenProvider
+                                                >()
+                                                .selectProfile ==
+                                            null
+                                        ? const AssetImage(
+                                            'assets/images/profile.png',
+                                          )
+                                        : FileImage(
+                                                context
+                                                    .watch<
+                                                      CommunityScreenProvider
+                                                    >()
+                                                    .selectProfile!,
+                                              )
+                                              as ImageProvider,
+                                  ),
+                                ),
+                                Positioned(
+                                  right: 10,
+                                  bottom: 0,
+                                  child: Container(
+                                    width: 30.w,
+                                    height: 30.h,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.transparent,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: GestureDetector(
+                                      onTap: _pickerProfileImage,
+                                      child: Image.asset(
+                                        'assets/icons/button.png',
+                                        scale: 3.sp,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                      Transform.translate(
-                        offset: Offset(140, 90),
-                        child: Stack(
-                          children: [
-                            Container(
-                              padding: EdgeInsets.all(1.r),
-                              decoration: BoxDecoration(
-                                color: Colors.black54,
-                                shape: BoxShape.circle,
-                              ),
-                              child: CircleAvatar(
-                                radius: 50.r,
-                                backgroundImage:
-                                    context
-                                            .watch<CommunityScreenProvider>()
-                                            .selectProfile ==
-                                        null
-                                    ? AssetImage('assets/images/profile.png')
-                                    : FileImage(
-                                        context
-                                            .watch<CommunityScreenProvider>()
-                                            .selectProfile!,
-                                      ),
-                              ),
-                            ),
-
-                            Positioned(
-                              right: -2.r,
-                              bottom: 2,
-                              child: Container(
-                                width: 40.w,
-                                height: 40.h,
-                                padding: EdgeInsets.all(6.r),
-                                decoration: const BoxDecoration(
-                                  color: Colors.transparent,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: GestureDetector(
-                                  onTap: _pickerProfileImage,
-                                  child: Image.asset(
-                                    'assets/icons/button.png',
-                                    scale: 3.4.sp,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 16.h),
-                  Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(height: 48.h),
-                        Text(
-                          'Name',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w400,
-                            fontSize: 14,
-                            color: Color(0xffB2B5B8),
-                          ),
-                        ),
-                        SizedBox(height: 4.h),
-                        CustomTextField(
-                          controller: _nameController,
-                          hintText: 'Enter your name',
-                          validator: nameValidator,
-                        ),
-                        SizedBox(height: 16.h),
-                        Text(
-                          'UserName',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w400,
-                            fontSize: 14,
-                            color: Color(0xffB2B5B8),
-                          ),
-                        ),
-                        SizedBox(height: 4.h),
-                        CustomTextField(
-                          controller: _usernameController,
-                          hintText: 'Enter your user name',
-                          validator: userNameValidator,
-                        ),
-                        SizedBox(height: 16.h),
-                        Text(
-                          'About',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w400,
-                            fontSize: 14,
-                            color: Color(0xffB2B5B8),
-                          ),
-                        ),
-                        SizedBox(height: 4.h),
-                        CustomTextField(
-                          controller: _bioController,
-                          hintText: 'Write here.....',
-                          maxLines: 5,
-                        ),
-                        SizedBox(height: 24.h),
-                        PrimaryButton(
-                          onTap: () async {
-                            if (_formKey.currentState!.validate()) {
-                              final res = await context
-                                  .read<CommunityScreenProvider>()
-                                  .editMyProfile(
-                                    name: _nameController.text,
-                                    userName: _usernameController.text,
-                                    about: _bioController.text,
-                                    avatar: context
-                                        .read<CommunityScreenProvider>()
-                                        .selectProfile,
-                                    coverImage: context
-                                        .read<CommunityScreenProvider>()
-                                        .selectImage,
-                                  );
-
-                              if (res.success) {
-                                context
-                                    .read<CommunityScreenProvider>()
-                                    .fetchFeeds();
-                                Utils.showToast(
-                                  msg: res.message,
-                                  backgroundColor: Colors.green,
-                                  textColor: Colors.white,
-                                );
-                                Navigator.pop(context);
-                              } else {
-                                Utils.showToast(
-                                  msg: res.message,
-                                  backgroundColor: Colors.red,
-                                  textColor: Colors.white,
-                                );
-                              }
-                            }
-                          },
-                          color: Colors.white,
-                          textColor: Colors.black,
-                          icon: '',
-                          child:
-                              context.watch<CommunityScreenProvider>().isLoading
-                              ? const Center(
-                                  child: CircularProgressIndicator(
-                                    color: Colors.black,
-                                  ),
-                                )
-                              : Text(
-                                  "Save",
-                                  style: TextStyle(
-                                    fontSize: 16.sp,
-                                    color: Color(0xFF030C15),
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                        ),
-                      ],
                     ),
-                  ),
-                ],
+                    SizedBox(height: 24.h),
+                    Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Name',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w400,
+                              fontSize: 14.sp,
+                              color: Color(0xffB2B5B8),
+                            ),
+                          ),
+                          SizedBox(height: 4.h),
+                          CustomTextField(
+                            controller: _nameController,
+                            hintText: 'Enter your name',
+                            validator: nameValidator,
+                          ),
+                          SizedBox(height: 16.h),
+                          Text(
+                            'UserName',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w400,
+                              fontSize: 14.sp,
+                              color: Color(0xffB2B5B8),
+                            ),
+                          ),
+                          SizedBox(height: 4.h),
+                          CustomTextField(
+                            controller: _usernameController,
+                            hintText: 'Enter your user name',
+                            validator: userNameValidator,
+                          ),
+                          SizedBox(height: 16.h),
+                          Text(
+                            'About',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w400,
+                              fontSize: 14.sp,
+                              color: Color(0xffB2B5B8),
+                            ),
+                          ),
+                          SizedBox(height: 4.h),
+                          CustomTextField(
+                            controller: _bioController,
+                            hintText: 'Write here.....',
+                            maxLines: 5,
+                          ),
+                          SizedBox(height: 24.h),
+                          PrimaryButton(
+                            onTap: () async {
+                              if (_formKey.currentState!.validate()) {
+                                final res = await context
+                                    .read<CommunityScreenProvider>()
+                                    .editMyProfile(
+                                      name: _nameController.text,
+                                      userName: _usernameController.text,
+                                      about: _bioController.text,
+                                      avatar: context
+                                          .read<CommunityScreenProvider>()
+                                          .selectProfile,
+                                      coverImage: context
+                                          .read<CommunityScreenProvider>()
+                                          .selectImage,
+                                    );
+
+                                if (res.success) {
+                                  context
+                                      .read<CommunityScreenProvider>()
+                                      .fetchFeeds();
+                                  Utils.showToast(
+                                    msg: res.message,
+                                    backgroundColor: Colors.green,
+                                    textColor: Colors.white,
+                                  );
+                                  if (mounted) {
+                                    Navigator.pop(context);
+                                  }
+                                } else {
+                                  Utils.showToast(
+                                    msg: res.message,
+                                    backgroundColor: Colors.red,
+                                    textColor: Colors.white,
+                                  );
+                                }
+                              }
+                            },
+                            color: Colors.white,
+                            textColor: Colors.black,
+                            icon: '',
+                            child:
+                                context
+                                    .watch<CommunityScreenProvider>()
+                                    .isLoading
+                                ? const Center(
+                                    child: CircularProgressIndicator(
+                                      color: Colors.black,
+                                    ),
+                                  )
+                                : Text(
+                                    "Save",
+                                    style: TextStyle(
+                                      fontSize: 16.sp,
+                                      color: const Color(0xFF030C15),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

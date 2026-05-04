@@ -27,6 +27,7 @@ class ApiEndpoints {
 
   /// -------------------- Home ------------------------------------------------
   static const String getHomeData = '$baseUrl/api/home';
+  static const String scanQrCode = '$baseUrl/api/attendance/scan-qr';
 
   /// ------------------- Courses ----------------------------------------------
   static String submitAssignment(String assignmentId) =>
