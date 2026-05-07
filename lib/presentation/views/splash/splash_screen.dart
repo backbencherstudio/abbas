@@ -4,7 +4,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../cors/di/injection.dart';
 import '../../../cors/routes/route_names.dart';
 import '../../../cors/services/refresh_token_storage.dart';
-import '../../../cors/services/socket_call.dart';
 import '../../../cors/services/token_storage.dart';
 import '../../../cors/theme/app_colors.dart';
 import '../../../domain/repositories/auth/refresh_token_repository.dart';
@@ -69,7 +68,6 @@ class _SplashScreenState extends State<SplashScreen>
     logger.d("========== Splash Screen Token: $token ===========");
 
     if (token != null) {
-      SocketCall().connect(token);
       Navigator.pushReplacementNamed(context, RouteNames.parentScreen);
     } else {
       Navigator.pushReplacementNamed(context, RouteNames.onBoardingScreen);
