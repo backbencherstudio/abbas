@@ -274,11 +274,12 @@ class _CreatePoolState extends State<CreatePool> {
                               child: GestureDetector(
                                 onTap: _addOption,
                                 child: DottedBorder(
-                                  borderType: BorderType.RRect,
-                                  radius: const Radius.circular(12),
-                                  dashPattern: const [6, 3],
-                                  color: const Color(0xFF3D4566),
-                                  strokeWidth: 1.5,
+                                  options: const RoundedRectDottedBorderOptions(
+                                    radius: Radius.circular(12),
+                                    dashPattern: [6, 3],
+                                    color: Color(0xFF3D4566),
+                                    strokeWidth: 1.5,
+                                  ),
                                   child: Container(
                                     width: double.infinity,
                                     padding: const EdgeInsets.symmetric(

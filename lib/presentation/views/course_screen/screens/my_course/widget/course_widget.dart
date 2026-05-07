@@ -208,12 +208,13 @@ class _CourseWidgetState extends ConsumerState<CourseWidget> {
                       SizedBox(height: 16.h),
 
                       DottedBorder(
-                        padding: EdgeInsets.all(16.r),
-                        borderType: BorderType.RRect,
-                        radius: Radius.circular(16.r),
-                        color: Color(0xFF3D4566),
-                        strokeWidth: 1.5,
-                        dashPattern: [6, 5],
+                        options: RoundedRectDottedBorderOptions(
+                          padding: EdgeInsets.all(16.r),
+                          radius: Radius.circular(16.r),
+                          color: const Color(0xFF3D4566),
+                          strokeWidth: 1.5,
+                          dashPattern: [6, 5],
+                        ),
                         child: Text(
                           'Today’s class will start from ${formatClassTime(nextClassData?.startDate, nextClassData?.classTime ?? 'N/A')} AM.',
                           style: TextStyle(

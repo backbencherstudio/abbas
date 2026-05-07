@@ -77,7 +77,7 @@ class _DueAssignmentScreenState extends ConsumerState<DueAssignmentScreen> {
   Future<void> pickPdf() async {
     try {
       // Open file picker for PDF files only
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf'],
       );
@@ -237,11 +237,12 @@ class _DueAssignmentScreenState extends ConsumerState<DueAssignmentScreen> {
                                       await pickPdf();
                                     },
                                     child: DottedBorder(
-                                      borderType: BorderType.RRect,
-                                      radius: Radius.circular(16.r),
-                                      color: Color(0xFF3D4566),
-                                      strokeWidth: 1.5,
-                                      dashPattern: [6, 5],
+                                      options: RoundedRectDottedBorderOptions(
+                                        radius: Radius.circular(16.r),
+                                        color: const Color(0xFF3D4566),
+                                        strokeWidth: 1.5,
+                                        dashPattern: [6, 5],
+                                      ),
                                       child: Container(
                                         width: double.infinity,
                                         padding: EdgeInsets.symmetric(

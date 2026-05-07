@@ -39,22 +39,22 @@ dependencies:
   dio: ^5.9.0
   shared_preferences: ^2.5.3
   intl: ^0.20.2
-  get_it: ^8.2.0
-  mobile_scanner: ^4.0.1
+  get_it: ^9.2.1
+  mobile_scanner: ^7.2.0
   flutter_screenutil: ^5.9.0
   equatable: ^2.0.7
-  smooth_page_indicator: ^1.2.1
-  dotted_border: ^2.1.0
+  smooth_page_indicator: ^2.0.1
+  dotted_border: ^3.1.0
   flutter_svg:
-  pinput: ^5.0.2
+  pinput: ^6.0.2
   email_validator: ^3.0.0
   logger: ^2.6.1
   dartz: ^0.10.1
   video_player: ^2.10.0
   chewie: ^1.13.0
   open_filex: ^4.3.2
-  syncfusion_flutter_pdfviewer: ^31.1.19
-  flutter_local_notifications: ^20.1.0
+  syncfusion_flutter_pdfviewer: ^33.2.5
+  flutter_local_notifications: ^21.0.0
   flutter_riverpod: ^3.2.1
   fluttertoast: ^9.0.0
   image_picker: ^1.0.4
@@ -66,9 +66,9 @@ dependencies:
   path_provider: ^2.1.5
   path: ^1.9.1
   socket_io_client: ^3.1.4
-  file_picker: ^10.3.10
+  file_picker: ^11.0.2
   social_sharing_plus: ^1.2.3
-  permission_handler: ^11.3.1
+  permission_handler: ^12.0.1
 
 dev_dependencies:
   flutter_test:

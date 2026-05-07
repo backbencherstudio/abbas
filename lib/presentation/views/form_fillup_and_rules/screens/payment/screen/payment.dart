@@ -125,11 +125,12 @@ class _PaymentState extends State<Payment> {
             ),
             SizedBox(height: 20.h),
             DottedBorder(
-              borderType: BorderType.RRect,
-              radius: Radius.circular(12.r),
-              color: const Color(0xFF3D4566),
-              strokeWidth: 1.5,
-              dashPattern: [6.w, 5.w],
+              options: RoundedRectDottedBorderOptions(
+                radius: Radius.circular(12.r),
+                color: const Color(0xFF3D4566),
+                strokeWidth: 1.5,
+                dashPattern: [6.w, 5.w],
+              ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12.r),
                 child: Container(

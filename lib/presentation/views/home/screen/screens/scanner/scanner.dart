@@ -106,7 +106,7 @@ class _ScannerState extends State<Scanner> {
                     MobileScanner(
                       controller: _controller,
                       onDetect: _onDetect,
-                      errorBuilder: (context, error, child) {
+                      errorBuilder: (context, error) {
                         return Center(
                           child: Text(
                             'Camera error: $error',
@@ -139,11 +139,12 @@ class _ScannerState extends State<Scanner> {
                           IconButton(
                             onPressed: () => _controller.toggleTorch(),
                             // v1.x: torchState is a ValueListenable<TorchState>
-                            icon: ValueListenableBuilder<TorchState>(
-                              valueListenable: _controller.torchState,
+                            icon: ValueListenableBuilder<MobileScannerState>(
+                              valueListenable: _controller,
                               builder: (context, state, _) {
+                                final torchState = state.torchState;
                                 return Icon(
-                                  state == TorchState.on
+                                  torchState == TorchState.on
                                       ? Icons.flash_on
                                       : Icons.flash_off,
                                   color: Colors.white,

@@ -61,11 +61,12 @@ class PaymentHistory extends StatelessWidget {
           ),
           SizedBox(height: 16.h),
           DottedBorder(
-            color: Colors.grey,
-            strokeWidth: 1,
-            dashPattern: const [10, 5],
-            borderType: BorderType.RRect,
-            radius: Radius.circular(12.r),
+            options: RoundedRectDottedBorderOptions(
+              color: Colors.grey,
+              strokeWidth: 1,
+              dashPattern: const [10, 5],
+              radius: Radius.circular(12.r),
+            ),
             child: SizedBox(
               height: 100.h,
               width: double.infinity,

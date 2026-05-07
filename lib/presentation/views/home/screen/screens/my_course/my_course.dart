@@ -29,10 +29,12 @@ class _MyCourseState extends State<MyCourse> {
               Text("We couldn't find what you're looking for.",style: TextStyle(fontWeight: FontWeight.w400,fontSize: 14.sp,color: Color(0xff777980)),),
               SizedBox(height: 40.h,),
               DottedBorder(
-                radius: Radius.circular(30.r),
-                color: const Color(0xFF183D62),
-                strokeWidth: 1.5,
-                dashPattern: [6.w, 5.w],
+                options: RoundedRectDottedBorderOptions(
+                  radius: Radius.circular(30.r),
+                  color: const Color(0xFF183D62),
+                  strokeWidth: 1.5,
+                  dashPattern: [6.w, 5.w],
+                ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12.r),
                   child: Container(
