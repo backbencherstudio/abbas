@@ -151,6 +151,7 @@ Future<void> configureDependencies() async {
     ),
   );
 
+
   getIt.registerLazySingleton<PersonalInfoRepository>(
     () =>
         PersonalInfoRepositoryImpl(dataSource: getIt<PersonalInfoDataSource>()),
