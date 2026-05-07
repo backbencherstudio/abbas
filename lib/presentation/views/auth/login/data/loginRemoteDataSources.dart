@@ -24,7 +24,7 @@ class LoginRemoteDataSource {
 
         final tokenSave = data['authorization']?['refresh_token'];
         if (tokenSave != null) {
-          SocketCall().connect(tokenSave);
+
 
           await _tokenStorage.saveToken(tokenSave);
           log("========= Login Token Saved: $tokenSave");

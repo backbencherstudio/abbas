@@ -49,16 +49,13 @@ import '../../presentation/views/home/screen/screens/home_for_prospective_studen
 import '../../presentation/views/home/screen/screens/my_course/my_course.dart';
 import '../../presentation/views/home/screen/screens/scanner/scanner.dart';
 import '../../presentation/views/message/screens/add_group_member.dart';
-import '../../presentation/views/message/screens/audio_call_screen.dart';
 import '../../presentation/views/message/screens/create_group_screen.dart';
 import '../../presentation/views/message/screens/group_chat_screen.dart';
 import '../../presentation/views/message/screens/group_profile_screen.dart';
-import '../../presentation/views/message/screens/incomming_call_screen.dart';
 import '../../presentation/views/message/screens/new_message_screens.dart';
 import '../../presentation/views/message/screens/one_two_one_chat_screen.dart';
 import '../../presentation/views/message/screens/see_group_member_screen.dart';
 import '../../presentation/views/message/screens/user_profile_screen.dart';
-import '../../presentation/views/message/screens/video_call_screen.dart';
 import '../../presentation/views/onboarding/screen/login_and_signup_screen.dart';
 import '../../presentation/views/onboarding/screen/onboarding_screen.dart';
 import '../../presentation/views/parent/parent_screen.dart';
@@ -198,44 +195,9 @@ class AppRoutes {
         const FeedbackAndCertificatesScreen(),
     RouteNames.feedbackPage: (context) => const FeedbackScreen(),
     RouteNames.helpSupportScreen: (context) => const SupportScreen(),
-    RouteNames.incomingCallScreen: (context) {
-      final args =
-          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
-          {};
 
-      return IncomingCallScreen(
-        conversationId: (args['conversationId'] ?? '').toString(),
-        callerName: (args['callerName'] ?? 'Unknown Caller').toString(),
-        callerAvatar: (args['callerAvatar'] ?? '').toString(),
-        callKind: (args['callKind'] ?? 'VIDEO').toString(),
-      );
-    },
 
-    RouteNames.audioCallScreen: (context) {
-      final args =
-          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
-          {};
 
-      return AudioCallScreen(
-        conversationId: (args['conversationId'] ?? '').toString(),
-        callKind: (args['callKind'] ?? 'AUDIO').toString(),
-        autoStart: args['autoStart'] == false ? false : true,
-        callerName: args['callerName']?.toString(),
-        callerAvatar: args['callerAvatar']?.toString(),
-      );
-    },
-
-    RouteNames.videoCallScreen: (context) {
-      final args =
-          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
-          {};
-
-      return VideoCallScreen(
-        conversationId: (args['conversationId'] ?? '').toString(),
-        callKind: (args['callKind'] ?? 'VIDEO').toString(),
-        autoStart: args['autoStart'] == false ? false : true,
-      );
-    },
 
     RouteNames.certificate: (context) => const Certificate(),
     RouteNames.supportUser: (context) => const SupportUser(),
