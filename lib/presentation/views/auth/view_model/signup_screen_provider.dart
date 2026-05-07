@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:abbas/cors/constants/api_endpoints.dart';
 import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:abbas/cors/services/dio_client.dart';
-import 'package:abbas/cors/services/socket_call.dart';
 import 'package:abbas/cors/services/token_storage.dart';
 import 'package:abbas/data/models/response_model.dart';
 import 'package:abbas/presentation/views/auth/model/auth_model.dart';
@@ -93,7 +92,7 @@ class AuthProvider extends StateNotifier<AuthModel> {
         final refreshToken = res['authorization']['refresh_token'];
         final userId = res['userId'];
         if (token != null) {
-          SocketCall().connect(token);
+
           await _tokenStorage.saveRefreshToken(refreshToken);
           await _tokenStorage.saveToken(token);
         }
