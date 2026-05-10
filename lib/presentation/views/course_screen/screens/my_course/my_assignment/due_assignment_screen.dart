@@ -232,6 +232,7 @@ class _DueAssignmentScreenState extends ConsumerState<DueAssignmentScreen> {
                                   ),
                                   SizedBox(height: 20),
                                   GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
                                     onTap: () async {
                                       // await pickMedia();
                                       await pickPdf();

@@ -105,10 +105,7 @@ class Data {
     modulesList = json['modulesList'].cast<String>();
     overviewText = json['overviewText'];
     if (json['includes'] != null) {
-      includes = <dynamic>[];
-      json['includes'].forEach((v) {
-        includes!.add(List<dynamic>.from(json['includes']));
-      });
+      includes = List<dynamic>.from(json['includes']);
     }
   }
 

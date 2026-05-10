@@ -163,7 +163,13 @@ class _AllEventsState extends ConsumerState<AllEvents> {
                               children: [
                                 Expanded(
                                   child: OutlinedButton(
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      Navigator.pushNamed(
+                                        context,
+                                        RouteNames.eventDetails,
+                                        arguments: event?.id,
+                                      );
+                                    },
                                     style: OutlinedButton.styleFrom(
                                       fixedSize: Size.fromHeight(56.h),
                                       foregroundColor: Colors.white,
@@ -189,7 +195,12 @@ class _AllEventsState extends ConsumerState<AllEvents> {
                                 SizedBox(width: 14.w),
                                 Expanded(
                                   child: ElevatedButton(
-                                    onPressed: () {},
+                                    onPressed: () {
+                                      Navigator.pushNamed(
+                                        context,
+                                        RouteNames.completePayment,
+                                      );
+                                    },
                                     style: ElevatedButton.styleFrom(
                                       fixedSize: Size.fromHeight(56.h),
                                       backgroundColor: AppColors.splashRed,

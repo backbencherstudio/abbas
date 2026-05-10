@@ -197,7 +197,11 @@ class _CourseScreenState extends ConsumerState<CourseScreen> {
                 SizedBox(height: 12.h),
                 ...((myCourses.value?.data?.otherCourses ?? []).map((course) {
                   return InkWell(
-                    onTap: () {},
+                    onTap: () => Navigator.pushNamed(
+                      context,
+                      RouteNames.otherCourseScreen,
+                      arguments: course.id,
+                    ),
                     child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16.w),
                       child: Container(
@@ -281,7 +285,11 @@ class _CourseScreenState extends ConsumerState<CourseScreen> {
                 if (allCourses.isLoading) const AnimatedLoading(),
                 ...((allCourses.value?.data ?? []).map((course) {
                   return InkWell(
-                    onTap: () {},
+                    onTap: () => Navigator.pushNamed(
+                      context,
+                      RouteNames.otherCourseScreen,
+                      arguments: course.id,
+                    ),
                     child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16.w),
                       child: Container(

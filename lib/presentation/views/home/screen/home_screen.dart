@@ -404,52 +404,68 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         SizedBox(height: 18.h),
                         Row(
                           children: [
-                            Expanded(
-                              child: OutlinedButton(
-                                onPressed: () async {
-                                  await ref
-                                      .read(
-                                        getAssignmentDetailsProvider.notifier,
-                                      )
-                                      .getAssignmentDetails(
-                                        assignmentId:
-                                            upComingAssignmentsValues?.id ?? "",
-                                      );
-                                  if (context.mounted) {
-                                    Navigator.pushNamed(
-                                      context,
-                                      RouteNames.dueAssignmentScreen,
-                                      arguments: upComingAssignmentsValues?.id,
-                                    );
-                                  }
-                                },
-                                style: OutlinedButton.styleFrom(
-                                  fixedSize: Size.fromHeight(48.h),
-                                  foregroundColor: Colors.white,
-                                  side: BorderSide(
-                                    color: Color(0xFF3D4466),
-                                    width: 2.w,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12.r),
-                                  ),
-                                ),
-                                child: Text(
-                                  'View Details',
-                                  style: TextStyle(
-                                    fontSize: 14.sp,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: 14.w),
+                            // Expanded(
+                            //   child: OutlinedButton(
+                            //     onPressed: () async {
+                            //       await ref
+                            //           .read(
+                            //             getAssignmentDetailsProvider.notifier,
+                            //           )
+                            //           .getAssignmentDetails(
+                            //             assignmentId:
+                            //                 upComingAssignmentsValues?.id ?? "",
+                            //           );
+                            //       if (context.mounted) {
+                            //         Navigator.pushNamed(
+                            //           context,
+                            //           RouteNames.dueAssignmentScreen,
+                            //           arguments: upComingAssignmentsValues?.id,
+                            //         );
+                            //       }
+                            //     },
+                            //     style: OutlinedButton.styleFrom(
+                            //       fixedSize: Size.fromHeight(48.h),
+                            //       foregroundColor: Colors.white,
+                            //       side: BorderSide(
+                            //         color: Color(0xFF3D4466),
+                            //         width: 2.w,
+                            //       ),
+                            //       shape: RoundedRectangleBorder(
+                            //         borderRadius: BorderRadius.circular(12.r),
+                            //       ),
+                            //     ),
+                            //     child: Text(
+                            //       'View Details',
+                            //       style: TextStyle(
+                            //         fontSize: 14.sp,
+                            //         color: Colors.white,
+                            //         fontWeight: FontWeight.w400,
+                            //       ),
+                            //     ),
+                            //   ),
+                            // ),
+                            // SizedBox(width: 14.w),
                             Expanded(
                               child: SizedBox(
                                 width: 174.w,
                                 child: ElevatedButton(
-                                  onPressed: () {},
+                                  onPressed: () async {
+                                    await ref
+                                        .read(
+                                      getAssignmentDetailsProvider.notifier,
+                                    )
+                                        .getAssignmentDetails(
+                                      assignmentId:
+                                      upComingAssignmentsValues?.id ?? "",
+                                    );
+                                    if (context.mounted) {
+                                      Navigator.pushNamed(
+                                        context,
+                                        RouteNames.dueAssignmentScreen,
+                                        arguments: upComingAssignmentsValues?.id,
+                                      );
+                                    }
+                                  },
                                   style: ElevatedButton.styleFrom(
                                     padding: EdgeInsets.zero,
                                     fixedSize: Size.fromHeight(48.h),

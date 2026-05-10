@@ -31,7 +31,7 @@ import '../../presentation/views/course_screen/screens/my_course/my_assignment/a
 import '../../presentation/views/course_screen/screens/my_course/my_assignment/due_assignment_screen.dart';
 import '../../presentation/views/course_screen/screens/my_course/my_assignment/submitted_assignment_screen.dart';
 import '../../presentation/views/course_screen/screens/my_course/my_course_screen.dart';
-import '../../presentation/views/course_screen/screens/other_corses/other_course_screen.dart';
+import '../../presentation/views/course_screen/screens/course_details/course_details_screen.dart';
 import '../../presentation/views/course_screen/screens/video_player/video_player_screen.dart';
 import '../../presentation/views/form_fillup_and_rules/screens/course_module/screen/course_module.dart';
 import '../../presentation/views/form_fillup_and_rules/screens/digital_contract/digital_contract_signing.dart';
@@ -106,7 +106,11 @@ class AppRoutes {
     RouteNames.allAssignmentsScreen: (context) {
       return AllAssignmentsScreen();
     },
-    RouteNames.otherCourseScreen: (context) => const OtherCourseScreen(),
+    RouteNames.otherCourseScreen: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final courseId = args is String ? args : '';
+      return CourseDetailsScreen(courseId: courseId);
+    },
     RouteNames.myCourseScreen: (context) {
       final args = ModalRoute.of(context)?.settings.arguments;
       final courseId = args is String ? args : '';

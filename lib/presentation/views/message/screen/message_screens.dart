@@ -201,6 +201,7 @@ class _MessageScreensState extends State<MessageScreens> {
                             : (conv.otherUserAvatar ?? '');
 
                         return GestureDetector(
+                          behavior: HitTestBehavior.opaque,
                           onTap: () {
                             if (conv.id == null ||
                                 _token == null ||

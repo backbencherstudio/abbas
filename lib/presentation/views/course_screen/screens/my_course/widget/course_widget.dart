@@ -327,6 +327,7 @@ class _CourseWidgetState extends ConsumerState<CourseWidget> {
             ),
             child: Container(
               padding: EdgeInsets.all(16.r),
+              margin: EdgeInsets.only(bottom: 16.h),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topRight,
