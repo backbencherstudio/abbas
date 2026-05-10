@@ -128,35 +128,34 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           GestureDetector(
             onTap: () {
               if (widget.conversationId.isNotEmpty) {
-                debugPrint("The conId ${widget.conversationId}");
                 Navigator.pushNamed(
                   context,
                   RouteNames.audioCallScreen,
-                  arguments: widget.conversationId,
+                  arguments: {
+                    'conversationId': widget.conversationId,
+                    'callKind': 'AUDIO',
+                    'autoStart': true,
+                    'callerName': widget.groupName,
+                  },
                 );
-              } else {
-                debugPrint("The conv id not found");
               }
             },
-            child: Icon(
-              Icons.call,
-              size: 20.sp,
-              color: const Color(0xffE9201D),
-            ),
+            child: Icon(Icons.call, size: 20.sp, color: const Color(0xffE9201D)),
           ),
 
           SizedBox(width: 16),
           GestureDetector(
             onTap: () {
               if (widget.conversationId.isNotEmpty) {
-                debugPrint("The conId ${widget.conversationId}");
                 Navigator.pushNamed(
                   context,
                   RouteNames.videoCallScreen,
-                  arguments: widget.conversationId,
+                  arguments: {
+                    'conversationId': widget.conversationId,
+                    'callKind': 'VIDEO',
+                    'autoStart': true,
+                  },
                 );
-              } else {
-                debugPrint("The conv id not found");
               }
             },
             child: Icon(
@@ -168,7 +167,21 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
 
           SizedBox(width: 16.w),
 
-          Icon(Icons.info, size: 20.sp, color: Color(0xff8D9CDC)),
+          GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(
+                context,
+                RouteNames.groupProfileScreen,
+                arguments: {
+                  'conversationId': widget.conversationId,
+                  'groupName': widget.groupName,
+                  'token': widget.token,
+                  'currentUserId': widget.currentUserId,
+                },
+              );
+            },
+            child: Icon(Icons.info, size: 20.sp, color: Color(0xff8D9CDC)),
+          ),
           SizedBox(width: 12.w),
         ],
       ),

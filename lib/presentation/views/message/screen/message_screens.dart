@@ -75,7 +75,7 @@ class _MessageScreensState extends State<MessageScreens> {
             title: "Message",
             image: "assets/icons/edit.png",
             onTap: () =>
-                Navigator.pushNamed(context, RouteNames.addGroupMember),
+                Navigator.pushNamed(context, RouteNames.newMessageScreens),
           ),
 
           Padding(

@@ -36,8 +36,8 @@ class ApiClient {
 
       final response = await http.post(
         Uri.parse(
-          "YOUR_REFRESH_API",
-        ), // Replace with your backend refresh endpoint
+          "http://192.168.7.12:4000/api/auth/refresh-token",
+        ),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"refresh_token": refreshToken}),
       );

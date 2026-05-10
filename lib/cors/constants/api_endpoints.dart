@@ -181,7 +181,7 @@ class ApiEndpoints {
       '$baseUrl/api/users/$userId/block';
 
   static String unblockUser(String userId) =>
-      '$baseUrl/api/users/$userId/block';
+      '$baseUrl/api/users/$userId/unblock';
 
   static const String socketNamespace = '$baseUrl/ws';
 

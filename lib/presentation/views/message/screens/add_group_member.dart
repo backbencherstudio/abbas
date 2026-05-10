@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../cors/routes/route_names.dart';
+import '../../../../cors/services/token_storage.dart';
+import '../../../../cors/services/user_id_storage.dart';
 import '../provider/create_group_provider.dart';
 import '../model/suggest_model.dart';
 
@@ -16,14 +19,20 @@ class _AddGroupMemberState extends State<AddGroupMember> {
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _groupTitleController = TextEditingController();
   final Set<String> _selectedUserIds = {};
+  String? _token;
+  String? _currentUserId;
 
   @override
   void initState() {
     super.initState();
-    _groupTitleController.text = "New Group"; // Default title
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<CreateGroupProvider>().searchUsers("");
-    });
+    _groupTitleController.text = "New Group";
+    _loadCredentials();
+  }
+
+  Future<void> _loadCredentials() async {
+    _token = await TokenStorage().getToken();
+    _currentUserId = await UserIdStorage().getUserId();
+    if (mounted) setState(() {});
   }
 
   @override
@@ -57,6 +66,8 @@ class _AddGroupMemberState extends State<AddGroupMember> {
             TextButton(
               onPressed: () async {
                 final createProvider = context.read<CreateGroupProvider>();
+                final navigator = Navigator.of(context);
+                final messenger = ScaffoldMessenger.of(context);
 
                 await createProvider.createGroup(
                   selectedUserIds: _selectedUserIds,
@@ -65,11 +76,25 @@ class _AddGroupMemberState extends State<AddGroupMember> {
                       : _groupTitleController.text.trim(),
                 );
 
+                if (!mounted) return;
+
                 if (createProvider.createGroupModel != null) {
-                  Navigator.pop(context, _selectedUserIds.toList());
+                  final group = createProvider.createGroupModel!;
+                  navigator.pushReplacementNamed(
+                    RouteNames.groupChatScreen,
+                    arguments: {
+                      "conversationId": group.id ?? '',
+                      "token": _token ?? '',
+                      "currentUserId": _currentUserId ?? '',
+                      "groupName": group.title ?? 'Group Chat',
+                    },
+                  );
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Failed to create group")),
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text(createProvider.errorMessage ?? "Failed to create group"),
+                      backgroundColor: Colors.red,
+                    ),
                   );
                 }
               },

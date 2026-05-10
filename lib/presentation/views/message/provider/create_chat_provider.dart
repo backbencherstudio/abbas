@@ -1,107 +1,124 @@
 import 'dart:async';
+import 'dart:convert';
+
 import 'package:abbas/presentation/views/message/model/all_conversation_model.dart';
 import 'package:abbas/presentation/views/message/model/create_conversation_model.dart';
-import 'package:abbas/presentation/views/message/model/dm_all_message_model.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 
 import '../../../../cors/constants/api_endpoints.dart';
-import '../../../../cors/network/api_response_model.dart';
-import '../../../../cors/services/api_client.dart';
-import '../../../../cors/services/socket_service.dart';
+import '../../../../cors/services/token_storage.dart';
 
 class CreateChatProvider extends ChangeNotifier {
-  CreateChatProvider() {
-    getAllConversation();
-  }
-
-  final ApiClient _apiClient = ApiClient();
+  final TokenStorage _tokenStorage = TokenStorage();
   final Logger logger = Logger();
+
   bool _isLoading = false;
   String? _errorMessage;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+
   CreateConversationModel? _createConversationModel;
   CreateConversationModel? get createConversationModel =>
       _createConversationModel;
+
   List<AllConversationModel> _allConversationModel = [];
   List<AllConversationModel> get allConversationModel => _allConversationModel;
-  DmAllMessageModel? _dmAllMessageModel;
-  DmAllMessageModel? get dmAllMessageModel => _dmAllMessageModel;
-  bool _hasMore = true;
-  bool get hasMore => _hasMore;
-
-  StreamSubscription<Map<String, dynamic>>? _messageSubscription;
 
   String selectedFilter = 'All';
-  String? statusValue = 'all';
-  String? dateValue = 'today';
+
+  CreateChatProvider() {
+    getAllConversation();
+  }
 
   void toggleFilter(String value) {
     selectedFilter = value;
     notifyListeners();
   }
 
-  void toggleStatus(String value) {
-    statusValue = value;
-    notifyListeners();
+  Future<Map<String, String>> _buildHeaders() async {
+    final token = await _tokenStorage.getToken();
+    return {
+      'Content-Type': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
   }
 
-  void toggleDate(String value) {
-    dateValue = value;
-    notifyListeners();
-  }
-
-  Future<bool> createConversation(String otherId) async {
+  /// Create or get existing DM conversation.
+  /// The /conversations/dm API returns a flat conversation object directly
+  /// (no {success, data} wrapper).
+  Future<CreateConversationModel?> createConversation(String otherId) async {
     _errorMessage = null;
     _isLoading = true;
     notifyListeners();
 
     try {
-      final ApiResponseModel response = await _apiClient.post(
-        ApiEndpoints.createConversation,
-        body: {"otherUserId": otherId},
+      final headers = await _buildHeaders();
+      final response = await http.post(
+        Uri.parse(ApiEndpoints.createConversation),
+        headers: headers,
+        body: jsonEncode({"otherUserId": otherId}),
       );
 
-      if (response.success) {
-        _createConversationModel = CreateConversationModel.fromJson(
-          response.data,
-        );
-        return true;
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final json = jsonDecode(response.body) as Map<String, dynamic>;
+        _createConversationModel = CreateConversationModel.fromJson(json);
+        return _createConversationModel;
+      } else {
+        final json = jsonDecode(response.body);
+        _errorMessage =
+            json['message']?.toString() ?? 'Failed to create conversation';
+        logger.e("Create conversation failed: ${response.statusCode}");
+        return null;
       }
-
-      _errorMessage = response.message;
-      return false;
     } catch (error) {
       _errorMessage = error.toString();
       logger.e("Create conversation error: $error");
-      return false;
+      return null;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
+  /// Fetch all conversations (DM + Group).
+  /// The /conversations API returns a plain JSON array — no {success, data} wrapper.
   Future<bool> getAllConversation() async {
     _errorMessage = null;
     _isLoading = true;
     notifyListeners();
 
     try {
-      final ApiResponseModel response = await _apiClient.get(
-        ApiEndpoints.allConversationList,
+      final headers = await _buildHeaders();
+      final response = await http.get(
+        Uri.parse('${ApiEndpoints.allConversationList}?take=50&skip=0'),
+        headers: headers,
       );
 
-      if (response.success) {
-        final data = response.data as List;
-        _allConversationModel = data
-            .map((e) => AllConversationModel.fromJson(e))
-            .toList();
-        return true;
-      }
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
 
-      _errorMessage = response.message;
-      return false;
+        if (body is List) {
+          _allConversationModel = body
+              .map((e) =>
+                  AllConversationModel.fromJson(e as Map<String, dynamic>))
+              .toList();
+        } else if (body is Map && body['data'] is List) {
+          // Fallback if API ever wraps in {data: [...]}
+          _allConversationModel = (body['data'] as List)
+              .map((e) =>
+                  AllConversationModel.fromJson(e as Map<String, dynamic>))
+              .toList();
+        }
+        return true;
+      } else {
+        final json = jsonDecode(response.body);
+        _errorMessage =
+            json['message']?.toString() ?? 'Failed to load conversations';
+        logger.e("Get conversations failed: ${response.statusCode}");
+        return false;
+      }
     } catch (error) {
       _errorMessage = error.toString();
       logger.e("Get all conversation error: $error");
@@ -111,12 +128,4 @@ class CreateChatProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
-
-
-  @override
-  void dispose() {
-    _messageSubscription?.cancel();
-    super.dispose();
-  }
 }
-

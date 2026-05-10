@@ -3,145 +3,203 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../cors/routes/route_names.dart';
 import '../../../widgets/secondary_appber.dart';
+import '../model/all_conversation_model.dart';
 
 class GroupProfileScreen extends StatelessWidget {
-  const GroupProfileScreen({super.key});
+  final String conversationId;
+  final String groupName;
+  final String token;
+  final String currentUserId;
+  final List<Memberships> memberships;
+
+  const GroupProfileScreen({
+    super.key,
+    required this.conversationId,
+    required this.groupName,
+    required this.token,
+    required this.currentUserId,
+    this.memberships = const [],
+  });
+
   @override
   Widget build(BuildContext context) {
+    final adminMembers =
+        memberships.where((m) => m.role?.toUpperCase() == 'ADMIN').toList();
+    final memberCount = memberships.length;
+
     return Scaffold(
       backgroundColor: const Color(0xff030D15),
       body: Column(
         children: [
           SecondaryAppBar(title: "Group Profile"),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(height: 12.h),
-                Container(
-                  padding: EdgeInsets.all(20.w),
-                  decoration: BoxDecoration(
-                    color: Color(0xff3D4466),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.groups, color: Colors.white, size: 50),
-                ),
-                SizedBox(height: 10.h),
-                Text(
-                  "1 YP A1-2025",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 5.h),
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 10.w,
-                    vertical: 7.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xff0A1A2A),
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: Text(
-                    "@Create by @cameron_williamson",
-                    style: TextStyle(
-                      color: const Color(0xff5F6CA0),
-                      fontSize: 14.sp,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 20.h),
-                Row(
+          Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    mainSection(title: "Audio", icon: Icons.call, ontap: () {}),
-                    SizedBox(width: 20.w),
-                    mainSection(
-                      title: "Video",
-                      icon: Icons.videocam,
-                      ontap: () {},
+                    SizedBox(height: 12.h),
+                    // Group Avatar
+                    Container(
+                      padding: EdgeInsets.all(20.w),
+                      decoration: const BoxDecoration(
+                        color: Color(0xff3D4466),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.groups,
+                        color: Colors.white,
+                        size: 50,
+                      ),
                     ),
-                    SizedBox(width: 20.w),
-                    mainSection(
-                      title: "Mute",
-                      icon: Icons.notification_important,
-                      ontap: () {},
+                    SizedBox(height: 10.h),
+                    // Group Name
+                    Text(
+                      groupName.isNotEmpty ? groupName : 'Group',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    SizedBox(width: 20.w),
+                    SizedBox(height: 5.h),
+                    // Member count
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10.w,
+                        vertical: 7.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xff0A1A2A),
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      child: Text(
+                        "$memberCount ${memberCount == 1 ? 'member' : 'members'}",
+                        style: TextStyle(
+                          color: const Color(0xff5F6CA0),
+                          fontSize: 14.sp,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 20.h),
+                    // Action buttons row
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _mainSection(
+                          title: "Audio",
+                          icon: Icons.call,
+                          ontap: () {
+                            Navigator.pushNamed(
+                              context,
+                              RouteNames.audioCallScreen,
+                              arguments: {
+                                'conversationId': conversationId,
+                                'callKind': 'AUDIO',
+                                'autoStart': true,
+                                'callerName': groupName,
+                              },
+                            );
+                          },
+                        ),
+                        SizedBox(width: 20.w),
+                        _mainSection(
+                          title: "Video",
+                          icon: Icons.videocam,
+                          ontap: () {
+                            Navigator.pushNamed(
+                              context,
+                              RouteNames.videoCallScreen,
+                              arguments: {
+                                'conversationId': conversationId,
+                                'callKind': 'VIDEO',
+                                'autoStart': true,
+                              },
+                            );
+                          },
+                        ),
+                        SizedBox(width: 20.w),
+                        _mainSection(
+                          title: "Mute",
+                          icon: Icons.notifications_off_outlined,
+                          ontap: () {},
+                        ),
+                        SizedBox(width: 20.w),
+                        _mainSection(
+                          title: "Add",
+                          icon: Icons.person_add,
+                          ontap: () {
+                            Navigator.pushNamed(
+                                context, RouteNames.addGroupMember);
+                          },
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 20.h),
+                    const Divider(thickness: 0.7),
+                    SizedBox(height: 12.h),
 
-                    mainSection(
-                      title: "add",
-                      icon: Icons.person_add,
-                      ontap: () {
-                        Navigator.pushNamed(context, RouteNames.addGroupMember);
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Chat info",
+                        style:
+                            TextStyle(color: const Color(0xffB2B5B8), fontSize: 14.sp),
+                      ),
+                    ),
+                    SizedBox(height: 16.h),
+
+                    // See members
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushNamed(
+                          context,
+                          RouteNames.seeGroupMemberScreen,
+                          arguments: {
+                            'memberships': memberships,
+                            'groupName': groupName,
+                          },
+                        );
                       },
+                      child: Row(
+                        children: [
+                          Icon(Icons.groups, color: const Color(0xff8D9CDC)),
+                          SizedBox(width: 12.w),
+                          Text(
+                            "See members ($memberCount)",
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 20.h),
+
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Action",
+                        style:
+                            TextStyle(color: const Color(0xffB2B5B8), fontSize: 14.sp),
+                      ),
+                    ),
+                    SizedBox(height: 16.h),
+
+                    Column(
+                      children: [
+                        _action(title: "View media & file", icon: Icons.perm_media_sharp),
+                        SizedBox(height: 20.h),
+                        _action(title: "Share contact", icon: Icons.share),
+                        SizedBox(height: 20.h),
+                        _action(title: "Report", icon: Icons.report_problem_outlined),
+                        SizedBox(height: 20.h),
+                        _action(title: "Delete conversation", icon: Icons.delete_outline),
+                        SizedBox(height: 30.h),
+                      ],
                     ),
                   ],
                 ),
-                SizedBox(height: 20),
-
-                Divider(thickness: 0.7),
-                SizedBox(height: 0),
-
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Chat info",
-                    style: TextStyle(color: Color(0xffB2B5B8)),
-                  ),
-                ),
-                SizedBox(height: 20),
-
-                GestureDetector(
-                  onTap: (){
-                    Navigator.pushNamed(context, RouteNames.seeGroupMemberScreen);
-                  },
-                  child: Row(
-                    children: [
-                      Icon(Icons.groups, color: Color(0xff8D9CDC)),
-                      SizedBox(width: 12.w),
-                      Text("See members"),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 20.h),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Action",
-                    style: TextStyle(color: Color(0xffB2B5B8)),
-                  ),
-                ),
-
-                SizedBox(height: 20),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    action(
-                      title: "View media & file",
-                      icon: Icons.perm_media_sharp,
-                    ),
-                    SizedBox(height: 20.h),
-                    action(title: "Share contact", icon: Icons.share),
-                    SizedBox(height: 20.h),
-
-                    action(
-                      title: "Report",
-                      icon: Icons.report_problem_outlined,
-                    ),
-                    SizedBox(height: 20.h),
-
-                    action(
-                      title: "Delete conversations",
-                      icon: Icons.delete_outline,
-                    ),
-                  ],
-                ),
-              ],
+              ),
             ),
           ),
         ],
@@ -149,14 +207,12 @@ class GroupProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget action({required String title, required IconData icon}) {
+  Widget _action({required String title, required IconData icon}) {
     return Row(
       children: [
         Icon(
           icon,
-          color: title == "Delete conversations"
-              ? Colors.red
-              : Color(0xff8D9CDC),
+          color: title.contains('Delete') ? Colors.red : const Color(0xff8D9CDC),
           size: 20.sp,
         ),
         SizedBox(width: 10.w),
@@ -168,7 +224,11 @@ class GroupProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget mainSection({required String title, required IconData icon ,required void Function() ontap}) {
+  Widget _mainSection({
+    required String title,
+    required IconData icon,
+    required VoidCallback ontap,
+  }) {
     return Column(
       children: [
         GestureDetector(
@@ -185,7 +245,7 @@ class GroupProfileScreen extends StatelessWidget {
         SizedBox(height: 5.h),
         Text(
           title,
-          style: TextStyle(color: Colors.white, fontSize: 14.sp),
+          style: TextStyle(color: Colors.white, fontSize: 13.sp),
         ),
       ],
     );
