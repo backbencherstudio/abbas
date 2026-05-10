@@ -12,6 +12,7 @@ class OneToOneChatScreen extends StatefulWidget {
   final String receiverName;
   final String myUserId;
   final String token;
+  final String? avatarUrl;
 
   const OneToOneChatScreen({
     super.key,
@@ -19,6 +20,7 @@ class OneToOneChatScreen extends StatefulWidget {
     required this.receiverName,
     required this.myUserId,
     required this.token,
+    this.avatarUrl,
   });
 
   @override
@@ -29,12 +31,19 @@ class _OneToOneChatScreenState extends State<OneToOneChatScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
+  late RealTimeMessageProvider _chatProvider;
+  bool _didInit = false;
+
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _chatProvider = context.read<RealTimeMessageProvider>();
+    
+    if (_didInit) return;
+    _didInit = true;
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await context.read<RealTimeMessageProvider>().initChat(
+      await _chatProvider.initChat(
         widget.token,
         widget.conversationId,
         widget.myUserId,
@@ -71,7 +80,7 @@ class _OneToOneChatScreenState extends State<OneToOneChatScreen> {
     _controller.dispose();
     _scrollController.removeListener(_handleScroll);
     _scrollController.dispose();
-    context.read<RealTimeMessageProvider>().disposeResources();
+    _chatProvider.disposeResources();
     super.dispose();
   }
 
@@ -161,7 +170,21 @@ class _OneToOneChatScreenState extends State<OneToOneChatScreen> {
 
           SizedBox(width: 16.w),
 
-          Icon(Icons.info, size: 20.sp, color: Color(0xff8D9CDC)),
+          GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(
+                context,
+                RouteNames.userProfileScreen,
+                arguments: {
+                  'conversationId': widget.conversationId,
+                  'receiverName': widget.receiverName,
+                  'avatarUrl': widget.avatarUrl ?? '',
+                },
+              );
+            },
+            child: Icon(Icons.info, size: 20.sp, color: const Color(0xff8D9CDC)),
+          ),
+          SizedBox(width: 16.w),
         ],
       ),
       body: Column(
@@ -292,48 +315,75 @@ class _OneToOneChatScreenState extends State<OneToOneChatScreen> {
       child: SafeArea(
         child: Row(
           children: [
+            // Plus Icon
+            Container(
+              height: 28.h,
+              width: 28.h,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xff5C6580), width: 1.5),
+              ),
+              child: const Icon(Icons.add, color: Color(0xff5C6580), size: 20),
+            ),
+            SizedBox(width: 12.w),
+            // Gallery Icon
+            const Icon(Icons.image_outlined, color: Color(0xff5C6580), size: 28),
+            SizedBox(width: 12.w),
+            // Text Field
             Expanded(
-              child: TextField(
-                controller: _controller,
-                maxLines: null,
-                style: const TextStyle(color: Colors.white),
-                textCapitalization: TextCapitalization.sentences,
-                onChanged: (val) {
-                  context.read<RealTimeMessageProvider>().updateTyping(
-                    val.trim().isNotEmpty,
-                  );
-                },
-                decoration: InputDecoration(
-                  hintText: 'Type a message...',
-                  hintStyle: const TextStyle(color: Colors.white54),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  fillColor: const Color(0xff0A1A2A),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
+              child: Container(
+                height: 48.h,
+                decoration: BoxDecoration(
+                  color: const Color(0xff152033),
+                  borderRadius: BorderRadius.circular(24.r),
+                ),
+                child: Row(
+                  children: [
+                    SizedBox(width: 16.w),
+                    Expanded(
+                      child: TextField(
+                        controller: _controller,
+                        maxLines: null,
+                        style: const TextStyle(color: Colors.white, fontSize: 14),
+                        textCapitalization: TextCapitalization.sentences,
+                        onChanged: (val) {
+                          context.read<RealTimeMessageProvider>().updateTyping(
+                            val.trim().isNotEmpty,
+                          );
+                          setState(() {}); // to toggle mic/send icon
+                        },
+                        decoration: InputDecoration(
+                          hintText: 'Type message...',
+                          hintStyle: TextStyle(color: const Color(0xff5C6580), fontSize: 14.sp),
+                          border: InputBorder.none,
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ),
+                    Icon(Icons.sentiment_satisfied_alt, color: const Color(0xff5C6580), size: 24.sp),
+                    SizedBox(width: 12.w),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(width: 8),
-            CircleAvatar(
-              backgroundColor: const Color(0xffE9201D),
-              radius: 24,
-              child: IconButton(
-                icon: const Icon(Icons.send, color: Colors.white, size: 24),
-                onPressed: () {
-                  final text = _controller.text.trim();
-                  if (text.isEmpty) return;
+            SizedBox(width: 12.w),
+            // Mic or Send Icon
+            GestureDetector(
+              onTap: () {
+                final text = _controller.text.trim();
+                if (text.isEmpty) return;
 
-                  context.read<RealTimeMessageProvider>().sendTextMessage(text);
-                  _controller.clear();
-                  context.read<RealTimeMessageProvider>().updateTyping(false);
-                  _scrollToBottom();
-                },
+                context.read<RealTimeMessageProvider>().sendTextMessage(text);
+                _controller.clear();
+                context.read<RealTimeMessageProvider>().updateTyping(false);
+                setState(() {});
+                _scrollToBottom();
+              },
+              child: Icon(
+                _controller.text.trim().isEmpty ? Icons.mic_none : Icons.send,
+                color: const Color(0xff5C6580),
+                size: 28,
               ),
             ),
           ],

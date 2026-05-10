@@ -343,6 +343,32 @@ class GroupChatProvider extends ChangeNotifier {
     });
   }
 
+  Future<bool> clearConversation() async {
+    final token = _token;
+    final conversationId = _conversationId;
+    if (token == null || conversationId == null) return false;
+
+    try {
+      final response = await http.post(
+        Uri.parse(ApiEndpoints.clearConversation(conversationId)),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        messages.clear();
+        notifyListeners();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Group clearConversation error: $e');
+      return false;
+    }
+  }
+
   void disposeResources() {
     _typingDebounce?.cancel();
     _socketService.offNewMessage();

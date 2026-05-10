@@ -28,10 +28,12 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   bool _didInit = false;
+  late GroupChatProvider _groupChatProvider;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _groupChatProvider = context.read<GroupChatProvider>();
 
     if (_didInit) return;
     _didInit = true;
@@ -84,7 +86,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     _messageController.dispose();
     _scrollController.removeListener(_handleScroll);
     _scrollController.dispose();
-    context.read<GroupChatProvider>().disposeResources();
+    _groupChatProvider.disposeResources();
     super.dispose();
   }
 
@@ -344,51 +346,81 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
 
   Widget _messageInput() {
     return Padding(
-      padding: EdgeInsets.all(12.w),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextFormField(
-              controller: _messageController,
-              style: const TextStyle(color: Colors.white),
-              onChanged: (value) {
-                context.read<GroupChatProvider>().updateTyping(
-                  value.trim().isNotEmpty,
-                );
-              },
-              decoration: InputDecoration(
-                hintText: 'Type message...',
-                hintStyle: const TextStyle(color: Colors.white54),
-                filled: true,
-                fillColor: const Color(0xff0A1A2A),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30.r),
-                  borderSide: BorderSide.none,
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+      child: SafeArea(
+        child: Row(
+          children: [
+            // Plus Icon
+            Container(
+              height: 28.h,
+              width: 28.h,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xff5C6580), width: 1.5),
+              ),
+              child: const Icon(Icons.add, color: Color(0xff5C6580), size: 20),
+            ),
+            SizedBox(width: 12.w),
+            // Gallery Icon
+            const Icon(Icons.image_outlined, color: Color(0xff5C6580), size: 28),
+            SizedBox(width: 12.w),
+            // Text Field
+            Expanded(
+              child: Container(
+                height: 48.h,
+                decoration: BoxDecoration(
+                  color: const Color(0xff152033),
+                  borderRadius: BorderRadius.circular(24.r),
+                ),
+                child: Row(
+                  children: [
+                    SizedBox(width: 16.w),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _messageController,
+                        style: const TextStyle(color: Colors.white, fontSize: 14),
+                        onChanged: (value) {
+                          context.read<GroupChatProvider>().updateTyping(
+                            value.trim().isNotEmpty,
+                          );
+                          setState(() {});
+                        },
+                        decoration: InputDecoration(
+                          hintText: 'Type message...',
+                          hintStyle: TextStyle(color: const Color(0xff5C6580), fontSize: 14.sp),
+                          border: InputBorder.none,
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                    ),
+                    Icon(Icons.sentiment_satisfied_alt, color: const Color(0xff5C6580), size: 24.sp),
+                    SizedBox(width: 12.w),
+                  ],
                 ),
               ),
             ),
-          ),
-          SizedBox(width: 10.w),
-          GestureDetector(
-            onTap: () {
-              final text = _messageController.text.trim();
-              if (text.isEmpty) return;
+            SizedBox(width: 12.w),
+            // Mic or Send Icon
+            GestureDetector(
+              onTap: () {
+                final text = _messageController.text.trim();
+                if (text.isEmpty) return;
 
-              context.read<GroupChatProvider>().sendTextMessage(text);
-              _messageController.clear();
-              context.read<GroupChatProvider>().updateTyping(false);
-              _scrollToBottom();
-            },
-            child: Container(
-              padding: EdgeInsets.all(10.w),
-              decoration: const BoxDecoration(
-                color: Color(0xffE9201D),
-                shape: BoxShape.circle,
+                context.read<GroupChatProvider>().sendTextMessage(text);
+                _messageController.clear();
+                context.read<GroupChatProvider>().updateTyping(false);
+                setState(() {});
+                _scrollToBottom();
+              },
+              child: Icon(
+                _messageController.text.trim().isEmpty ? Icons.mic_none : Icons.send,
+                color: const Color(0xff5C6580),
+                size: 28,
               ),
-              child: const Icon(Icons.send, color: Colors.white),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

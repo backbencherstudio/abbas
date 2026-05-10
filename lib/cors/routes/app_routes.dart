@@ -253,7 +253,14 @@ class AppRoutes {
       );
     },
 
-    RouteNames.userProfileScreen: (context) => UserProfileScreen(),
+    RouteNames.userProfileScreen: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
+      return UserProfileScreen(
+        conversationId: (args['conversationId'] ?? '').toString(),
+        receiverName: (args['receiverName'] ?? 'User').toString(),
+        avatarUrl: (args['avatarUrl'] ?? '').toString(),
+      );
+    },
     RouteNames.groupProfileScreen: (context) {
       final args =
           ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
@@ -274,6 +281,9 @@ class AppRoutes {
       return SeeGroupMemberScreen(
         memberships: (args['memberships'] as List?)?.cast() ?? [],
         groupName: (args['groupName'] ?? 'Group').toString(),
+        token: (args['token'] ?? '').toString(),
+        conversationId: (args['conversationId'] ?? '').toString(),
+        currentUserId: (args['currentUserId'] ?? '').toString(),
       );
     },
     RouteNames.eventDetails: (context) {

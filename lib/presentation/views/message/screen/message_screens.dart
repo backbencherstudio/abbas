@@ -95,24 +95,29 @@ class _MessageScreensState extends State<MessageScreens> {
                   color: Colors.white,
                   size: 24.sp,
                 ),
-                fillColor: const Color(0xff030D15),
-                hintText: "Search message...",
+                suffixIcon: Icon(
+                  Icons.tune,
+                  color: Colors.white,
+                  size: 24.sp,
+                ),
+                fillColor: Colors.transparent,
+                hintText: "Search messages...",
                 hintStyle: TextStyle(
-                  color: const Color(0xff3D4566),
+                  color: const Color(0xff5C6580),
                   fontSize: 16.sp,
                   fontWeight: FontWeight.w400,
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(100.r),
-                  borderSide: const BorderSide(color: Color(0xff3D4566)),
+                  borderSide: const BorderSide(color: Color(0xff1F283D)),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(100.r),
-                  borderSide: const BorderSide(color: Color(0xff3D4566)),
+                  borderSide: const BorderSide(color: Color(0xff1F283D)),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(100.r),
-                  borderSide: const BorderSide(color: Colors.white),
+                  borderSide: const BorderSide(color: Color(0xff3D4566)),
                 ),
               ),
             ),
@@ -125,12 +130,22 @@ class _MessageScreensState extends State<MessageScreens> {
             child: ListView(
               scrollDirection: Axis.horizontal,
               padding: EdgeInsets.symmetric(horizontal: 10.w),
-              children: ['All', 'Group', 'DM'].map((filter) {
-                final isSelected = provider.selectedFilter == filter;
+              children: ['All', 'Groups', 'Teacher', 'Admin'].map((filter) {
+                final mappedFilter = filter == 'Groups' ? 'Group' : filter;
+                final isSelected = provider.selectedFilter == mappedFilter || (provider.selectedFilter == 'All' && filter == 'All');
                 return Padding(
                   padding: EdgeInsets.symmetric(horizontal: 6.w),
                   child: GestureDetector(
-                    onTap: () => provider.toggleFilter(filter),
+                    onTap: () {
+                        if (filter == 'Groups') {
+                            provider.toggleFilter('Group');
+                        } else if (filter == 'All') {
+                            provider.toggleFilter('All');
+                        } else {
+                            // Mocking Teacher/Admin filter selection for UI
+                            provider.toggleFilter(filter);
+                        }
+                    },
                     child: Container(
                       padding: EdgeInsets.symmetric(
                         horizontal: 20.w,

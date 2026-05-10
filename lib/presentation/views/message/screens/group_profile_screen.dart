@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../cors/routes/route_names.dart';
+import '../../../../cors/constants/api_endpoints.dart';
+import 'package:http/http.dart' as http;
 import '../../../widgets/secondary_appber.dart';
 import '../model/all_conversation_model.dart';
 
@@ -23,8 +25,6 @@ class GroupProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final adminMembers =
-        memberships.where((m) => m.role?.toUpperCase() == 'ADMIN').toList();
     final memberCount = memberships.length;
 
     return Scaffold(
@@ -159,6 +159,9 @@ class GroupProfileScreen extends StatelessWidget {
                           arguments: {
                             'memberships': memberships,
                             'groupName': groupName,
+                            'token': token,
+                            'conversationId': conversationId,
+                            'currentUserId': currentUserId,
                           },
                         );
                       },
@@ -187,13 +190,108 @@ class GroupProfileScreen extends StatelessWidget {
 
                     Column(
                       children: [
-                        _action(title: "View media & file", icon: Icons.perm_media_sharp),
+                        _action(title: "View media & file", icon: Icons.perm_media_sharp, onTap: () {}),
                         SizedBox(height: 20.h),
-                        _action(title: "Share contact", icon: Icons.share),
+                        _action(title: "Share contact", icon: Icons.share, onTap: () {}),
                         SizedBox(height: 20.h),
-                        _action(title: "Report", icon: Icons.report_problem_outlined),
+                        _action(title: "Report", icon: Icons.report_problem_outlined, onTap: () {}),
                         SizedBox(height: 20.h),
-                        _action(title: "Delete conversation", icon: Icons.delete_outline),
+                        _action(
+                          title: "Delete conversation",
+                          icon: Icons.delete_outline,
+                          onTap: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (c) => AlertDialog(
+                                backgroundColor: const Color(0xff152033),
+                                title: const Text('Delete Conversation', style: TextStyle(color: Colors.white)),
+                                content: const Text('Are you sure you want to delete this conversation?', style: TextStyle(color: Colors.white70)),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(c, false),
+                                    child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(c, true),
+                                    child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                                  ),
+                                ],
+                              ),
+                            );
+
+                            if (confirm == true) {
+                              try {
+                                final res = await http.post(
+                                  Uri.parse(ApiEndpoints.clearConversation(conversationId)),
+                                  headers: {
+                                    'Authorization': 'Bearer $token',
+                                    'Content-Type': 'application/json',
+                                  },
+                                );
+                                if (res.statusCode == 200 || res.statusCode == 201) {
+                                  if (context.mounted) {
+                                    Navigator.popUntil(context, (route) => route.isFirst);
+                                  }
+                                } else {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to delete conversation')));
+                                  }
+                                }
+                              } catch (e) {
+                                debugPrint("Clear error: $e");
+                              }
+                            }
+                          },
+                        ),
+                        SizedBox(height: 20.h),
+                        _action(
+                          title: "Leave group",
+                          icon: Icons.logout,
+                          onTap: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (c) => AlertDialog(
+                                backgroundColor: const Color(0xff152033),
+                                title: const Text('Leave Group', style: TextStyle(color: Colors.white)),
+                                content: const Text('Are you sure you want to leave this group?', style: TextStyle(color: Colors.white70)),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(c, false),
+                                    child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(c, true),
+                                    child: const Text('Leave', style: TextStyle(color: Colors.red)),
+                                  ),
+                                ],
+                              ),
+                            );
+
+                            if (confirm == true) {
+                              try {
+                                // Assume DELETE or POST for remove. We use DELETE since it's common.
+                                final res = await http.delete(
+                                  Uri.parse(ApiEndpoints.removeMember(conversationId, currentUserId)),
+                                  headers: {
+                                    'Authorization': 'Bearer $token',
+                                    'Content-Type': 'application/json',
+                                  },
+                                );
+                                if (res.statusCode == 200 || res.statusCode == 201) {
+                                  if (context.mounted) {
+                                    Navigator.popUntil(context, (route) => route.isFirst);
+                                  }
+                                } else {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to leave group')));
+                                  }
+                                }
+                              } catch (e) {
+                                debugPrint("Leave error: $e");
+                              }
+                            }
+                          },
+                        ),
                         SizedBox(height: 30.h),
                       ],
                     ),
@@ -207,20 +305,23 @@ class GroupProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _action({required String title, required IconData icon}) {
-    return Row(
-      children: [
-        Icon(
-          icon,
-          color: title.contains('Delete') ? Colors.red : const Color(0xff8D9CDC),
-          size: 20.sp,
-        ),
-        SizedBox(width: 10.w),
-        Text(
-          title,
-          style: TextStyle(color: Colors.white, fontSize: 14.sp),
-        ),
-      ],
+  Widget _action({required String title, required IconData icon, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: (title.contains('Delete') || title.contains('Leave') || title.contains('Report')) ? Colors.red : const Color(0xff8D9CDC),
+            size: 20.sp,
+          ),
+          SizedBox(width: 10.w),
+          Text(
+            title,
+            style: TextStyle(color: Colors.white, fontSize: 14.sp),
+          ),
+        ],
+      ),
     );
   }
 
