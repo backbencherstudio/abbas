@@ -95,11 +95,11 @@ class _MessageScreensState extends State<MessageScreens> {
                   color: Colors.white,
                   size: 24.sp,
                 ),
-                suffixIcon: Icon(
-                  Icons.tune,
-                  color: Colors.white,
-                  size: 24.sp,
-                ),
+                // suffixIcon: Icon(
+                //   Icons.tune,
+                //   color: Colors.white,
+                //   size: 24.sp,
+                // ),
                 fillColor: Colors.transparent,
                 hintText: "Search messages...",
                 hintStyle: TextStyle(

@@ -170,54 +170,53 @@ class _NewMessageScreensState extends State<NewMessageScreens> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            SizedBox(height: 16.h),
-                            Text(
-                              isSearching ? "Results" : "Suggested",
-                              style: const TextStyle(
-                                color: Color(0xffB2B5B8),
-                                fontSize: 14,
-                              ),
-                            ),
-                            if (!isSearching) ...[
-                              SizedBox(height: 16.h),
-                              SizedBox(
-                                height: 38.h,
-                                child: ListView(
-                                  scrollDirection: Axis.horizontal,
-                                  children: ['Students', 'Teachers', 'Admin'].map((filter) {
-                                    final isSelected = filter == 'Students';
-                                    return Padding(
-                                      padding: EdgeInsets.only(right: 12.w),
-                                      child: Container(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 20.w,
-                                          vertical: 8.h,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                            color: const Color(0xff1F283D),
-                                            width: 1.w,
-                                          ),
-                                          borderRadius: BorderRadius.circular(50.r),
-                                          color: isSelected
-                                              ? const Color(0xff3D4566)
-                                              : Colors.transparent,
-                                        ),
-                                        child: Text(
-                                          filter,
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 14.sp,
-                                            fontWeight: FontWeight.w400,
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
-                                ),
-                              ),
-                            ],
-                            SizedBox(height: 20.h),
+                            // SizedBox(height: 16.h),
+                            // Text(
+                            //   isSearching ? "Results" : "Suggested",
+                            //   style: const TextStyle(
+                            //     color: Color(0xffB2B5B8),
+                            //     fontSize: 14,
+                            //   ),
+                            // ),
+                            // if (!isSearching) ...[
+                            //   SizedBox(height: 16.h),
+                            //   SizedBox(
+                            //     height: 38.h,
+                            //     child: ListView(
+                            //       scrollDirection: Axis.horizontal,
+                            //       children: ['Students', 'Teachers', 'Admin'].map((filter) {
+                            //         final isSelected = filter == 'Students';
+                            //         return Padding(
+                            //           padding: EdgeInsets.only(right: 12.w),
+                            //           child: Container(
+                            //             padding: EdgeInsets.symmetric(
+                            //               horizontal: 20.w,
+                            //               vertical: 8.h,
+                            //             ),
+                            //             decoration: BoxDecoration(
+                            //               border: Border.all(
+                            //                 color: const Color(0xff1F283D),
+                            //                 width: 1.w,
+                            //               ),
+                            //               borderRadius: BorderRadius.circular(50.r),
+                            //               color: isSelected
+                            //                   ? const Color(0xff3D4566)
+                            //                   : Colors.transparent,
+                            //             ),
+                            //             child: Text(
+                            //               filter,
+                            //               style: TextStyle(
+                            //                 color: Colors.white,
+                            //                 fontSize: 14.sp,
+                            //                 fontWeight: FontWeight.w400,
+                            //               ),
+                            //             ),
+                            //           ),
+                            //         );
+                            //       }).toList(),
+                            //     ),
+                            //   ),
+                            // ],
                             if (isSearching && results.isEmpty)
                               const Center(
                                 child: Text(
@@ -228,6 +227,7 @@ class _NewMessageScreensState extends State<NewMessageScreens> {
                             else
                               Expanded(
                                 child: ListView.builder(
+                                  padding: EdgeInsets.only(top: 5),
                                   itemCount: results.length,
                                   itemBuilder: (context, index) {
                                     final user = results[index];
@@ -253,6 +253,7 @@ class _NewMessageScreensState extends State<NewMessageScreens> {
     return Consumer<CreateChatProvider>(
       builder: (context, chatProvider, _) {
         return GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTap: chatProvider.isLoading
               ? null
               : () => _startDm(context, user),
