@@ -83,8 +83,8 @@ class _EditPersonalInfoScreenState extends State<EditPersonalInfoScreen> {
           }
         }
 
-        _experienceController.text = profile.data?.experienceLevel ?? "";
-        goalController.text = profile.data?.actingGoals?.actingGoals ?? "";
+        _experienceController.text = profile.data?.experience ?? "";
+        goalController.text = profile.data?.about ?? "";
       }
 
       setState(() {});

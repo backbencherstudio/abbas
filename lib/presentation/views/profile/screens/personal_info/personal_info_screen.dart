@@ -31,8 +31,8 @@ class PersonalInfoScreen extends StatelessWidget {
           final email = profile?.email ?? "N/A";
           final phone = profile?.phoneNumber ?? "N/A";
           final birthdate = profile?.dateOfBirth;
-          final level = profile?.experienceLevel ?? "N/A";
-          final goals = profile?.actingGoals?.actingGoals ?? "N/A";
+          final level = profile?.experience ?? "N/A";
+          final goals = profile?.about ?? "N/A";
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,

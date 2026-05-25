@@ -1,0 +1,14 @@
+Analyzing 3 items...                                            
+
+   info • The imported package 'http' isn't a dependency of the importing package • lib/presentation/views/message/screens/group_profile_screen.dart:6:8 • depend_on_referenced_packages
+warning • The value of the local variable 'adminMembers' isn't used • lib/presentation/views/message/screens/group_profile_screen.dart:28:11 • unused_local_variable
+  error • The getter 'messageScreens' isn't defined for the type 'RouteNames' • lib/presentation/views/message/screens/group_profile_screen.dart:235:96 • undefined_getter
+  error • The getter 'messageScreens' isn't defined for the type 'RouteNames' • lib/presentation/views/message/screens/group_profile_screen.dart:284:96 • undefined_getter
+   info • Unnecessary use of multiple underscores • lib/presentation/views/message/screens/one_two_one_chat_screen.dart:105:38 • unnecessary_underscores
+  error • The getter 'avatarUrl' isn't defined for the type 'OneToOneChatScreen' • lib/presentation/views/message/screens/one_two_one_chat_screen.dart:179:39 • undefined_getter
+   info • The imported package 'http' isn't a dependency of the importing package • lib/presentation/views/message/screens/see_group_member_screen.dart:3:8 • depend_on_referenced_packages
+  error • The named parameter 'id' isn't defined • lib/presentation/views/message/screens/see_group_member_screen.dart:85:15 • undefined_named_parameter
+  error • The getter 'id' isn't defined for the type 'Memberships' • lib/presentation/views/message/screens/see_group_member_screen.dart:85:23 • undefined_getter
+  error • The named parameter 'joinedAt' isn't defined • lib/presentation/views/message/screens/see_group_member_screen.dart:88:15 • undefined_named_parameter
+  error • The getter 'joinedAt' isn't defined for the type 'Memberships' • lib/presentation/views/message/screens/see_group_member_screen.dart:88:29 • undefined_getter
+

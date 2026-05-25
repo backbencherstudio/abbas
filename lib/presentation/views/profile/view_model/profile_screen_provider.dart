@@ -173,10 +173,10 @@ class ProfileScreenProvider extends ChangeNotifier {
           "name": name,
           "phone_number": phone,
           "date_of_birth": dob,
-          'experience_level': experienceLevel,
-          "ActingGoals": goal,
+          'experience': experienceLevel,
+          "about": goal,
         },
-        fileField: "image",
+        fileField: "avatar",
         filePath: imagePath ?? "",
       );
 

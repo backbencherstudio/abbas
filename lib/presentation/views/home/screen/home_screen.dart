@@ -6,9 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../../../cors/routes/route_names.dart';
 import '../../../../cors/theme/app_colors.dart';
 import '../../../widgets/custom_appbar.dart';
+import 'package:abbas/presentation/views/profile/view_model/profile_screen_provider.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -97,16 +99,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     final homeDataWatch = ref.watch(getHomeDataProvider);
     final homeData = homeDataWatch.value;
-    final userProfileValues = homeData?.userProfile;
     final upComingClassesValues = homeData?.upcomingClasses;
     final upComingAssignmentsValues = homeData?.upcomingAssignments;
     final upComingEventsValues = homeData?.upcomingEvents;
+    
+    final profileProvider = context.watch<ProfileScreenProvider>();
+    final userName = profileProvider.profile?.data?.name ?? 'N/A';
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Column(
         children: [
           CustomAppbar(
-            title: userProfileValues?.name ?? 'N/A',
+            title: userName,
             subtitle: "Welcome back!",
           ),
 
@@ -452,17 +457,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   onPressed: () async {
                                     await ref
                                         .read(
-                                      getAssignmentDetailsProvider.notifier,
-                                    )
+                                          getAssignmentDetailsProvider.notifier,
+                                        )
                                         .getAssignmentDetails(
-                                      assignmentId:
-                                      upComingAssignmentsValues?.id ?? "",
-                                    );
+                                          assignmentId:
+                                              upComingAssignmentsValues?.id ??
+                                              "",
+                                        );
                                     if (context.mounted) {
                                       Navigator.pushNamed(
                                         context,
                                         RouteNames.dueAssignmentScreen,
-                                        arguments: upComingAssignmentsValues?.id,
+                                        arguments:
+                                            upComingAssignmentsValues?.id,
                                       );
                                     }
                                   },

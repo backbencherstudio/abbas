@@ -1,7 +1,10 @@
 class ApiEndpoints {
   ApiEndpoints._();
 
-  static const String baseUrl = 'http://192.168.7.12:4000';
+  static const String baseUrl =
+      // 'http://192.168.7.12:4000';
+      'http://192.168.7.12:7777';
+
   static const String register = '$baseUrl/api/auth/register';
   static const String login = '$baseUrl/api/auth/login';
   static const String refreshToken = '$baseUrl/api/auth/refresh-token';
@@ -26,7 +29,7 @@ class ApiEndpoints {
   static const String deleteAccount = '$baseUrl/api/profile/delete-account';
 
   /// -------------------- Home ------------------------------------------------
-  static const String getHomeData = '$baseUrl/api/home';
+  static const String getHomeData = '$baseUrl/api/overview';
   static const String scanQrCode = '$baseUrl/api/attendance/scan-qr';
 
   /// ------------------- Courses ----------------------------------------------

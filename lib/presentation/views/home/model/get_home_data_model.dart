@@ -1,61 +1,37 @@
 class GetHomeDataModel {
-  UserProfile? userProfile;
   UpcomingClasses? upcomingClasses;
   UpcomingAssignments? upcomingAssignments;
   UpcomingEvents? upcomingEvents;
 
   GetHomeDataModel({
-    this.userProfile,
     this.upcomingClasses,
     this.upcomingAssignments,
     this.upcomingEvents,
   });
 
   GetHomeDataModel.fromJson(Map<String, dynamic> json) {
-    userProfile = json['userProfile'] != null
-        ? UserProfile.fromJson(json['userProfile'])
+    upcomingClasses = json['upcoming_classes'] != null
+        ? UpcomingClasses.fromJson(json['upcoming_classes'])
         : null;
-    upcomingClasses = json['upcomingClasses'] != null
-        ? UpcomingClasses.fromJson(json['upcomingClasses'])
+    upcomingAssignments = json['upcoming_assignments'] != null
+        ? UpcomingAssignments.fromJson(json['upcoming_assignments'])
         : null;
-    upcomingAssignments = json['upcomingAssignments'] != null
-        ? UpcomingAssignments.fromJson(json['upcomingAssignments'])
-        : null;
-    upcomingEvents = json['upcomingEvents'] != null
-        ? UpcomingEvents.fromJson(json['upcomingEvents'])
+    upcomingEvents = json['upcoming_events'] != null
+        ? UpcomingEvents.fromJson(json['upcoming_events'])
         : null;
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = {};
-    if (userProfile != null) {
-      data['userProfile'] = userProfile!.toJson();
-    }
     if (upcomingClasses != null) {
-      data['upcomingClasses'] = upcomingClasses!.toJson();
+      data['upcoming_classes'] = upcomingClasses!.toJson();
     }
     if (upcomingAssignments != null) {
-      data['upcomingAssignments'] = upcomingAssignments!.toJson();
+      data['upcoming_assignments'] = upcomingAssignments!.toJson();
     }
     if (upcomingEvents != null) {
-      data['upcomingEvents'] = upcomingEvents!.toJson();
+      data['upcoming_events'] = upcomingEvents!.toJson();
     }
-    return data;
-  }
-}
-
-class UserProfile {
-  String? name;
-
-  UserProfile({this.name});
-
-  UserProfile.fromJson(Map<String, dynamic> json) {
-    name = json['name'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['name'] = name;
     return data;
   }
 }
