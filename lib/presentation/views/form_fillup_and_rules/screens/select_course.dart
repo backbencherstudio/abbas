@@ -42,9 +42,14 @@ class _SelectCourseState extends ConsumerState<SelectCourse> {
         error: (error, stack) =>
             Center(child: Text('Error : Connection TimeOut. Please try again')),
         data: (data) {
-          final course = data;
-          if (course == null) {
-            return const Center(child: Text('No data available'));
+          final courses = data?.data ?? [];
+          if (courses.isEmpty) {
+            return Center(
+              child: Text(
+                'No courses available',
+                style: TextStyle(color: Colors.white70, fontSize: 16.sp),
+              ),
+            );
           }
           return Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.w),
@@ -65,9 +70,10 @@ class _SelectCourseState extends ConsumerState<SelectCourse> {
                 Expanded(
                   child: ListView.builder(
                     padding: EdgeInsets.zero,
-                    itemCount: data?.data?.length,
+                    itemCount: courses.length,
                     itemBuilder: (BuildContext context, int index) {
-                      final value = data?.data?[index];
+                      final course = courses[index];
+                      final isEnrolled = course.isEnrolled == true;
                       return Card(
                         margin: EdgeInsets.symmetric(vertical: 10.h),
                         color: const Color(0xFF0A1A29),
@@ -84,23 +90,54 @@ class _SelectCourseState extends ConsumerState<SelectCourse> {
                             vertical: 8.h,
                           ),
                           title: Text(
-                            value?.title ?? "N/A",
+                            course.title ?? 'N/A',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 18.sp,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
-                          trailing: Icon(
-                            Icons.arrow_forward_ios,
-                            color: Colors.white,
-                            size: 18.sp,
+                          subtitle: course.infoLine.isNotEmpty
+                              ? Padding(
+                                  padding: EdgeInsets.only(top: 4.h),
+                                  child: Text(
+                                    course.infoLine,
+                                    style: TextStyle(
+                                      color: const Color(0xFFD2D2D5),
+                                      fontSize: 12.sp,
+                                    ),
+                                  ),
+                                )
+                              : null,
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (isEnrolled)
+                                Padding(
+                                  padding: EdgeInsets.only(right: 8.w),
+                                  child: Text(
+                                    'Enrolled',
+                                    style: TextStyle(
+                                      color: Colors.white54,
+                                      fontSize: 12.sp,
+                                    ),
+                                  ),
+                                ),
+                              Icon(
+                                Icons.arrow_forward_ios,
+                                color: Colors.white,
+                                size: 18.sp,
+                              ),
+                            ],
                           ),
                           onTap: () {
                             Navigator.pushNamed(
                               context,
-                              RouteNames.fillEnrollmentForm,
-                              arguments: value?.id,
+                              RouteNames.otherCourseScreen,
+                              arguments: {
+                                'courseId': course.id,
+                                'fromEnrollment': true,
+                              },
                             );
                           },
                         ),

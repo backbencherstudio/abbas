@@ -92,12 +92,14 @@ class GetAllCoursesProvider
         return;
       }
 
-      if (res['success']) {
-        logger.d("${res['success']}");
-        final model = GetAllCoursesModel.fromJson(res);
+      if (res['success'] == true) {
+        final model = GetAllCoursesModel.fromJson(
+          Map<String, dynamic>.from(res as Map),
+        );
         state = AsyncValue.data(model);
       } else {
-        state = AsyncValue.error('Failed to load course ', StackTrace.current);
+        final message = res is Map ? (res['message'] ?? 'Failed to load courses') : 'Failed to load courses';
+        state = AsyncValue.error(message, StackTrace.current);
       }
     } catch (e, stackTrace) {
       logger.e("Load Data Error : $e");

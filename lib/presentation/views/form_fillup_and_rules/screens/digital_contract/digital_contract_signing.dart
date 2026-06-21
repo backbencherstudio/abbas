@@ -10,9 +10,14 @@ import '../../../../../cors/routes/route_names.dart';
 import '../../../../widgets/primary_button.dart';
 
 class DigitalContractSigning extends ConsumerStatefulWidget {
+  final String courseId;
   final String enrollmentId;
 
-  const DigitalContractSigning({super.key, required this.enrollmentId});
+  const DigitalContractSigning({
+    super.key,
+    required this.courseId,
+    required this.enrollmentId,
+  });
 
   @override
   ConsumerState<DigitalContractSigning> createState() =>
@@ -52,9 +57,8 @@ class _DigitalContractSigningState
   }
 
   /// ------------------------ Convert to ISO ----------------------------------
-  String convertToIso(String date) {
-    final parseDate = DateTime.parse(date);
-    return parseDate.toUtc().toIso8601String();
+  String formatSignatureDate(String date) {
+    return date.trim();
   }
 
   @override
@@ -259,14 +263,13 @@ class _DigitalContractSigningState
                     final result = await ref
                         .read(acceptContractTermsProvider.notifier)
                         .acceptContractTerms(
-                          accepted: ref.watch(acknowledgeProvider),
-                          fullName: _fullNameController.text.trim(),
-                          digitalSignature: _digitalSignatureController.text
-                              .trim(),
-                          digitalSignatureDate: convertToIso(
+                          courseId: widget.courseId,
+                          termsAccepted: ref.watch(acknowledgeProvider),
+                          signatureFullName: _fullNameController.text.trim(),
+                          signature: _digitalSignatureController.text.trim(),
+                          signatureDate: formatSignatureDate(
                             _dateController.text,
                           ),
-                          enrollmentId: widget.enrollmentId,
                         );
 
                     if (result.success) {

@@ -1,14 +1,13 @@
 import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:abbas/cors/theme/app_colors.dart';
 import 'package:abbas/cors/utils/app_utils.dart';
-import 'package:abbas/presentation/views/form_fillup_and_rules/model/enroll_personal_info_model.dart';
+import 'package:abbas/presentation/views/form_fillup_and_rules/utils/enrollment_navigator.dart';
 import 'package:abbas/presentation/views/form_fillup_and_rules/view_model/form_fill_and_rules_provider.dart';
 import 'package:abbas/presentation/widgets/animated_loading.dart';
 import 'package:abbas/presentation/widgets/validator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../../../cors/routes/route_names.dart';
 import '../../../../course_screen/view_model/get_all_courses_provider.dart';
 
 class FillEnrollmentForm extends ConsumerStatefulWidget {
@@ -28,15 +27,13 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _dateController = TextEditingController();
+  final TextEditingController _experienceController = TextEditingController();
   final TextEditingController _goalsController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   bool _isLoading = false;
-  bool _isCheckingStep = false; // Add this flag
+  bool _isCheckingStep = false;
   bool _isTextFieldFocused = false;
-
-  /// GlobalKey for the experience field to get its position
-  final GlobalKey _experienceFieldKey = GlobalKey();
 
   /// -------------------------------  FocusNodes ------------------------------
   final FocusNode _selectCourseFocus = FocusNode();
@@ -45,10 +42,8 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
   final FocusNode _phoneFocus = FocusNode();
   final FocusNode _addressFocus = FocusNode();
   final FocusNode _dobFocus = FocusNode();
+  final FocusNode _experienceFocus = FocusNode();
   final FocusNode _goalsFocus = FocusNode();
-
-  /// ----------------- Enroll Personal Info Model -----------------------------
-  Data? data;
 
   @override
   void initState() {
@@ -67,50 +62,19 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
     _phoneFocus.addListener(focusListener);
     _addressFocus.addListener(focusListener);
     _dobFocus.addListener(focusListener);
+    _experienceFocus.addListener(focusListener);
     _goalsFocus.addListener(focusListener);
   }
 
-  /// -------- Check current step for the selected course ----------------------
+  /// -------- Check current step and skip completed steps ---------------------
   Future<void> _checkCurrentStep() async {
     try {
-      await ref
-          .read(currentStepProvider.notifier)
-          .currentStep(courseId: widget.courseId);
-
-      final currentStepState = ref.read(currentStepProvider);
-
-      currentStepState.whenData((stepModel) {
-        if (stepModel != null && mounted) {
-          final currentStep = stepModel.data?.step;
-          final enrollmentId = stepModel.data?.enrollmentId;
-
-          logger.d("Current step for course ${widget.courseId} : $currentStep");
-
-          // Only navigate if we're NOT on the current screen
-          // If step is FORM_FILLING, stay on this screen (don't navigate)
-          if (currentStep == 'RULES_SIGNING') {
-            Navigator.pushReplacementNamed(
-              context,
-              RouteNames.rulesRegulations,
-              arguments: enrollmentId,
-            );
-          } else if (currentStep == 'CONTRACT_SIGNING') {
-            Navigator.pushReplacementNamed(
-              context,
-              RouteNames.digitalContractSigning,
-              arguments: enrollmentId,
-            );
-          } else if (currentStep == 'PAYMENT') {
-            Navigator.pushReplacementNamed(
-              context,
-              RouteNames.payment,
-              arguments: enrollmentId,
-            );
-          } else if (currentStep == 'COMPLETED') {
-            Navigator.pushReplacementNamed(context, RouteNames.parentScreen);
-          }
-        }
-      });
+      await EnrollmentNavigator.navigateToCurrentStep(
+        context,
+        ref,
+        courseId: widget.courseId,
+        replace: true,
+      );
     } catch (e) {
       logger.e("Error checking current step : $e");
     }
@@ -125,6 +89,7 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
           _phoneFocus.hasFocus ||
           _addressFocus.hasFocus ||
           _dobFocus.hasFocus ||
+          _experienceFocus.hasFocus ||
           _goalsFocus.hasFocus;
     });
   }
@@ -137,12 +102,15 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
     _phoneFocus.dispose();
     _addressFocus.dispose();
     _dobFocus.dispose();
+    _experienceFocus.dispose();
     _goalsFocus.dispose();
     _selectedCourse.dispose();
     _fullNameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
     _addressController.dispose();
+    _dateController.dispose();
+    _experienceController.dispose();
     _goalsController.dispose();
     super.dispose();
   }
@@ -170,67 +138,10 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
     return parseDate.toUtc().toIso8601String();
   }
 
-  /// ------------------------- Show Experience Level Popup --------------------
-  void _showExperienceLevelPopup() {
-    final RenderBox? renderBox =
-        _experienceFieldKey.currentContext?.findRenderObject() as RenderBox?;
-    if (renderBox == null) return;
-
-    showMenu<String>(
-      context: context,
-      position:
-          RelativeRect.fromLTRB(
-            renderBox.size.width - 200.w,
-            renderBox.size.height + 5.h,
-            0,
-            0,
-          ).shift(
-            Offset(
-              renderBox.localToGlobal(Offset.zero).dx,
-              renderBox.localToGlobal(Offset.zero).dy,
-            ),
-          ),
-      elevation: 8,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-      items: [
-        PopupMenuItem<String>(
-          value: 'BEGINNER',
-          child: Container(
-            width: 200.w,
-            padding: EdgeInsets.symmetric(vertical: 8.h),
-            child: Text('BEGINNER', style: TextStyle(fontSize: 14.sp)),
-          ),
-        ),
-        PopupMenuItem<String>(
-          value: 'INTERMEDIATE',
-          child: Container(
-            width: 200.w,
-            padding: EdgeInsets.symmetric(vertical: 8.h),
-            child: Text('INTERMEDIATE', style: TextStyle(fontSize: 14.sp)),
-          ),
-        ),
-        PopupMenuItem<String>(
-          value: 'ADVANCED',
-          child: Container(
-            width: 200.w,
-            padding: EdgeInsets.symmetric(vertical: 8.h),
-            child: Text('ADVANCED', style: TextStyle(fontSize: 14.sp)),
-          ),
-        ),
-      ],
-    ).then((value) {
-      if (value != null) {
-        ref.read(experienceLevelProvider.notifier).state = value;
-        ref.read(experienceControllerProvider.notifier).state.text = value;
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final getAllCourse = ref.watch(getAllCoursesProvider);
     final courses = getAllCourse.value?.data;
-    final experienceController = ref.watch(experienceControllerProvider);
 
     final targetCourse = courses?.firstWhere(
       (c) => c.id == widget.courseId,
@@ -403,32 +314,15 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
                   ),
                 ),
 
-                /// ------------------- Experience Level -------------------
-                SizedBox(height: 8.h),
-                Text(
-                  "Experience Level",
-                  style: TextStyle(
-                    color: const Color(0xFF8C9196),
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                Container(
-                  key: _experienceFieldKey,
-                  child: _buildTextField(
-                    'select experience level',
-                    controller: experienceController,
-                    readOnly: true,
+                /// ------------------- Experience ---------------------------
+                _buildFormSection(
+                  'Experience',
+                  _buildTextField(
+                    'e.g., 1 year, beginner, theater background',
+                    textInputAction: TextInputAction.next,
+                    controller: _experienceController,
+                    focusNode: _experienceFocus,
                     validator: experienceLevelValidator,
-                    suffixIcon: GestureDetector(
-                      onTap: _showExperienceLevelPopup,
-                      child: Icon(
-                        Icons.keyboard_arrow_down_rounded,
-                        size: 32.sp,
-                        color: Colors.white,
-                      ),
-                    ),
                   ),
                 ),
 
@@ -457,52 +351,43 @@ class _FillEnrollmentFormState extends ConsumerState<FillEnrollmentForm> {
                               setState(() => _isLoading = true);
 
                               try {
-                                // Get the selected course title
-                                final courseTitle = targetCourse?.title ?? '';
-
-                                logger.d(
-                                  "Submitting enrollment data: ${{"course_type": courseTitle, "full_name": _fullNameController.text, "email": _emailController.text, "phone": _phoneController.text, "address": _addressController.text, "date_of_birth": convertToIso(_dateController.text), "experience_level": experienceController.text, "acting_goals": _goalsController.text, "course_id": widget.courseId}}",
-                                );
-
                                 final result = await ref
                                     .read(enrollPersonalInfoProvider.notifier)
-                                    .postEnrollPersonalInfo(
-                                      courseType: courseTitle,
-                                      fullName: _fullNameController.text.trim(),
+                                    .submitFormFilling(
+                                      courseId: widget.courseId,
+                                      name: _fullNameController.text.trim(),
                                       email: _emailController.text.trim(),
                                       phone: _phoneController.text.trim(),
                                       address: _addressController.text.trim(),
-                                      dateOfBirth: convertToIso(
-                                        _dateController.text,
-                                      ),
-                                      experienceLevel:
-                                          experienceController.text,
+                                      dateOfBirth: _dateController.text.trim(),
+                                      experience:
+                                          _experienceController.text.trim(),
                                       actingGoals: _goalsController.text.trim(),
-                                      enrollmentId: widget.courseId,
                                     );
-
-                                logger.d(
-                                  "Enrollment result: ${result.data?.id}",
-                                );
 
                                 if (result.success == true) {
                                   Utils.showToast(
-                                    msg:
-                                        result.message ??
-                                        "Form submitted successfully!",
+                                    msg: result.message.isNotEmpty
+                                        ? result.message
+                                        : "Form submitted successfully!",
                                     backgroundColor: Colors.green,
                                     textColor: Colors.white,
                                   );
 
                                   if (context.mounted) {
-                                    // After successful submission, check current step again
-                                    await _checkCurrentStep();
+                                    await EnrollmentNavigator
+                                        .navigateToCurrentStep(
+                                      context,
+                                      ref,
+                                      courseId: widget.courseId,
+                                      replace: true,
+                                    );
                                   }
                                 } else {
                                   Utils.showToast(
-                                    msg:
-                                        result.message ??
-                                        "Failed to submit form",
+                                    msg: result.message.isNotEmpty
+                                        ? result.message
+                                        : "Failed to submit form",
                                     backgroundColor: Colors.red,
                                     textColor: Colors.white,
                                   );

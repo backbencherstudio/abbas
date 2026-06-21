@@ -1,10 +1,8 @@
 import 'package:abbas/cors/constants/api_endpoints.dart';
-import 'package:abbas/cors/network/api_response_handle.dart';
 import 'package:abbas/cors/services/dio_client.dart';
 import 'package:abbas/data/models/response_model.dart';
 import 'package:abbas/presentation/views/form_fillup_and_rules/model/current_step_model.dart';
-import 'package:abbas/presentation/views/form_fillup_and_rules/model/enroll_personal_info_model.dart';
-import 'package:flutter/material.dart';
+import 'package:abbas/presentation/views/form_fillup_and_rules/model/payment_checkout_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
@@ -23,12 +21,24 @@ class CurrentStepProvider extends StateNotifier<AsyncValue<CurrentStepModel?>> {
   Future<void> currentStep({required String courseId}) async {
     state = AsyncValue.loading();
     try {
-      final res = await dioClient.getHttp(ApiEndpoints.currentStep(courseId));
-      if (res['success']) {
-        final model = CurrentStepModel.fromJson(res);
-        state = AsyncValue.data(model);
+      final res = await dioClient.getHttp(
+        ApiEndpoints.enrollmentCurrentStep(courseId),
+      );
+
+      if (res is ResponseModel) {
+        state = AsyncValue.error(res.message, StackTrace.current);
+        return;
+      }
+
+      if (res['success'] == true) {
+        state = AsyncValue.data(CurrentStepModel.fromJson(
+          Map<String, dynamic>.from(res as Map),
+        ));
       } else {
-        state = AsyncValue.error("Error Load Current Step", StackTrace.current);
+        state = AsyncValue.error(
+          res['message']?.toString() ?? 'Error loading enrollment step',
+          StackTrace.current,
+        );
       }
     } catch (e, stackTrace) {
       state = AsyncValue.error('$e', stackTrace);
@@ -36,72 +46,71 @@ class CurrentStepProvider extends StateNotifier<AsyncValue<CurrentStepModel?>> {
   }
 }
 
-/// ------------------------ Enroll Personal Info Provider ---------------------
+/// ------------------------ Step 1 - Form Filling -----------------------------
 
 final selectedDateProvider = StateProvider<DateTime?>((ref) => null);
-final dobControllerProvider = StateProvider<TextEditingController>(
-  (ref) => TextEditingController(),
-);
-
-final experienceLevelProvider = StateProvider<String>((ref) => '');
-final experienceControllerProvider = StateProvider<TextEditingController>(
-  (ref) => TextEditingController(),
-);
 
 final enrollPersonalInfoProvider =
-    StateNotifierProvider<EnrollPersonalInfoProvider, EnrollPersonalInfoModel>(
+    StateNotifierProvider<EnrollPersonalInfoProvider, ResponseModel>(
       (ref) => EnrollPersonalInfoProvider(dioClient: DioClient()),
     );
 
-class EnrollPersonalInfoProvider
-    extends StateNotifier<EnrollPersonalInfoModel> {
+class EnrollPersonalInfoProvider extends StateNotifier<ResponseModel> {
   DioClient dioClient;
 
   EnrollPersonalInfoProvider({required this.dioClient})
-    : super(EnrollPersonalInfoModel());
+    : super(ResponseModel(success: false, message: ''));
 
-  Future<EnrollPersonalInfoModel> postEnrollPersonalInfo({
-    required String courseType,
-    required String fullName,
+  Future<ResponseModel> submitFormFilling({
+    required String courseId,
+    required String name,
     required String email,
     required String phone,
     required String address,
     required String dateOfBirth,
-    required String experienceLevel,
+    required String experience,
     required String actingGoals,
-    required String enrollmentId,
   }) async {
-    var body = {
-      'course_type': courseType,
-      'full_name': fullName,
+    final body = {
+      'step': 'FORM_FILLING',
+      'name': name,
       'email': email,
       'phone': phone,
       'address': address,
       'date_of_birth': dateOfBirth,
-      'experience_level': experienceLevel,
+      'experience': experience,
       'acting_goals': actingGoals,
     };
+
     try {
       final res = await dioClient.postHttp(
-        ApiEndpoints.enrollPersonalInfo(enrollmentId),
+        ApiEndpoints.courseEnrollment(courseId),
         body,
       );
-      if (res['success']) {
-        final model = EnrollPersonalInfoModel.fromJson(res);
-        state = model;
-        return EnrollPersonalInfoModel(success: true, message: res['message']);
-      } else {
-        return EnrollPersonalInfoModel(success: false, message: res['message']);
+
+      if (res is ResponseModel) return res;
+
+      if (res['success'] == true) {
+        return ResponseModel(
+          success: true,
+          message: res['message']?.toString() ?? 'Submitted successfully',
+        );
       }
+
+      return ResponseModel(
+        success: false,
+        message: res['message']?.toString() ?? 'Failed to submit form',
+      );
     } catch (e) {
-      return EnrollPersonalInfoModel(success: false, message: "$e");
+      return ResponseModel(success: false, message: '$e');
     }
   }
 }
 
-/// ------------------------ Accept Rules-Regulations --------------------------
+/// ------------------------ Step 2 - Rules Signing --------------------------
 
 final acknowledgeProvider = StateProvider<bool>((ref) => false);
+
 final acceptRulesRegulationsProvider =
     StateNotifierProvider<
       AcceptRulesRegulationsProvider,
@@ -116,37 +125,46 @@ class AcceptRulesRegulationsProvider
     : super(AsyncValue.data(ResponseModel(success: false, message: '')));
 
   Future<ResponseModel> acceptRulesRegulations({
-    required bool accepted,
-    required String fullName,
-    required String digitalSignature,
-    required String digitalSignatureDate,
-    required String enrollmentId,
+    required String courseId,
+    required bool rulesAccepted,
+    required String signatureFullName,
+    required String signature,
+    required String signatureDate,
   }) async {
+    final body = {
+      'step': 'RULES_SIGNING',
+      'rules_accepted': rulesAccepted,
+      'signature_full_name': signatureFullName,
+      'signature': signature,
+      'signature_date': signatureDate,
+    };
+
     try {
-
-      var body = {
-        'accepted': accepted,
-        'full_name': fullName,
-        'digital_signature': digitalSignature,
-        'digital_signature_date': digitalSignatureDate,
-      };
-
       final res = await dioClient.postHttp(
-        ApiEndpoints.acceptRulesRegulations(enrollmentId),
+        ApiEndpoints.courseEnrollment(courseId),
         body,
       );
+
+      if (res is ResponseModel) return res;
+
       if (res['success'] == true) {
-        return ResponseModel(success: true, message: res['message']);
-      } else {
-        return ResponseModel(success: false, message: res['message']);
+        return ResponseModel(
+          success: true,
+          message: res['message']?.toString() ?? 'Submitted successfully',
+        );
       }
+
+      return ResponseModel(
+        success: false,
+        message: res['message']?.toString() ?? 'Failed to submit rules',
+      );
     } catch (e) {
       return ResponseModel(success: false, message: '$e');
     }
   }
 }
 
-/// -------------------------- Accept Contract Terms ---------------------------
+/// -------------------------- Step 3 - Contract Signing ---------------------
 
 final acceptContractTermsProvider =
     StateNotifierProvider<AcceptContractTermsProvider, ResponseModel>(
@@ -160,69 +178,91 @@ class AcceptContractTermsProvider extends StateNotifier<ResponseModel> {
     : super(ResponseModel(success: false, message: ''));
 
   Future<ResponseModel> acceptContractTerms({
-    required bool accepted,
-    required String fullName,
-    required String digitalSignature,
-    required String digitalSignatureDate,
-    required String enrollmentId,
+    required String courseId,
+    required bool termsAccepted,
+    required String signatureFullName,
+    required String signature,
+    required String signatureDate,
   }) async {
-    var body = {
-      'accepted': accepted,
-      'full_name': fullName,
-      'digital_signature': digitalSignature,
-      'digital_signature_date': digitalSignatureDate,
+    final body = {
+      'step': 'CONTRACT_SIGNING',
+      'terms_accepted': termsAccepted,
+      'signature_full_name': signatureFullName,
+      'signature': signature,
+      'signature_date': signatureDate,
     };
 
-    logger.d("THe body data for this api $body");
     try {
       final res = await dioClient.postHttp(
-        ApiEndpoints.acceptContractTerms(enrollmentId),
+        ApiEndpoints.courseEnrollment(courseId),
         body,
       );
-      if (res['success']) {
-        return ResponseModel(success: true, message: res['message']);
-      } else {
-        return ResponseModel(success: false, message: res['message']);
+
+      if (res is ResponseModel) return res;
+
+      if (res['success'] == true) {
+        return ResponseModel(
+          success: true,
+          message: res['message']?.toString() ?? 'Submitted successfully',
+        );
       }
+
+      return ResponseModel(
+        success: false,
+        message: res['message']?.toString() ?? 'Failed to submit contract',
+      );
     } catch (e) {
-      logger.e("The error message is ------ $body $e");
-      return ResponseModel(success: false, message: "$e");
+      return ResponseModel(success: false, message: '$e');
     }
   }
 }
 
-/// ------------------------ Create Payment Intent -----------------------------
+/// ------------------------ Stripe Checkout -----------------------------------
 
-class CreatePaymentIntentProvider extends StateNotifier<ResponseModel> {
+final stripeCheckoutProvider =
+    StateNotifierProvider<StripeCheckoutProvider, AsyncValue<bool>>(
+      (ref) => StripeCheckoutProvider(dioClient: DioClient()),
+    );
+
+class StripeCheckoutProvider extends StateNotifier<AsyncValue<bool>> {
   DioClient dioClient;
 
-  CreatePaymentIntentProvider({required this.dioClient})
-    : super(ResponseModel(success: false, message: ''));
+  StripeCheckoutProvider({required this.dioClient})
+    : super(const AsyncValue.data(false));
 
-  Future<ResponseModel> createPaymentIntent({
+  Future<PaymentCheckoutModel> createCheckoutSession({
     required String enrollmentId,
-    required String paymentType,
-    required String currency,
   }) async {
-    var body = {
-      'enrollmentId': enrollmentId,
-      'payment_type': paymentType,
-      'currency': currency,
-    };
+    state = const AsyncValue.loading();
 
     try {
       final res = await dioClient.postHttp(
-        ApiEndpoints.createPaymentIntent,
-        body,
+        ApiEndpoints.stripeCheckout,
+        {'enrollment_id': enrollmentId},
       );
 
-      if (res['success']) {
-        return ResponseModel(success: true, message: res['message']);
-      } else {
-        return ResponseModel(success: false, message: res['message']);
+      if (res is ResponseModel) {
+        state = AsyncValue.error(res.message, StackTrace.current);
+        return PaymentCheckoutModel(success: false, message: res.message);
       }
-    } catch (e) {
-      return ResponseModel(success: false, message: '$e');
+
+      final model = PaymentCheckoutModel.fromJson(
+        Map<String, dynamic>.from(res as Map),
+      );
+
+      if (model.success && model.sessionUrl != null) {
+        state = const AsyncValue.data(true);
+      } else {
+        state = AsyncValue.error(
+          model.message.isNotEmpty ? model.message : 'Failed to start payment',
+          StackTrace.current,
+        );
+      }
+
+      return model;
+    } catch (e, stackTrace) {
+      state = AsyncValue.error('$e', stackTrace);
+      return PaymentCheckoutModel(success: false, message: '$e');
     }
   }
 }

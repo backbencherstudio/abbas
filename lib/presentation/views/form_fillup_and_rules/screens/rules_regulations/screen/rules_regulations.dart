@@ -1,6 +1,7 @@
 import 'package:abbas/cors/routes/route_names.dart';
 import 'package:abbas/cors/theme/app_colors.dart';
 import 'package:abbas/cors/utils/app_utils.dart';
+import 'package:abbas/presentation/views/form_fillup_and_rules/model/enrollment_args.dart';
 import 'package:abbas/presentation/views/form_fillup_and_rules/view_model/form_fill_and_rules_provider.dart';
 import 'package:abbas/presentation/widgets/validator.dart';
 import 'package:flutter/material.dart';
@@ -10,9 +11,14 @@ import '../../../../../../cors/network/api_error_handle.dart';
 import '../../../../../widgets/primary_button.dart';
 
 class RulesRegulations extends ConsumerStatefulWidget {
+  final String courseId;
   final String enrollmentId;
 
-  const RulesRegulations({super.key, required this.enrollmentId});
+  const RulesRegulations({
+    super.key,
+    required this.courseId,
+    required this.enrollmentId,
+  });
 
   @override
   ConsumerState<RulesRegulations> createState() => _RulesRegulationsState();
@@ -60,9 +66,8 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
   }
 
   /// --------------------- Convert to ISO -------------------------------------
-  String convertToIso(String date) {
-    final parseDate = DateTime.parse(date);
-    return parseDate.toUtc().toIso8601String();
+  String formatSignatureDate(String date) {
+    return date.trim();
   }
 
   @override
@@ -260,19 +265,14 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
                         final result = await ref
                             .read(acceptRulesRegulationsProvider.notifier)
                             .acceptRulesRegulations(
-                              accepted: ref.watch(acknowledgeProvider),
-                              fullName: _fullNameController.text.trim(),
-                              digitalSignature: _digitalSignatureController.text
-                                  .trim(),
-                              digitalSignatureDate: convertToIso(
+                              courseId: widget.courseId,
+                              rulesAccepted: ref.watch(acknowledgeProvider),
+                              signatureFullName: _fullNameController.text.trim(),
+                              signature: _digitalSignatureController.text.trim(),
+                              signatureDate: formatSignatureDate(
                                 _dateController.text,
                               ),
-                              enrollmentId: widget.enrollmentId,
                             );
-
-                        logger.d(
-                          "Accepted : ${ref.watch(acknowledgeProvider)}, Full Name : ${_fullNameController.text.trim()}, Digital Signature : ${_digitalSignatureController.text.trim()}, Digital Signature Date : ${convertToIso(_dateController.text)} , Enrollment Id : ${widget.enrollmentId}",
-                        );
 
                         if (result.success) {
                           Utils.showToast(
@@ -284,7 +284,10 @@ class _RulesRegulationsState extends ConsumerState<RulesRegulations> {
                             Navigator.pushNamed(
                               context,
                               RouteNames.digitalContractSigning,
-                              arguments: widget.enrollmentId
+                              arguments: EnrollmentArgs(
+                                courseId: widget.courseId,
+                                enrollmentId: widget.enrollmentId,
+                              ),
                             );
                           }
                         } else {

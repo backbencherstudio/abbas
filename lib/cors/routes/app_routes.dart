@@ -33,6 +33,7 @@ import '../../presentation/views/course_screen/screens/my_course/my_assignment/s
 import '../../presentation/views/course_screen/screens/my_course/my_course_screen.dart';
 import '../../presentation/views/course_screen/screens/course_details/course_details_screen.dart';
 import '../../presentation/views/course_screen/screens/video_player/video_player_screen.dart';
+import '../../presentation/views/form_fillup_and_rules/model/enrollment_args.dart';
 import '../../presentation/views/form_fillup_and_rules/screens/course_module/screen/course_module.dart';
 import '../../presentation/views/form_fillup_and_rules/screens/digital_contract/digital_contract_signing.dart';
 import '../../presentation/views/form_fillup_and_rules/screens/fill_enrollment_form/screen/fill_enrollment_form.dart';
@@ -108,8 +109,20 @@ class AppRoutes {
     },
     RouteNames.otherCourseScreen: (context) {
       final args = ModalRoute.of(context)?.settings.arguments;
-      final courseId = args is String ? args : '';
-      return CourseDetailsScreen(courseId: courseId);
+      var courseId = '';
+      var fromEnrollment = false;
+
+      if (args is Map) {
+        courseId = (args['courseId'] ?? '').toString();
+        fromEnrollment = args['fromEnrollment'] == true;
+      } else if (args is String) {
+        courseId = args;
+      }
+
+      return CourseDetailsScreen(
+        courseId: courseId,
+        fromEnrollment: fromEnrollment,
+      );
     },
     RouteNames.myCourseScreen: (context) {
       final args = ModalRoute.of(context)?.settings.arguments;
@@ -174,19 +187,30 @@ class AppRoutes {
       return FillEnrollmentForm(courseId: courseId);
     },
     RouteNames.rulesRegulations: (context) {
-      final args = ModalRoute.of(context)?.settings.arguments;
-      final enrollmentId = args is String ? args : '';
-
-      return RulesRegulations(enrollmentId: enrollmentId);
+      final args = EnrollmentArgs.fromArguments(
+        ModalRoute.of(context)?.settings.arguments,
+      );
+      return RulesRegulations(
+        courseId: args.courseId,
+        enrollmentId: args.enrollmentId,
+      );
     },
 
     RouteNames.digitalContractSigning: (context) {
-      final args = ModalRoute.of(context)?.settings.arguments;
-      final enrollmentId = args is String ? args : '';
-      return DigitalContractSigning(enrollmentId: enrollmentId);
+      final args = EnrollmentArgs.fromArguments(
+        ModalRoute.of(context)?.settings.arguments,
+      );
+      return DigitalContractSigning(
+        courseId: args.courseId,
+        enrollmentId: args.enrollmentId,
+      );
     },
 
-    RouteNames.payment: (context) => const Payment(),
+    RouteNames.payment: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      final enrollmentId = args is String ? args : '';
+      return Payment(enrollmentId: enrollmentId);
+    },
     RouteNames.profileSetup: (context) => const ProfileSetup(),
     RouteNames.subscriptions: (context) => const Subscriptions(),
     RouteNames.trackPayment: (context) => const TrackPayment(),

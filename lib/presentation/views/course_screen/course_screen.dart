@@ -333,6 +333,17 @@ class _CourseScreenState extends ConsumerState<CourseScreen> {
                                       ),
                                     ],
                                   ),
+                                  if (course.infoLine.isNotEmpty) ...[
+                                    SizedBox(height: 10.h),
+                                    Text(
+                                      course.infoLine,
+                                      style: TextStyle(
+                                        color: const Color(0xffD2D2D5),
+                                        fontSize: 12.sp,
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),

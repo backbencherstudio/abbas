@@ -79,13 +79,13 @@ class Data {
     title = json['title'];
     createdBy = json['createdBy'];
     instructorId = json['instructorId'];
-    fee = json['fee'];
-    courseOverview = json['course_overview'];
-    courseModuleDetails = json['course_module_details'];
-    installmentProcess = json['installment_process'];
-    seatCapacity = json['seat_capacity'];
-    classTime = json['class_time'];
-    duration = json['duration'];
+    fee = json['fee']?.toString();
+    courseOverview = json['course_overview']?.toString();
+    courseModuleDetails = json['course_module_details']?.toString();
+    installmentProcess = json['installment_process']?.toString();
+    seatCapacity = json['seat_capacity']?.toString();
+    classTime = json['class_time']?.toString();
+    duration = json['duration']?.toString();
     status = json['status'];
     if (json['modules'] != null) {
       modules = <Modules>[];
@@ -96,17 +96,33 @@ class Data {
     instructor = json['instructor'] != null
         ?  Instructor.fromJson(json['instructor'])
         : null;
-    isEnrolled = json['isEnrolled'];
+    isEnrolled = json['is_enrolled'] == true || json['isEnrolled'] == true;
     schedule = json['schedule'] != null
-        ?  Schedule.fromJson(json['schedule'])
+        ? Schedule.fromJson(json['schedule'])
         : null;
-    scheduleLabel = json['scheduleLabel'];
-    modulesCount = json['modulesCount'];
-    modulesList = json['modulesList'].cast<String>();
-    overviewText = json['overviewText'];
+    scheduleLabel = json['scheduleLabel']?.toString();
+    modulesCount = json['modulesCount'] is int
+        ? json['modulesCount'] as int
+        : int.tryParse(json['modulesCount']?.toString() ?? '');
+    if (json['modulesList'] != null) {
+      modulesList = List<String>.from(json['modulesList']);
+    }
+    overviewText = json['overviewText']?.toString();
     if (json['includes'] != null) {
       includes = List<dynamic>.from(json['includes']);
     }
+    if (modulesCount == null && modules != null) {
+      modulesCount = modules!.length;
+    }
+  }
+
+  bool get isAlreadyEnrolled => isEnrolled == true;
+
+  String? get formattedStartDate {
+    if (startDate == null || startDate!.isEmpty) return null;
+    final parsed = DateTime.tryParse(startDate!);
+    if (parsed == null) return null;
+    return '${parsed.day}/${parsed.month}/${parsed.year}';
   }
 
   Map<String, dynamic> toJson() {

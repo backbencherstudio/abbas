@@ -1,39 +1,40 @@
 class CurrentStepModel {
   bool? success;
+  String? message;
   Data? data;
 
-  CurrentStepModel({this.success, this.data});
+  CurrentStepModel({this.success, this.message, this.data});
 
   CurrentStepModel.fromJson(Map<String, dynamic> json) {
     success = json['success'];
-    data = json['data'] != null ?  Data.fromJson(json['data']) : null;
+    message = json['message']?.toString();
+    data = json['data'] != null ? Data.fromJson(json['data']) : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['success'] = success;
-    if (this.data != null) {
-      data['data'] = this.data!.toJson();
-    }
-    return data;
+    return {
+      'success': success,
+      'message': message,
+      if (data != null) 'data': data!.toJson(),
+    };
   }
 }
 
 class Data {
   String? enrollmentId;
-  String? step;
+  String? currentStep;
 
-  Data({this.enrollmentId, this.step});
+  Data({this.enrollmentId, this.currentStep});
 
   Data.fromJson(Map<String, dynamic> json) {
-    enrollmentId = json['enrollment_id'];
-    step = json['step'];
+    enrollmentId = json['enrollment_id']?.toString();
+    currentStep = json['current_step']?.toString() ?? json['step']?.toString();
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['enrollment_id'] = enrollmentId;
-    data['step'] = step;
-    return data;
+    return {
+      'enrollment_id': enrollmentId,
+      'current_step': currentStep,
+    };
   }
 }

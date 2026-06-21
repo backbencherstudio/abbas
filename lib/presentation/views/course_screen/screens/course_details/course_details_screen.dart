@@ -8,17 +8,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../../../../cors/routes/route_names.dart';
+import '../../../form_fillup_and_rules/utils/enrollment_navigator.dart';
 
 class CourseDetailsScreen extends ConsumerStatefulWidget {
   final String courseId;
-  const CourseDetailsScreen({super.key, required this.courseId});
+  final bool fromEnrollment;
+
+  const CourseDetailsScreen({
+    super.key,
+    required this.courseId,
+    this.fromEnrollment = false,
+  });
 
   @override
   ConsumerState<CourseDetailsScreen> createState() => _CourseDetailsScreenState();
 }
 
 class _CourseDetailsScreenState extends ConsumerState<CourseDetailsScreen> {
+  bool _isStartingEnrollment = false;
+
   @override
   void initState() {
     super.initState();
@@ -41,7 +49,11 @@ class _CourseDetailsScreenState extends ConsumerState<CourseDetailsScreen> {
       backgroundColor: const Color(0xff030D15),
       body: Column(
         children: [
-          const SecondaryAppBar(title: "Other Courses / Course Details"),
+          SecondaryAppBar(
+            title: widget.fromEnrollment
+                ? "Select Course / Course Details"
+                : "Other Courses / Course Details",
+          ),
           Expanded(
             child: courseDetailsAsync.when(
               data: (model) {
@@ -53,6 +65,12 @@ class _CourseDetailsScreenState extends ConsumerState<CourseDetailsScreen> {
                 final instructor = data.instructor;
                 final modules = data.modules ?? [];
                 final includes = data.includes ?? [];
+                final scheduleText =
+                    data.scheduleLabel ??
+                    data.formattedStartDate ??
+                    (data.startDate ?? '');
+                final showSchedule =
+                    scheduleText.isNotEmpty || (data.classTime?.isNotEmpty ?? false);
 
                 return SingleChildScrollView(
                   padding: EdgeInsets.all(16.w),
@@ -94,34 +112,39 @@ class _CourseDetailsScreenState extends ConsumerState<CourseDetailsScreen> {
                                 fontSize: 14.sp,
                               ),
                             ),
-                            if (data.scheduleLabel != null && data.scheduleLabel!.isNotEmpty) ...[
+                            if (showSchedule) ...[
                               SizedBox(height: 12.h),
                               const Divider(color: Color(0xff232E47), thickness: 0.8),
                               SizedBox(height: 12.h),
                               Row(
                                 children: [
-                                  const Icon(Icons.calendar_month, color: Color(0xffE9201D)),
-                                  SizedBox(width: 8.w),
-                                  Expanded(
-                                    child: Text(
-                                      data.scheduleLabel!,
+                                  if (scheduleText.isNotEmpty) ...[
+                                    const Icon(Icons.calendar_month, color: Color(0xffE9201D)),
+                                    SizedBox(width: 8.w),
+                                    Expanded(
+                                      child: Text(
+                                        scheduleText,
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 14.sp,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                  if (data.classTime != null &&
+                                      data.classTime!.isNotEmpty) ...[
+                                    const Icon(Icons.access_time, color: Color(0xffE9201D)),
+                                    SizedBox(width: 8.w),
+                                    Text(
+                                      data.classTime!,
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 14.sp,
                                         fontWeight: FontWeight.w400,
                                       ),
                                     ),
-                                  ),
-                                  const Icon(Icons.access_time, color: Color(0xffE9201D)),
-                                  SizedBox(width: 8.w),
-                                  Text(
-                                    data.classTime ?? "N/A",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14.sp,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
+                                  ],
                                 ],
                               ),
                             ],
@@ -285,19 +308,63 @@ class _CourseDetailsScreenState extends ConsumerState<CourseDetailsScreen> {
                               ),
                             ],
                             SizedBox(height: 24.h),
-                            PrimaryButton(
-                              onTap: () {
-                                Navigator.pushNamed(
-                                  context,
-                                  RouteNames.fillEnrollmentForm,
-                                  arguments: data.id,
-                                );
-                              },
-                              color: const Color(0xFFE9201D),
-                              textColor: Colors.white,
-                              icon: '',
-                              child: const Text("Enroll Now"),
-                            ),
+                            if (data.isAlreadyEnrolled)
+                              Container(
+                                width: double.infinity,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 16.w,
+                                  vertical: 14.h,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF142331),
+                                  borderRadius: BorderRadius.circular(12.r),
+                                  border: Border.all(color: const Color(0xFF3D4566)),
+                                ),
+                                child: Text(
+                                  'You have already enrolled in this course.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              )
+                            else
+                              PrimaryButton(
+                                onTap: _isStartingEnrollment
+                                    ? null
+                                    : () async {
+                                        if (data.id == null) return;
+                                        setState(
+                                          () => _isStartingEnrollment = true,
+                                        );
+                                        await EnrollmentNavigator
+                                            .navigateToCurrentStep(
+                                          context,
+                                          ref,
+                                          courseId: data.id!,
+                                        );
+                                        if (mounted) {
+                                          setState(
+                                            () => _isStartingEnrollment = false,
+                                          );
+                                        }
+                                      },
+                                color: const Color(0xFFE9201D),
+                                textColor: Colors.white,
+                                icon: '',
+                                child: _isStartingEnrollment
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Text("Enroll Now"),
+                              ),
                           ],
                         ),
                       ),

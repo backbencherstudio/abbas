@@ -3,7 +3,7 @@ class ApiEndpoints {
 
   static const String baseUrl =
       // 'http://192.168.7.12:4000';
-      'http://192.168.7.12:7777';
+      'http://10.10.9.51:7777';
 
   static const String register = '$baseUrl/api/auth/register';
   static const String login = '$baseUrl/api/auth/login';
@@ -35,7 +35,7 @@ class ApiEndpoints {
   /// ------------------- Courses ----------------------------------------------
   static String submitAssignment(String assignmentId) =>
       '/api/course/assignment/$assignmentId/submit';
-  static const String getAllCourses = '$baseUrl/api/course/all';
+  static const String getAllCourses = '$baseUrl/api/courses';
   static const String getMyCourses = '$baseUrl/api/course/my-courses';
 
   static String getMyAssignments(String courseId) =>
@@ -57,21 +57,33 @@ class ApiEndpoints {
       '$baseUrl/api/course/class/$classId';
 
   static String getCourseDetails(String courseId) =>
-      '$baseUrl/api/course/details/$courseId';
+      '$baseUrl/api/courses/$courseId';
 
   /// ---------------------- Enrollment ----------------------------------------
 
-  static String currentStep(String courseId) =>
-      '$baseUrl/api/enrollment/current-step/$courseId';
+  static String enrollmentCurrentStep(String courseId) =>
+      '$baseUrl/api/courses/$courseId/enrollment/current_step';
 
+  static String courseEnrollment(String courseId) =>
+      '$baseUrl/api/courses/$courseId/enrollment';
+
+  @Deprecated('Use enrollmentCurrentStep')
+  static String currentStep(String courseId) => enrollmentCurrentStep(courseId);
+
+  @Deprecated('Use courseEnrollment with step FORM_FILLING')
   static String enrollPersonalInfo(String enrollmentId) =>
       '$baseUrl/api/enrollment/pinfo/$enrollmentId';
 
+  @Deprecated('Use courseEnrollment with step RULES_SIGNING')
   static String acceptRulesRegulations(String enrollmentId) =>
       '$baseUrl/api/enrollment/accept-rules/$enrollmentId';
 
+  @Deprecated('Use courseEnrollment with step CONTRACT_SIGNING')
   static String acceptContractTerms(String enrollmentId) =>
       '$baseUrl/api/enrollment/accept-contract/$enrollmentId';
+  static const String stripeCheckout = '$baseUrl/api/payment/stripe/checkout';
+
+  @Deprecated('Use stripeCheckout')
   static const String createPaymentIntent =
       '$baseUrl/api/payment/stripe/create-intent';
 
