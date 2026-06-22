@@ -14,13 +14,29 @@ final getHomeDataProvider =
 class GetHomeDataProvider extends StateNotifier<AsyncValue<GetHomeDataModel?>> {
   DioClient dioClient;
 
-  GetHomeDataProvider({required this.dioClient}) : super(AsyncValue.loading());
+  GetHomeDataProvider({required this.dioClient}) : super(const AsyncValue.loading());
 
   Future<void> getHomeData() async {
+    state = const AsyncValue.loading();
     try {
       final res = await dioClient.getHttp(ApiEndpoints.getHomeData);
-      final model = GetHomeDataModel.fromJson(res);
-      state = AsyncValue.data(model);
+
+      if (res is ResponseModel) {
+        state = AsyncValue.error(res.message, StackTrace.current);
+        return;
+      }
+
+      if (res['success'] == true && res['data'] != null) {
+        final model = GetHomeDataModel.fromJson(
+          Map<String, dynamic>.from(res['data'] as Map),
+        );
+        state = AsyncValue.data(model);
+      } else {
+        state = AsyncValue.error(
+          res['message']?.toString() ?? 'Failed to load overview',
+          StackTrace.current,
+        );
+      }
     } catch (e, stackTrace) {
       logger.e("Error Fetching Home Data: $e");
       state = AsyncValue.error(e.toString(), stackTrace);

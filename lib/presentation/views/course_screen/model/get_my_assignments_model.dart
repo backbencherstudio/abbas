@@ -1,139 +1,115 @@
 class GetMyAssignmentsModel {
   bool? success;
-  List<Data>? data;
+  String? message;
+  List<CourseAssignmentModule>? data;
 
-  GetMyAssignmentsModel({this.success, this.data});
+  GetMyAssignmentsModel({this.success, this.message, this.data});
 
   GetMyAssignmentsModel.fromJson(Map<String, dynamic> json) {
     success = json['success'];
+    message = json['message']?.toString();
     if (json['data'] != null) {
-      data = <Data>[];
-      json['data'].forEach((v) {
-        data!.add(Data.fromJson(v));
-      });
+      data = (json['data'] as List)
+          .map((v) => CourseAssignmentModule.fromJson(v as Map<String, dynamic>))
+          .toList();
     }
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['success'] = success;
-    if (this.data != null) {
-      data['data'] = this.data!.map((v) => v.toJson()).toList();
-    }
-    return data;
   }
 }
 
-class Data {
-  String? moduleId;
+class CourseAssignmentModule {
   String? moduleTitle;
   String? moduleName;
-  List<Assignments>? assignments;
+  List<CourseAssignmentClass>? classes;
 
-  Data({this.moduleId, this.moduleTitle, this.moduleName, this.assignments});
+  CourseAssignmentModule({this.moduleTitle, this.moduleName, this.classes});
 
-  Data.fromJson(Map<String, dynamic> json) {
-    moduleId = json['module_id'];
-    moduleTitle = json['module_title'];
-    moduleName = json['module_name'];
-    if (json['assignments'] != null) {
-      assignments = <Assignments>[];
-      json['assignments'].forEach((v) {
-        assignments!.add(Assignments.fromJson(v));
-      });
+  CourseAssignmentModule.fromJson(Map<String, dynamic> json) {
+    moduleTitle = json['module_title']?.toString();
+    moduleName = json['module_name']?.toString();
+    if (json['classes'] != null) {
+      classes = (json['classes'] as List)
+          .map((v) => CourseAssignmentClass.fromJson(v as Map<String, dynamic>))
+          .toList();
     }
   }
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['module_id'] = moduleId;
-    data['module_title'] = moduleTitle;
-    data['module_name'] = moduleName;
-    if (assignments != null) {
-      data['assignments'] = assignments!.map((v) => v.toJson()).toList();
+  List<CourseAssignmentItem> get allAssignments {
+    final items = <CourseAssignmentItem>[];
+    for (final cls in classes ?? []) {
+      items.addAll(cls.assignments ?? []);
     }
-    return data;
+    return items;
+  }
+
+  String get displayTitle {
+    final title = moduleTitle ?? '';
+    final name = moduleName ?? '';
+    if (title.isNotEmpty && name.isNotEmpty) return '$title: $name';
+    return title.isNotEmpty ? title : (name.isNotEmpty ? name : 'N/A');
   }
 }
 
-class Assignments {
-  String? id;
-  String? title;
-  String? classId;
+class CourseAssignmentClass {
   String? classTitle;
   String? className;
-  String? moduleId;
-  String? moduleTitle;
-  String? moduleName;
-  String? dueDate;
-  int? dueInDays;
-  String? dueLabel;
-  bool? isOverdue;
-  bool? submitted;
-  dynamic submittedAt;
-  dynamic grade;
-  dynamic gradeNumber;
-  String? status;
+  List<CourseAssignmentItem>? assignments;
 
-  Assignments({
+  CourseAssignmentClass({this.classTitle, this.className, this.assignments});
+
+  CourseAssignmentClass.fromJson(Map<String, dynamic> json) {
+    classTitle = json['class_title']?.toString();
+    className = json['class_name']?.toString();
+    if (json['assignments'] != null) {
+      assignments = (json['assignments'] as List)
+          .map((v) => CourseAssignmentItem.fromJson(v as Map<String, dynamic>))
+          .toList();
+    }
+  }
+}
+
+class CourseAssignmentItem {
+  String? id;
+  String? title;
+  String? description;
+  String? submissionDate;
+  int? totalMarks;
+  String? status;
+  int? dueDays;
+  String? grade;
+
+  CourseAssignmentItem({
     this.id,
     this.title,
-    this.classId,
-    this.classTitle,
-    this.className,
-    this.moduleId,
-    this.moduleTitle,
-    this.moduleName,
-    this.dueDate,
-    this.dueInDays,
-    this.dueLabel,
-    this.isOverdue,
-    this.submitted,
-    this.submittedAt,
-    this.grade,
-    this.gradeNumber,
+    this.description,
+    this.submissionDate,
+    this.totalMarks,
     this.status,
+    this.dueDays,
+    this.grade,
   });
 
-  Assignments.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    title = json['title'];
-    classId = json['class_id'];
-    classTitle = json['class_title'];
-    className = json['class_name'];
-    moduleId = json['module_id'];
-    moduleTitle = json['module_title'];
-    moduleName = json['module_name'];
-    dueDate = json['due_date'];
-    dueInDays = json['due_in_days'];
-    dueLabel = json['due_label'];
-    isOverdue = json['is_overdue'];
-    submitted = json['submitted'];
-    submittedAt = json['submittedAt'];
-    grade = json['grade'];
-    gradeNumber = json['grade_number'];
-    status = json['status'];
+  CourseAssignmentItem.fromJson(Map<String, dynamic> json) {
+    id = json['id']?.toString();
+    title = json['title']?.toString();
+    description = json['description']?.toString();
+    submissionDate = json['submission_date']?.toString();
+    totalMarks = json['total_marks'] is int
+        ? json['total_marks'] as int
+        : int.tryParse(json['total_marks']?.toString() ?? '');
+    status = json['status']?.toString();
+    dueDays = json['due_days'] is int
+        ? json['due_days'] as int
+        : int.tryParse(json['due_days']?.toString() ?? '');
+    grade = json['grade']?.toString();
   }
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['id'] = id;
-    data['title'] = title;
-    data['class_id'] = classId;
-    data['class_title'] = classTitle;
-    data['class_name'] = className;
-    data['module_id'] = moduleId;
-    data['module_title'] = moduleTitle;
-    data['module_name'] = moduleName;
-    data['due_date'] = dueDate;
-    data['due_in_days'] = dueInDays;
-    data['due_label'] = dueLabel;
-    data['is_overdue'] = isOverdue;
-    data['submitted'] = submitted;
-    data['submittedAt'] = submittedAt;
-    data['grade'] = grade;
-    data['grade_number'] = gradeNumber;
-    data['status'] = status;
-    return data;
+  bool get isPending => status?.toUpperCase() == 'PENDING';
+  bool get isSubmitted => status?.toUpperCase() == 'SUBMITTED';
+  bool get isGraded => status?.toUpperCase() == 'GRADED';
+
+  String get dueLabel {
+    if (dueDays == null) return 'Due';
+    if (dueDays == 1) return 'Due 1 day';
+    return 'Due $dueDays days';
   }
 }

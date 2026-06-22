@@ -1,128 +1,66 @@
 class MyCourseDetailsModel {
   bool? success;
+  String? message;
   Data? data;
 
-  MyCourseDetailsModel({this.success, this.data});
+  MyCourseDetailsModel({this.success, this.message, this.data});
 
   MyCourseDetailsModel.fromJson(Map<String, dynamic> json) {
     success = json['success'];
+    message = json['message']?.toString();
     data = json['data'] != null ? Data.fromJson(json['data']) : null;
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['success'] = success;
-    if (this.data != null) {
-      data['data'] = this.data!.toJson();
-    }
-    return data;
   }
 }
 
 class Data {
   String? id;
-  String? createdAt;
-  String? updatedAt;
-  String? startDate;
   String? title;
-  String? createdBy;
-  String? instructorId;
-  String? fee;
   String? courseOverview;
-  String? courseModuleDetails;
-  String? installmentProcess;
-  String? seatCapacity;
-  String? classTime;
-  String? duration;
-  String? status;
+  String? startDate;
+  int? fee;
+  int? feePence;
+  bool? isEnrolled;
   List<Modules>? modules;
   Instructor? instructor;
   NextClass? nextClass;
-  bool? isEnrolled;
 
   Data({
     this.id,
-    this.createdAt,
-    this.updatedAt,
-    this.startDate,
     this.title,
-    this.createdBy,
-    this.instructorId,
-    this.fee,
     this.courseOverview,
-    this.courseModuleDetails,
-    this.installmentProcess,
-    this.seatCapacity,
-    this.classTime,
-    this.duration,
-    this.status,
+    this.startDate,
+    this.fee,
+    this.feePence,
+    this.isEnrolled,
     this.modules,
     this.instructor,
     this.nextClass,
-    this.isEnrolled,
   });
 
   Data.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    createdAt = json['created_at'];
-    updatedAt = json['updated_at'];
-    startDate = json['start_date'];
-    title = json['title'];
-    createdBy = json['createdBy'];
-    instructorId = json['instructorId'];
-    fee = json['fee'];
-    courseOverview = json['course_overview'];
-    courseModuleDetails = json['course_module_details'];
-    installmentProcess = json['installment_process'];
-    seatCapacity = json['seat_capacity'];
-    classTime = json['class_time'];
-    duration = json['duration'];
-    status = json['status'];
+    id = json['id']?.toString();
+    title = json['title']?.toString();
+    courseOverview = json['course_overview']?.toString();
+    startDate = json['start_date']?.toString();
+    fee = json['fee'] is int
+        ? json['fee'] as int
+        : int.tryParse(json['fee']?.toString() ?? '');
+    feePence = json['fee_pence'] is int
+        ? json['fee_pence'] as int
+        : int.tryParse(json['fee_pence']?.toString() ?? '');
+    isEnrolled = json['is_enrolled'] == true;
     if (json['modules'] != null) {
       modules = <Modules>[];
-      json['modules'].forEach((v) {
-        modules!.add(Modules.fromJson(v));
-      });
+      for (final item in json['modules'] as List) {
+        modules!.add(Modules.fromJson(item as Map<String, dynamic>));
+      }
     }
     instructor = json['instructor'] != null
-        ? Instructor.fromJson(json['instructor'])
+        ? Instructor.fromJson(json['instructor'] as Map<String, dynamic>)
         : null;
-
-    nextClass = json['nextClass'] != null
-        ? NextClass.fromJson(json['nextClass'])
+    nextClass = json['next_class'] != null
+        ? NextClass.fromJson(json['next_class'] as Map<String, dynamic>)
         : null;
-    isEnrolled = json['isEnrolled'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['id'] = id;
-    data['created_at'] = createdAt;
-    data['updated_at'] = updatedAt;
-    data['start_date'] = startDate;
-    data['title'] = title;
-    data['createdBy'] = createdBy;
-    data['instructorId'] = instructorId;
-    data['fee'] = fee;
-    data['course_overview'] = courseOverview;
-    data['course_module_details'] = courseModuleDetails;
-    data['installment_process'] = installmentProcess;
-    data['seat_capacity'] = seatCapacity;
-    data['class_time'] = classTime;
-    data['duration'] = duration;
-    data['status'] = status;
-    if (modules != null) {
-      data['modules'] = modules!.map((v) => v.toJson()).toList();
-    }
-    if (instructor != null) {
-      data['instructor'] = instructor!.toJson();
-    }
-    if (nextClass != null) {
-      data['nextClass'] = nextClass!.toJson();
-    }
-
-    data['isEnrolled'] = isEnrolled;
-    return data;
   }
 }
 
@@ -134,17 +72,9 @@ class Modules {
   Modules({this.id, this.moduleTitle, this.moduleName});
 
   Modules.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    moduleTitle = json['module_title'];
-    moduleName = json['module_name'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['id'] = id;
-    data['module_title'] = moduleTitle;
-    data['module_name'] = moduleName;
-    return data;
+    id = json['id']?.toString();
+    moduleTitle = json['module_title']?.toString();
+    moduleName = json['module_name']?.toString();
   }
 }
 
@@ -157,64 +87,62 @@ class Instructor {
   Instructor({this.id, this.name, this.avatar, this.about});
 
   Instructor.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    name = json['name'];
+    id = json['id']?.toString();
+    name = json['name']?.toString();
     avatar = json['avatar'];
     about = json['about'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['id'] = id;
-    data['name'] = name;
-    data['avatar'] = avatar;
-    data['about'] = about;
-    return data;
   }
 }
 
 class NextClass {
   String? id;
-  String? classTitle;
   String? className;
-  String? classOverView;
-  String? duration;
-  String? startDate;
-  String? classTime;
-  String? moduleId;
+  String? classTitle;
+  String? classAt;
+  int? duration;
+  String? startAt;
+  NextClassModule? module;
 
   NextClass({
     this.id,
-    this.classTitle,
     this.className,
-    this.classOverView,
+    this.classTitle,
+    this.classAt,
     this.duration,
-    this.startDate,
-    this.classTime,
-    this.moduleId,
+    this.startAt,
+    this.module,
   });
 
   NextClass.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    classTitle = json['class_title'];
-    className = json['class_name'];
-    classOverView = json['class_overview'];
-    duration = json['duration'];
-    startDate = json['start_date'];
-    classTime = json['class_time'];
-    moduleId = json['moduleId'];
+    id = json['id']?.toString();
+    className = json['class_name']?.toString();
+    classTitle = json['class_title']?.toString();
+    classAt = json['class_at']?.toString();
+    duration = json['duration'] is int
+        ? json['duration'] as int
+        : int.tryParse(json['duration']?.toString() ?? '');
+    startAt = json['start_at']?.toString();
+    module = json['module'] != null
+        ? NextClassModule.fromJson(json['module'] as Map<String, dynamic>)
+        : null;
   }
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['id'] = id;
-    data['class_title'] = classTitle;
-    data['class_name'] = className;
-    data['class_overview'] = classOverView;
-    data['duration'] = duration;
-    data['start_date'] = startDate;
-    data['class_time'] = classTime;
-    data['moduleId'] = moduleId;
-    return data;
+  String get displayTitle {
+    final title = classTitle ?? '';
+    final name = className ?? '';
+    if (title.isNotEmpty && name.isNotEmpty) return '$title: $name';
+    return title.isNotEmpty ? title : (name.isNotEmpty ? name : 'N/A');
+  }
+}
+
+class NextClassModule {
+  String? moduleTitle;
+  String? moduleName;
+
+  NextClassModule({this.moduleTitle, this.moduleName});
+
+  NextClassModule.fromJson(Map<String, dynamic> json) {
+    moduleTitle = json['module_title']?.toString();
+    moduleName = json['module_name']?.toString();
   }
 }

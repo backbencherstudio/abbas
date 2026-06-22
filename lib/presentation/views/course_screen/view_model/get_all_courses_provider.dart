@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'package:abbas/data/models/response_model.dart';
+import 'package:abbas/presentation/views/course_screen/model/class_assignments_model.dart';
+import 'package:abbas/presentation/views/course_screen/model/class_assets_model.dart';
 import 'package:abbas/presentation/views/course_screen/model/get_assignment_details_model.dart';
 import 'package:abbas/presentation/views/course_screen/model/get_class_details_model.dart';
-import 'package:abbas/presentation/views/course_screen/model/get_course_assets_model.dart';
+import 'package:abbas/presentation/views/course_screen/model/course_assets_model.dart';
 import 'package:abbas/presentation/views/course_screen/model/get_module_details_model.dart';
 import 'package:abbas/presentation/views/course_screen/model/get_my_assignments_model.dart';
 import 'package:abbas/presentation/views/course_screen/model/my_course_details_model.dart';
@@ -38,17 +40,16 @@ class SubmitAssignmentProvider extends StateNotifier<ResponseModel> {
     required String assignmentId,
   }) async {
     try {
-      FormData formData = FormData.fromMap({
-        "title": title,
-        "description": description,
-
-        "media": await MultipartFile.fromFile(
+      final formData = FormData.fromMap({
+        'title': title,
+        'description': description,
+        'attachments': await MultipartFile.fromFile(
           media.path,
           filename: media.path.split('/').last,
         ),
       });
 
-      final response = await dioClient.postHttp(
+      final response = await dioClient.postMultipart(
         ApiEndpoints.submitAssignment(assignmentId),
         formData,
       );
@@ -57,11 +58,17 @@ class SubmitAssignmentProvider extends StateNotifier<ResponseModel> {
         return response;
       }
 
-      if (response['success']) {
-        return ResponseModel(success: true, message: response['message']);
-      } else {
-        return ResponseModel(success: false, message: response['message']);
+      if (response['success'] == true) {
+        return ResponseModel(
+          success: true,
+          message: response['message']?.toString() ?? 'Submitted successfully',
+        );
       }
+
+      return ResponseModel(
+        success: false,
+        message: response['message']?.toString() ?? 'Submission failed',
+      );
     } catch (e) {
       return ResponseModel(success: false, message: e.toString());
     }
@@ -171,12 +178,14 @@ class MyCourseDetailsProvider
         return;
       }
 
-      if (res['success']) {
-        final model = MyCourseDetailsModel.fromJson(res);
+      if (res['success'] == true) {
+        final model = MyCourseDetailsModel.fromJson(
+          Map<String, dynamic>.from(res as Map),
+        );
         state = AsyncValue.data(model);
       } else {
         state = AsyncError(
-          'Failed to load courses details',
+          res['message']?.toString() ?? 'Failed to load course details',
           StackTrace.current,
         );
       }
@@ -214,12 +223,14 @@ class GetModuleDetailsProvider
         return;
       }
 
-      if (res['success']) {
-        final model = GetModuleDetailsModel.fromJson(res);
+      if (res['success'] == true) {
+        final model = GetModuleDetailsModel.fromJson(
+          Map<String, dynamic>.from(res as Map),
+        );
         state = AsyncValue.data(model);
       } else {
         state = AsyncValue.error(
-          'Failed to load Module Details',
+          res['message']?.toString() ?? 'Failed to load module details',
           StackTrace.current,
         );
       }
@@ -255,17 +266,110 @@ class GetClassDetailsProvider
         return false;
       }
 
-      if (res['success']) {
-        final model = GetClassDetailsModel.fromJson(res);
+      if (res['success'] == true) {
+        final model = GetClassDetailsModel.fromJson(
+          Map<String, dynamic>.from(res as Map),
+        );
         state = AsyncValue.data(model);
       } else {
-        state = AsyncValue.error("Load to class details", StackTrace.current);
+        state = AsyncValue.error(
+          res['message']?.toString() ?? 'Failed to load class details',
+          StackTrace.current,
+        );
       }
     } catch (e, stackTrace) {
       logger.e("Error to load data $e");
       state = AsyncValue.error(e, stackTrace);
     }
     return null;
+  }
+}
+
+/// ------------------------- Get Class Assets ---------------------------------
+
+final getClassAssetsProvider =
+    StateNotifierProvider<
+      GetClassAssetsProvider,
+      AsyncValue<ClassAssetsModel?>
+    >((ref) => GetClassAssetsProvider(dioClient: DioClient()));
+
+class GetClassAssetsProvider
+    extends StateNotifier<AsyncValue<ClassAssetsModel?>> {
+  DioClient dioClient;
+
+  GetClassAssetsProvider({required this.dioClient})
+    : super(const AsyncValue.data(null));
+
+  Future<void> getClassAssets({required String classId}) async {
+    state = const AsyncValue.loading();
+    try {
+      final res = await dioClient.getHttp(
+        ApiEndpoints.getClassAssets(classId),
+      );
+
+      if (res is ResponseModel) {
+        state = AsyncValue.error(res.message, StackTrace.current);
+        return;
+      }
+
+      if (res['success'] == true) {
+        final model = ClassAssetsModel.fromJson(
+          Map<String, dynamic>.from(res as Map),
+        );
+        state = AsyncValue.data(model);
+      } else {
+        state = AsyncValue.error(
+          res['message']?.toString() ?? 'Failed to load assets',
+          StackTrace.current,
+        );
+      }
+    } catch (e, stackTrace) {
+      state = AsyncValue.error(e.toString(), stackTrace);
+    }
+  }
+}
+
+/// ------------------------- Get Class Assignments ----------------------------
+
+final getClassAssignmentsProvider =
+    StateNotifierProvider<
+      GetClassAssignmentsProvider,
+      AsyncValue<ClassAssignmentsModel?>
+    >((ref) => GetClassAssignmentsProvider(dioClient: DioClient()));
+
+class GetClassAssignmentsProvider
+    extends StateNotifier<AsyncValue<ClassAssignmentsModel?>> {
+  DioClient dioClient;
+
+  GetClassAssignmentsProvider({required this.dioClient})
+    : super(const AsyncValue.data(null));
+
+  Future<void> getClassAssignments({required String classId}) async {
+    state = const AsyncValue.loading();
+    try {
+      final res = await dioClient.getHttp(
+        ApiEndpoints.getClassAssignments(classId),
+      );
+
+      if (res is ResponseModel) {
+        state = AsyncValue.error(res.message, StackTrace.current);
+        return;
+      }
+
+      if (res['success'] == true) {
+        final model = ClassAssignmentsModel.fromJson(
+          Map<String, dynamic>.from(res as Map),
+        );
+        state = AsyncValue.data(model);
+      } else {
+        state = AsyncValue.error(
+          res['message']?.toString() ?? 'Failed to load assignments',
+          StackTrace.current,
+        );
+      }
+    } catch (e, stackTrace) {
+      state = AsyncValue.error(e.toString(), stackTrace);
+    }
   }
 }
 
@@ -295,12 +399,16 @@ class GetMyAssignmentsProvider
         return;
       }
 
-      if (res['success']) {
-        logger.d("${res['success']}");
-        final model = GetMyAssignmentsModel.fromJson(res);
+      if (res['success'] == true) {
+        final model = GetMyAssignmentsModel.fromJson(
+          Map<String, dynamic>.from(res as Map),
+        );
         state = AsyncData(model);
       } else {
-        state = AsyncError('Failed to load assignments', StackTrace.current);
+        state = AsyncError(
+          res['message']?.toString() ?? 'Failed to load assignments',
+          StackTrace.current,
+        );
       }
     } catch (e, stackTrace) {
       logger.e("Load Data Error : $e");
@@ -336,11 +444,16 @@ class GetAssignmentDetailsProvider
         return;
       }
 
-      if (res['success']) {
-        final model = GetAssignmentDetailsModel.fromJson(res);
+      if (res['success'] == true) {
+        final model = GetAssignmentDetailsModel.fromJson(
+          Map<String, dynamic>.from(res as Map),
+        );
         state = AsyncValue.data(model);
       } else {
-        state = AsyncValue.error('Load to fail data', StackTrace.current);
+        state = AsyncValue.error(
+          res['message']?.toString() ?? 'Failed to load assignment details',
+          StackTrace.current,
+        );
       }
     } catch (e, stackTrace) {
       state = AsyncValue.error(e.toString(), stackTrace);
@@ -349,34 +462,99 @@ class GetAssignmentDetailsProvider
 }
 
 /// --------------------- Get Course Assets ------------------------------------
+
+class CourseAssetsCombinedState {
+  final AsyncValue<CourseAssetsModel?> videos;
+  final AsyncValue<CourseAssetsModel?> files;
+
+  const CourseAssetsCombinedState({
+    required this.videos,
+    required this.files,
+  });
+
+  CourseAssetsCombinedState copyWith({
+    AsyncValue<CourseAssetsModel?>? videos,
+    AsyncValue<CourseAssetsModel?>? files,
+  }) {
+    return CourseAssetsCombinedState(
+      videos: videos ?? this.videos,
+      files: files ?? this.files,
+    );
+  }
+}
+
 final getCourseAssetsProvider =
-    StateNotifierProvider<
-      GetCourseAssetsProvider,
-      AsyncValue<GetCourseAssetsModel?>
-    >((ref) => GetCourseAssetsProvider(dioClient: DioClient()));
+    StateNotifierProvider<GetCourseAssetsProvider, CourseAssetsCombinedState>(
+      (ref) => GetCourseAssetsProvider(dioClient: DioClient()),
+    );
 
 class GetCourseAssetsProvider
-    extends StateNotifier<AsyncValue<GetCourseAssetsModel?>> {
+    extends StateNotifier<CourseAssetsCombinedState> {
   DioClient dioClient;
 
   GetCourseAssetsProvider({required this.dioClient})
-    : super(const AsyncValue.loading());
+    : super(
+        const CourseAssetsCombinedState(
+          videos: AsyncValue.data(null),
+          files: AsyncValue.data(null),
+        ),
+      );
 
-  Future<void> getCourseAssets({required String courseId}) async {
+  Future<void> loadCourseAssets({required String courseId}) async {
+    state = state.copyWith(
+      videos: const AsyncValue.loading(),
+      files: const AsyncValue.loading(),
+    );
+
+    await Future.wait([
+      _fetchAssets(courseId: courseId, type: 'VIDEO', isVideo: true),
+      _fetchAssets(courseId: courseId, type: 'FILE', isVideo: false),
+    ]);
+  }
+
+  Future<void> _fetchAssets({
+    required String courseId,
+    required String type,
+    required bool isVideo,
+  }) async {
     try {
       final res = await dioClient.getHttp(
-        ApiEndpoints.getCourseAssets(courseId),
+        ApiEndpoints.getCourseAssets(courseId, type: type),
       );
 
       if (res is ResponseModel) {
-        state = AsyncValue.error(res.message, StackTrace.current);
+        final error = AsyncValue<CourseAssetsModel?>.error(
+          res.message,
+          StackTrace.current,
+        );
+        state = isVideo
+            ? state.copyWith(videos: error)
+            : state.copyWith(files: error);
         return;
       }
 
-      final model = GetCourseAssetsModel.fromJson(res);
-      state = AsyncValue.data(model);
+      if (res['success'] == true) {
+        final model = CourseAssetsModel.fromJson(
+          Map<String, dynamic>.from(res as Map),
+        );
+        final data = AsyncValue.data(model);
+        state = isVideo
+            ? state.copyWith(videos: data)
+            : state.copyWith(files: data);
+      } else {
+        final error = AsyncValue<CourseAssetsModel?>.error(
+          res['message']?.toString() ?? 'Failed to load assets',
+          StackTrace.current,
+        );
+        state = isVideo
+            ? state.copyWith(videos: error)
+            : state.copyWith(files: error);
+      }
     } catch (e, stackTrace) {
-      state = AsyncValue.error(e.toString(), stackTrace);
+      final error = AsyncValue<CourseAssetsModel?>.error(e, stackTrace);
+      state = isVideo
+          ? state.copyWith(videos: error)
+          : state.copyWith(files: error);
     }
   }
 }

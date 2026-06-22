@@ -34,27 +34,36 @@ class ApiEndpoints {
 
   /// ------------------- Courses ----------------------------------------------
   static String submitAssignment(String assignmentId) =>
-      '/api/course/assignment/$assignmentId/submit';
+      '$baseUrl/api/courses/modules/classes/assignments/$assignmentId';
   static const String getAllCourses = '$baseUrl/api/courses';
   static const String getMyCourses = '$baseUrl/api/course/my-courses';
 
   static String getMyAssignments(String courseId) =>
-      '$baseUrl/api/course/assignments/$courseId';
+      '$baseUrl/api/courses/$courseId/assignments';
 
   static String getAssignmentDetails(String assignmentId) =>
-      '$baseUrl/api/course/assignments/details/$assignmentId';
+      '$baseUrl/api/courses/modules/classes/assignments/$assignmentId';
 
-  static String getCourseAssets(String courseId) =>
-      '$baseUrl/api/course/assets/$courseId';
+  static String getCourseAssets(String courseId, {String? type}) {
+    final base = '$baseUrl/api/courses/$courseId/assets';
+    if (type != null && type.isNotEmpty) return '$base?type=$type';
+    return base;
+  }
 
   static String myCourseDetails(String courseId) =>
-      '$baseUrl/api/course/my-course-details/$courseId';
+      '$baseUrl/api/courses/$courseId';
 
   static String getModuleDetails(String moduleId) =>
-      '$baseUrl/api/course/module/$moduleId';
+      '$baseUrl/api/courses/modules/$moduleId';
 
   static String getClassDetails(String classId) =>
-      '$baseUrl/api/course/class/$classId';
+      '$baseUrl/api/courses/modules/classes/$classId';
+
+  static String getClassAssets(String classId) =>
+      '$baseUrl/api/courses/modules/classes/$classId/assets';
+
+  static String getClassAssignments(String classId) =>
+      '$baseUrl/api/courses/modules/classes/$classId/assignments';
 
   static String getCourseDetails(String courseId) =>
       '$baseUrl/api/courses/$courseId';

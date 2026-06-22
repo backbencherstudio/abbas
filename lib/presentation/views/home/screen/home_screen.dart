@@ -38,19 +38,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return "${parseDate.year}-${parseDate.month}-${parseDate.day}";
   }
 
-  /// -------------------- Due Date Format -------------------------------------
-  String dueDateFormatted(String? dueDate) {
-    if (dueDate == null || dueDate.isEmpty) return 'N/A';
-
-    final parseDate = DateTime.tryParse(dueDate);
-    if (parseDate == null) return 'N/A';
-
-    final now = DateTime.now();
-    final difference = parseDate.difference(now).inDays;
-
-    return difference.toString();
-  }
-
   /// ------------------ Format Class Time -------------------------------------
   String formatClassTime(String? startDate, String? classTime) {
     if (startDate == null || classTime == null) return 'N/A';
@@ -93,6 +80,36 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     } catch (e) {
       return 'Invalid time';
     }
+  }
+
+  String formatEventTime(String? time) {
+    if (time == null || time.isEmpty) return 'N/A';
+    return time;
+  }
+
+  Widget _emptySectionMessage({
+    required String message,
+    required IconData icon,
+  }) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 28.h),
+      child: Center(
+        child: Column(
+          children: [
+            Icon(icon, color: Colors.white38, size: 40.sp),
+            SizedBox(height: 10.h),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white54,
+                fontSize: 14.sp,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -156,6 +173,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ],
                   ),
                   SizedBox(height: 16.h),
+                  if (homeDataWatch.isLoading)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 24),
+                      child: AnimatedLoading(),
+                    )
+                  else if (homeDataWatch.hasError)
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 24.h),
+                      child: Center(
+                        child: Text(
+                          homeDataWatch.error.toString(),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14.sp,
+                          ),
+                        ),
+                      ),
+                    )
+                  else ...[
                   Text(
                     "Upcoming Class",
                     style: TextStyle(
@@ -164,10 +201,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-
-                  if (homeDataWatch.isLoading) AnimatedLoading(),
-
-                  /// ----------- Up Coming Class --------------------------
                   SizedBox(height: 12.h),
                   Container(
                     decoration: BoxDecoration(
@@ -179,11 +212,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       borderRadius: BorderRadius.circular(14.r),
                     ),
                     padding: EdgeInsets.all(16.r),
-                    child: Column(
+                    child: upComingClassesValues == null
+                        ? _emptySectionMessage(
+                            message: 'No upcoming classes at the moment',
+                            icon: Icons.class_outlined,
+                          )
+                        : Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${upComingClassesValues?.moduleTitle ?? 'N/A'} (${upComingClassesValues?.classTitle ?? 'N/A'})',
+                          upComingClassesValues.displayTitle,
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,
@@ -192,7 +230,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ),
                         SizedBox(height: 4.h),
                         Text(
-                          'by ${upComingClassesValues?.instructorName ?? 'N/A'}',
+                          'by ${upComingClassesValues.instructorName ?? 'N/A'}',
                           style: TextStyle(
                             color: Color(0xFFEAD8D9),
                             fontSize: 13.sp,
@@ -208,7 +246,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             ),
                             SizedBox(width: 6.w),
                             Text(
-                              formattedDate(upComingClassesValues?.startDate),
+                              formattedDate(
+                                upComingClassesValues.startDate ??
+                                    upComingClassesValues.classAt,
+                              ),
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 12.sp,
@@ -223,8 +264,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             SizedBox(width: 6.w),
                             Text(
                               formatClassTime(
-                                upComingClassesValues?.startDate,
-                                upComingClassesValues?.classTime ?? 'N/A',
+                                upComingClassesValues.startDate ??
+                                    upComingClassesValues.classAt,
+                                upComingClassesValues.classTime ?? 'N/A',
                               ),
                               style: TextStyle(
                                 color: Colors.white,
@@ -242,7 +284,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   Navigator.pushNamed(
                                     context,
                                     RouteNames.assetsScreen,
-                                    arguments: upComingClassesValues?.id,
+                                    arguments: upComingClassesValues.id,
                                   );
                                 },
                                 style: OutlinedButton.styleFrom(
@@ -342,7 +384,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       border: Border.all(color: Color(0xFF0A1A29), width: 1.w),
                     ),
                     padding: EdgeInsets.all(16.r),
-                    child: Column(
+                    child: upComingAssignmentsValues == null
+                        ? _emptySectionMessage(
+                            message: 'No upcoming assignments at the moment',
+                            icon: Icons.assignment_outlined,
+                          )
+                        : Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
@@ -368,7 +415,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  upComingAssignmentsValues?.title ?? 'N/A',
+                                  upComingAssignmentsValues.title ?? 'N/A',
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 15.sp,
@@ -377,7 +424,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                 ),
                                 SizedBox(height: 3.h),
                                 Text(
-                                  '${upComingAssignmentsValues?.courseTitle ?? 'N/A'} • ${upComingAssignmentsValues?.teacherName ?? 'N/A'}',
+                                  '${upComingAssignmentsValues.courseTitle ?? 'N/A'} • ${upComingAssignmentsValues.teacherName ?? 'N/A'}',
                                   style: TextStyle(
                                     color: Color(0xFF9AA5B1),
                                     fontSize: 12.sp,
@@ -393,7 +440,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     ),
                                     SizedBox(width: 6.w),
                                     Text(
-                                      'Due in ${dueDateFormatted(upComingAssignmentsValues?.dueDate)} days',
+                                      upComingAssignmentsValues.dueLabel,
                                       style: TextStyle(
                                         color: Color(0xFFFFC9A3),
                                         fontSize: 12.sp,
@@ -405,51 +452,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             ),
                           ],
                         ),
-
                         SizedBox(height: 18.h),
                         Row(
                           children: [
-                            // Expanded(
-                            //   child: OutlinedButton(
-                            //     onPressed: () async {
-                            //       await ref
-                            //           .read(
-                            //             getAssignmentDetailsProvider.notifier,
-                            //           )
-                            //           .getAssignmentDetails(
-                            //             assignmentId:
-                            //                 upComingAssignmentsValues?.id ?? "",
-                            //           );
-                            //       if (context.mounted) {
-                            //         Navigator.pushNamed(
-                            //           context,
-                            //           RouteNames.dueAssignmentScreen,
-                            //           arguments: upComingAssignmentsValues?.id,
-                            //         );
-                            //       }
-                            //     },
-                            //     style: OutlinedButton.styleFrom(
-                            //       fixedSize: Size.fromHeight(48.h),
-                            //       foregroundColor: Colors.white,
-                            //       side: BorderSide(
-                            //         color: Color(0xFF3D4466),
-                            //         width: 2.w,
-                            //       ),
-                            //       shape: RoundedRectangleBorder(
-                            //         borderRadius: BorderRadius.circular(12.r),
-                            //       ),
-                            //     ),
-                            //     child: Text(
-                            //       'View Details',
-                            //       style: TextStyle(
-                            //         fontSize: 14.sp,
-                            //         color: Colors.white,
-                            //         fontWeight: FontWeight.w400,
-                            //       ),
-                            //     ),
-                            //   ),
-                            // ),
-                            // SizedBox(width: 14.w),
                             Expanded(
                               child: SizedBox(
                                 width: 174.w,
@@ -461,15 +466,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                         )
                                         .getAssignmentDetails(
                                           assignmentId:
-                                              upComingAssignmentsValues?.id ??
-                                              "",
+                                              upComingAssignmentsValues.id ??
+                                              '',
                                         );
                                     if (context.mounted) {
                                       Navigator.pushNamed(
                                         context,
                                         RouteNames.dueAssignmentScreen,
                                         arguments:
-                                            upComingAssignmentsValues?.id,
+                                            upComingAssignmentsValues.id,
                                       );
                                     }
                                   },
@@ -537,11 +542,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       borderRadius: BorderRadius.circular(14),
                     ),
                     padding: EdgeInsets.all(16.r),
-                    child: Column(
+                    child: upComingEventsValues == null
+                        ? _emptySectionMessage(
+                            message: 'No upcoming events at the moment',
+                            icon: Icons.event_outlined,
+                          )
+                        : Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          upComingEventsValues?.name ?? 'N/A',
+                          upComingEventsValues.name ?? 'N/A',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 15.sp,
@@ -558,7 +568,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             ),
                             SizedBox(width: 6.w),
                             Text(
-                              formattedDate(upComingEventsValues?.date),
+                              formattedDate(upComingEventsValues.date),
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 12.sp,
@@ -571,10 +581,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             ),
                             SizedBox(width: 7.w),
                             Text(
-                              formatClassTime(
-                                upComingEventsValues?.date,
-                                upComingEventsValues?.time ?? 'N/A',
-                              ),
+                              formatEventTime(upComingEventsValues.time),
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 12.sp,
@@ -592,7 +599,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             ),
                             SizedBox(width: 6.w),
                             Text(
-                              upComingEventsValues?.location ?? 'N/A',
+                              upComingEventsValues.location ?? 'N/A',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 14.sp,
@@ -602,7 +609,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ),
                         SizedBox(height: 8.h),
                         Text(
-                          upComingEventsValues?.description ?? 'N/A',
+                          upComingEventsValues.description ?? 'N/A',
                           style: TextStyle(
                             color: Color(0xFFE5E7EB),
                             fontSize: 12.sp,
@@ -617,7 +624,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                   Navigator.pushNamed(
                                     context,
                                     RouteNames.eventDetails,
-                                    arguments: upComingEventsValues?.id,
+                                    arguments: upComingEventsValues.id,
                                   );
                                 },
                                 style: OutlinedButton.styleFrom(
@@ -688,6 +695,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                   ),
                   SizedBox(height: 16.h),
+                  ],
                 ],
               ),
             ),

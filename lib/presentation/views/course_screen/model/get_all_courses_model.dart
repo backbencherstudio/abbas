@@ -66,6 +66,20 @@ class CourseListItem {
     return parts.join(' · ');
   }
 
+  String get formattedStartDate {
+    if (startDate == null || startDate!.isEmpty) return '';
+    final parsed = DateTime.tryParse(startDate!);
+    if (parsed == null) return '';
+    return '${parsed.day.toString().padLeft(2, '0')}/${parsed.month.toString().padLeft(2, '0')}/${parsed.year}';
+  }
+
+  String get subtitleLine {
+    final parts = <String>[];
+    if (infoLine.isNotEmpty) parts.add(infoLine);
+    if (formattedStartDate.isNotEmpty) parts.add(formattedStartDate);
+    return parts.join(' · ');
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,

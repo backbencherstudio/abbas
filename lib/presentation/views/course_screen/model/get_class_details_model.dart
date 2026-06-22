@@ -1,21 +1,16 @@
 class GetClassDetailsModel {
   bool? success;
+  String? message;
   Data? data;
 
-  GetClassDetailsModel({this.success, this.data});
+  GetClassDetailsModel({this.success, this.message, this.data});
 
   GetClassDetailsModel.fromJson(Map<String, dynamic> json) {
     success = json['success'];
-    data = json['data'] != null ? Data.fromJson(json['data']) : null;
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['success'] = success;
-    if (this.data != null) {
-      data['data'] = this.data!.toJson();
-    }
-    return data;
+    message = json['message']?.toString();
+    data = json['data'] != null
+        ? Data.fromJson(json['data'] as Map<String, dynamic>)
+        : null;
   }
 }
 
@@ -25,11 +20,10 @@ class Data {
   String? classTitle;
   String? className;
   String? classOverview;
-  String? duration;
-  String? startDate;
-  String? classTime;
-  String? createdAt;
-  String? updatedAt;
+  int? duration;
+  String? classAt;
+  String? startAt;
+  String? endAt;
   List<Assignments>? assignments;
   ClassAssets? classAssets;
 
@@ -40,57 +34,47 @@ class Data {
     this.className,
     this.classOverview,
     this.duration,
-    this.startDate,
-    this.classTime,
-    this.createdAt,
-    this.updatedAt,
+    this.classAt,
+    this.startAt,
+    this.endAt,
     this.assignments,
     this.classAssets,
   });
 
   Data.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    moduleId = json['moduleId'];
-    classTitle = json['class_title'];
-    className = json['class_name'];
-    classOverview = json['class_overview'];
-    duration = json['duration'];
-    startDate = json['start_date'];
-    classTime = json['class_time'];
-    createdAt = json['createdAt'];
-    updatedAt = json['updatedAt'];
+    id = json['id']?.toString();
+    moduleId = json['module_id']?.toString();
+    classTitle = json['class_title']?.toString();
+    className = json['class_name']?.toString();
+    classOverview = json['class_overview']?.toString();
+    duration = json['duration'] is int
+        ? json['duration'] as int
+        : int.tryParse(json['duration']?.toString() ?? '');
+    classAt = json['class_at']?.toString();
+    startAt = json['start_at']?.toString();
+    endAt = json['end_at']?.toString();
     if (json['assignments'] != null) {
       assignments = <Assignments>[];
-      json['assignments'].forEach((v) {
-        assignments!.add(Assignments.fromJson(v));
-      });
+      for (final item in json['assignments'] as List) {
+        assignments!.add(Assignments.fromJson(item as Map<String, dynamic>));
+      }
     }
-    if (json['classAssets'] != null) {
-      classAssets = json['classAssets'] != null
-          ? ClassAssets.fromJson(json['classAssets'])
-          : null;
+    if (json['class_assets'] != null) {
+      classAssets = ClassAssets.fromJson(
+        json['class_assets'] as Map<String, dynamic>,
+      );
+    } else if (json['classAssets'] != null) {
+      classAssets = ClassAssets.fromJson(
+        json['classAssets'] as Map<String, dynamic>,
+      );
     }
   }
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['id'] = id;
-    data['moduleId'] = moduleId;
-    data['class_title'] = classTitle;
-    data['class_name'] = className;
-    data['class_overview'] = classOverview;
-    data['duration'] = duration;
-    data['start_date'] = startDate;
-    data['class_time'] = classTime;
-    data['createdAt'] = createdAt;
-    data['updatedAt'] = updatedAt;
-    if (assignments != null) {
-      data['assignments'] = assignments!.map((v) => v.toJson()).toList();
-    }
-    if (classAssets != null) {
-      data['classAssets'] = classAssets!.toJson();
-    }
-    return data;
+  String get displayTitle {
+    final title = classTitle ?? '';
+    final name = className ?? '';
+    if (title.isNotEmpty && name.isNotEmpty) return '$title: $name';
+    return title.isNotEmpty ? title : (name.isNotEmpty ? name : 'N/A');
   }
 }
 
@@ -103,28 +87,26 @@ class Assignments {
   String? dueLabel;
   bool? isOverdue;
 
-  Assignments({this.id, this.title});
+  Assignments({
+    this.id,
+    this.title,
+    this.dueDate,
+    this.status,
+    this.dueInDays,
+    this.dueLabel,
+    this.isOverdue,
+  });
 
   Assignments.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    title = json['title'];
-    dueDate = json['due_date'];
-    status = json['status'];
-    dueInDays = json['due_in_days'];
-    dueLabel = json['due_label'];
-    isOverdue = json['is_overdue'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['id'] = id;
-    data['title'] = title;
-    data['due_date'] = dueDate;
-    data['status'] = status;
-    data['due_in_days'] = dueInDays;
-    data['due_label'] = dueLabel;
-    data['is_overdue'] = isOverdue;
-    return data;
+    id = json['id']?.toString();
+    title = json['title']?.toString();
+    dueDate = json['due_date']?.toString();
+    status = json['status']?.toString();
+    dueInDays = json['due_in_days'] is int
+        ? json['due_in_days'] as int
+        : int.tryParse(json['due_in_days']?.toString() ?? '');
+    dueLabel = json['due_label']?.toString();
+    isOverdue = json['is_overdue'] == true;
   }
 }
 
@@ -135,23 +117,16 @@ class ClassAssets {
   ClassAssets({this.videos, this.pdfs});
 
   ClassAssets.fromJson(Map<String, dynamic> json) {
-    videos = json['videos'] != null
-        ? (json['videos'] as List).map((v) => Videos.fromJson(v)).toList()
-        : null;
-    pdfs = json['pdfs'] != null
-        ? (json['pdfs'] as List).map((v) => Pdfs.fromJson(v)).toList()
-        : null;
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    if (videos != null) {
-      data['videos'] = videos!.map((v) => v.toJson()).toList();
+    if (json['videos'] != null) {
+      videos = (json['videos'] as List)
+          .map((v) => Videos.fromJson(v as Map<String, dynamic>))
+          .toList();
     }
-    if (pdfs != null) {
-      data['pdfs'] = pdfs!.map((v) => v.toJson()).toList();
+    if (json['pdfs'] != null) {
+      pdfs = (json['pdfs'] as List)
+          .map((v) => Pdfs.fromJson(v as Map<String, dynamic>))
+          .toList();
     }
-    return data;
   }
 }
 
@@ -163,17 +138,9 @@ class Videos {
   Videos({this.id, this.assetUrl, this.fileName});
 
   Videos.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    assetUrl = json['asset_url'];
-    fileName = json['file_name'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['id'] = id;
-    data['asset_url'] = assetUrl;
-    data['file_name'] = fileName;
-    return data;
+    id = json['id']?.toString();
+    assetUrl = json['asset_url']?.toString();
+    fileName = json['file_name']?.toString();
   }
 }
 
@@ -185,16 +152,8 @@ class Pdfs {
   Pdfs({this.id, this.assetUrl, this.fileName});
 
   Pdfs.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    assetUrl = json['asset_url'];
-    fileName = json['file_name'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['id'] = id;
-    data['asset_url'] = assetUrl;
-    data['file_name'] = fileName;
-    return data;
+    id = json['id']?.toString();
+    assetUrl = json['asset_url']?.toString();
+    fileName = json['file_name']?.toString();
   }
 }

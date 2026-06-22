@@ -336,9 +336,14 @@ class AppRoutes {
     RouteNames.pdfWidget: (context) => PdfWidget(),
     RouteNames.pdfViewerScreen: (context) {
       final args = ModalRoute.of(context)!.settings.arguments;
-      final filePath = args is Map ? args['asset_url'] : '';
-      final title = args is Map ? args['file_name'] : '';
-      return PdfViewerScreen(filePath: filePath, title: title);
+      final filePath = args is Map ? args['asset_url'] as String? ?? '' : '';
+      final title = args is Map ? args['file_name'] as String? ?? '' : '';
+      final mimeType = args is Map ? args['mime_type'] as String? : null;
+      return PdfViewerScreen(
+        filePath: filePath,
+        title: title,
+        mimeType: mimeType,
+      );
     },
     RouteNames.updatePost: (context) {
       final args = ModalRoute.of(context)!.settings.arguments;

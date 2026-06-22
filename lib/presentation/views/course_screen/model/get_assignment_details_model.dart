@@ -1,189 +1,160 @@
 class GetAssignmentDetailsModel {
   bool? success;
-  Data? data;
+  String? message;
+  AssignmentDetailsData? data;
 
-  GetAssignmentDetailsModel({this.success, this.data});
+  GetAssignmentDetailsModel({this.success, this.message, this.data});
 
   GetAssignmentDetailsModel.fromJson(Map<String, dynamic> json) {
     success = json['success'];
-    data = json['data'] != null ? Data.fromJson(json['data']) : null;
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['success'] = success;
-    if (this.data != null) {
-      data['data'] = this.data!.toJson();
-    }
-    return data;
+    message = json['message']?.toString();
+    data = json['data'] != null
+        ? AssignmentDetailsData.fromJson(json['data'] as Map<String, dynamic>)
+        : null;
   }
 }
 
-class Data {
+class AssignmentDetailsData {
   String? id;
   String? title;
   String? description;
   String? submissionDate;
-  String? dueDate;
   int? totalMarks;
-  List<String>? attachmentUrl;
-  int? averageScore;
-  String? createdAt;
-  String? teacherId;
-  String? moduleClassId;
-  ModuleClass? moduleClass;
-  Submission? submission;
+  List<AssignmentAttachment>? attachments;
+  AssignmentClassInfo? classInfo;
+  AssignmentModuleInfo? module;
+  String? status;
+  int? dueDays;
+  String? submittedAt;
+  AssignmentSubmission? submission;
 
-  Data({
+  AssignmentDetailsData({
     this.id,
     this.title,
     this.description,
     this.submissionDate,
-    this.dueDate,
     this.totalMarks,
-    this.attachmentUrl,
-    this.averageScore,
-    this.createdAt,
-    this.teacherId,
-    this.moduleClassId,
-    this.moduleClass,
+    this.attachments,
+    this.classInfo,
+    this.module,
+    this.status,
+    this.dueDays,
+    this.submittedAt,
+    this.submission,
   });
 
-  Data.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    title = json['title'];
-    description = json['description'];
-    submissionDate = json['submission_Date'];
-    dueDate = json['due_date'];
-    totalMarks = json['total_marks'];
-    attachmentUrl = json['attachment_url'] != null
-        ? List<String>.from(json['attachment_url'])
-        : [];
-    averageScore = json['average_score'];
-    createdAt = json['createdAt'];
-    teacherId = json['teacherId'];
-    moduleClassId = json['moduleClassId'];
-    moduleClass = json['moduleClass'] != null
-        ? ModuleClass.fromJson(json['moduleClass'])
+  AssignmentDetailsData.fromJson(Map<String, dynamic> json) {
+    id = json['id']?.toString();
+    title = json['title']?.toString();
+    description = json['description']?.toString();
+    submissionDate = json['submission_date']?.toString();
+    totalMarks = json['total_marks'] is int
+        ? json['total_marks'] as int
+        : int.tryParse(json['total_marks']?.toString() ?? '');
+    if (json['attachments'] != null) {
+      attachments = (json['attachments'] as List)
+          .map((v) => AssignmentAttachment.fromJson(v as Map<String, dynamic>))
+          .toList();
+    }
+    classInfo = json['class'] != null
+        ? AssignmentClassInfo.fromJson(json['class'] as Map<String, dynamic>)
         : null;
+    module = json['module'] != null
+        ? AssignmentModuleInfo.fromJson(json['module'] as Map<String, dynamic>)
+        : null;
+    status = json['status']?.toString();
+    dueDays = json['due_days'] is int
+        ? json['due_days'] as int
+        : int.tryParse(json['due_days']?.toString() ?? '');
+    submittedAt = json['submitted_at']?.toString();
     submission = json['submission'] != null
-        ? Submission.fromJson(json['submission'])
+        ? AssignmentSubmission.fromJson(
+            json['submission'] as Map<String, dynamic>,
+          )
         : null;
   }
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['id'] = id;
-    data['title'] = title;
-    data['description'] = description;
-    data['submission_Date'] = submissionDate;
-    data['due_date'] = dueDate;
-    data['total_marks'] = totalMarks;
-    data['attachment_url'] = attachmentUrl;
-    data['average_score'] = averageScore;
-    data['createdAt'] = createdAt;
-    data['teacherId'] = teacherId;
-    data['moduleClassId'] = moduleClassId;
-    if (moduleClass != null) {
-      data['moduleClass'] = moduleClass!.toJson();
-    }
-    if (submission != null) {
-      data['submission'] = submission!.toJson();
-    }
-    return data;
-  }
+  bool get isPending => status?.toUpperCase() == 'PENDING';
+  bool get isSubmitted => status?.toUpperCase() == 'SUBMITTED';
+  bool get isGraded => status?.toUpperCase() == 'GRADED';
+  bool get hasSubmission => submission != null;
 }
 
-class ModuleClass {
-  String? id;
+class AssignmentAttachment {
+  String? fileName;
+  String? filePath;
+  String? mimeType;
+
+  AssignmentAttachment({this.fileName, this.filePath, this.mimeType});
+
+  AssignmentAttachment.fromJson(Map<String, dynamic> json) {
+    fileName = json['file_name']?.toString();
+    filePath = json['file_path']?.toString();
+    mimeType = json['mime_type']?.toString();
+  }
+
+  bool get isPdf =>
+      mimeType?.contains('pdf') == true ||
+      fileName?.toLowerCase().endsWith('.pdf') == true;
+
+  bool get isImage =>
+      mimeType?.startsWith('image/') == true ||
+      fileName?.toLowerCase().endsWith('.jpg') == true ||
+      fileName?.toLowerCase().endsWith('.jpeg') == true ||
+      fileName?.toLowerCase().endsWith('.png') == true;
+}
+
+class AssignmentClassInfo {
   String? classTitle;
   String? className;
-  Module? module;
 
-  ModuleClass({this.id, this.classTitle, this.className, this.module});
+  AssignmentClassInfo({this.classTitle, this.className});
 
-  ModuleClass.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    classTitle = json['class_title'];
-    className = json['class_name'];
-    module = json['module'] != null ? Module.fromJson(json['module']) : null;
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['id'] = id;
-    data['class_title'] = classTitle;
-    data['class_name'] = className;
-    if (module != null) {
-      data['module'] = module!.toJson();
-    }
-    return data;
+  AssignmentClassInfo.fromJson(Map<String, dynamic> json) {
+    classTitle = json['class_title']?.toString();
+    className = json['class_name']?.toString();
   }
 }
 
-class Module {
-  String? id;
+class AssignmentModuleInfo {
   String? moduleTitle;
   String? moduleName;
-  String? createdAt;
 
-  Module({this.id, this.moduleTitle, this.moduleName, this.createdAt});
+  AssignmentModuleInfo({this.moduleTitle, this.moduleName});
 
-  Module.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    moduleTitle = json['module_title'];
-    moduleName = json['module_name'];
-    createdAt = json['createdAt'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['id'] = id;
-    data['module_title'] = moduleTitle;
-    data['module_name'] = moduleName;
-    data['createdAt'] = createdAt;
-    return data;
+  AssignmentModuleInfo.fromJson(Map<String, dynamic> json) {
+    moduleTitle = json['module_title']?.toString();
+    moduleName = json['module_name']?.toString();
   }
 }
 
-class Submission {
-  String? id;
-  String? title;
+class AssignmentSubmission {
   String? description;
-  String? fileUrl;
-  bool? submitted;
   String? submittedAt;
+  String? status;
+  List<AssignmentAttachment>? attachments;
+  List<dynamic>? grades;
   dynamic grade;
 
-  Submission({
-    this.id,
-    this.title,
+  AssignmentSubmission({
     this.description,
-    this.fileUrl,
-    this.submitted,
     this.submittedAt,
+    this.status,
+    this.attachments,
+    this.grades,
     this.grade,
   });
 
-  Submission.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    title = json['title'];
-    description = json['description'];
-    fileUrl = json['fileUrl'];
-    submitted = json['submitted'];
-    submittedAt = json['submittedAt'];
+  AssignmentSubmission.fromJson(Map<String, dynamic> json) {
+    description = json['description']?.toString();
+    submittedAt = json['submitted_at']?.toString();
+    status = json['status']?.toString();
+    if (json['attachments'] != null) {
+      attachments = (json['attachments'] as List)
+          .map((v) => AssignmentAttachment.fromJson(v as Map<String, dynamic>))
+          .toList();
+    }
+    grades = json['grades'] as List<dynamic>?;
     grade = json['grade'];
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {};
-    data['id'] = id;
-    data['title'] = title;
-    data['description'] = description;
-    data['fileUrl'] = fileUrl;
-    data['submitted'] = submitted;
-    data['submittedAt'] = submittedAt;
-    data['grade'] = grade;
-    return data;
   }
 }
