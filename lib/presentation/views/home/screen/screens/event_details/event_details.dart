@@ -26,12 +26,11 @@ class _EventDetailsState extends ConsumerState<EventDetails> {
     super.initState();
   }
 
-  /// ------------------- Format Created At ------------------------------------
-  String formatCreatedAt(String? createdAt) {
-    if (createdAt == null) return 'N/A';
-    final dateTime = DateTime.parse(createdAt);
-    final formatted = DateFormat('dd-MM-yyyy').format(dateTime);
-    return formatted;
+  String formatEventDate(String? startAt) {
+    if (startAt == null || startAt.isEmpty) return 'N/A';
+    final dateTime = DateTime.tryParse(startAt);
+    if (dateTime == null) return 'N/A';
+    return DateFormat('dd-MM-yyyy').format(dateTime.toLocal());
   }
 
   @override
@@ -41,13 +40,16 @@ class _EventDetailsState extends ConsumerState<EventDetails> {
 
     return Scaffold(
       backgroundColor: Color(0xff030D15),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SecondaryAppBar(title: 'Event Details'),
-
-            SizedBox(height: 20.h),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SecondaryAppBar(title: 'Event Details'),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 20.h),
 
             if (eventDetailsProvider.isLoading) const AnimatedLoading(),
             if (eventDetailsProvider.hasError)
@@ -98,7 +100,7 @@ class _EventDetailsState extends ConsumerState<EventDetails> {
                         ),
                         SizedBox(width: 5.w),
                         Text(
-                          "${formatCreatedAt(eventDetails?.createdAt)} • ${eventDetails?.time}",
+                          "${formatEventDate(eventDetails?.startAt)} • ${eventDetails?.time ?? 'N/A'}",
                           style: TextStyle(
                             color: Color(0xffE9E9EA),
                             fontSize: 14.sp,
@@ -139,7 +141,7 @@ class _EventDetailsState extends ConsumerState<EventDetails> {
                           size: 20,
                         ),
                         Text(
-                          eventDetails?.amount ?? 'N/A',
+                          eventDetails?.displayFee ?? 'N/A',
                           style: TextStyle(
                             color: Color(0xffE9E9EA),
                             fontSize: 14.sp,
@@ -175,103 +177,36 @@ class _EventDetailsState extends ConsumerState<EventDetails> {
                     ),
                     SizedBox(height: 10.h),
                     Text(
-                      "The Annual Alumni Meetup is a special gathering designed to bring together our alumni, current students, and faculty. This year’s event will feature an evening of outstanding performances by our talented students, celebrating creativity, talent, and the strong bond within our community.",
+                      eventDetails?.overview?.isNotEmpty == true
+                          ? eventDetails!.overview!
+                          : (eventDetails?.description ?? 'No overview available'),
                       style: TextStyle(
                         color: Color(0xffE9E9EA),
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w400,
                       ),
                     ),
-                    SizedBox(height: 15.h),
-                    Text(
-                      "Highlights of the Event",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.w500,
+                    if (eventDetails?.description?.isNotEmpty == true &&
+                        eventDetails?.overview?.isNotEmpty == true) ...[
+                      SizedBox(height: 15.h),
+                      Text(
+                        "Description",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.star_rate_outlined,
-                          color: Colors.red,
-                          size: 10,
+                      SizedBox(height: 10.h),
+                      Text(
+                        eventDetails!.description!,
+                        style: TextStyle(
+                          color: Color(0xffE9E9EA),
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w400,
                         ),
-                        SizedBox(width: 4),
-                        Text(
-                          " Live performances by current students",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.star_rate_outlined,
-                          color: Colors.red,
-                          size: 10,
-                        ),
-                        SizedBox(width: 4),
-                        Text(
-                          "Networking opportunities with alumni",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.star_rate_outlined,
-                          color: Colors.red,
-                          size: 10,
-                        ),
-                        SizedBox(width: 4),
-                        Text(
-                          " Inspiring speeches and shared experiences",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.star_rate_outlined,
-                          color: Colors.red,
-                          size: 10,
-                        ),
-                        SizedBox(width: 4),
-                        Text(
-                          "A celebration of achievements and",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Text(
-                      "community spirit",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.w400,
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -312,28 +247,57 @@ class _EventDetailsState extends ConsumerState<EventDetails> {
               ),
             ),
             SizedBox(height: 15.h),
-            Align(
-              alignment: Alignment.center,
-              child: PrimaryButton(
-                onTap: () {
-                  Navigator.pushNamed(context, RouteNames.completePayment);
-                },
-                color: Color(0xFFE9201D),
-                textColor: Colors.white,
-                icon: '',
-                child: Text(
-                  "Get Ticket",
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w400,
+            if (eventDetails?.isRegistered != true)
+              Align(
+                alignment: Alignment.center,
+                child: PrimaryButton(
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      RouteNames.completePayment,
+                      arguments: widget.eventId,
+                    );
+                  },
+                  color: Color(0xFFE9201D),
+                  textColor: Colors.white,
+                  icon: '',
+                  child: Text(
+                    "Get Ticket",
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ),
+              )
+            else
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                child: Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(vertical: 14.h),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF142331),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFF3D4566)),
+                  ),
+                  child: Text(
+                    'You are registered for this event',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14.sp,
+                    ),
                   ),
                 ),
               ),
-            ),
             SizedBox(height: 25.h),
-          ],
-        ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

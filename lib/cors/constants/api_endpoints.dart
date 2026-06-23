@@ -36,7 +36,8 @@ class ApiEndpoints {
   static String submitAssignment(String assignmentId) =>
       '$baseUrl/api/courses/modules/classes/assignments/$assignmentId';
   static const String getAllCourses = '$baseUrl/api/courses';
-  static const String getMyCourses = '$baseUrl/api/course/my-courses';
+  static const String getEnrolledCourses =
+      '$baseUrl/api/courses?my_courses=true';
 
   static String getMyAssignments(String courseId) =>
       '$baseUrl/api/courses/$courseId/assignments';
@@ -103,6 +104,20 @@ class ApiEndpoints {
 
   /// -------------------- Community -------------------------------------------
   static const String getFeed = '$baseUrl/api/community/feed';
+
+  static String communityFeed({
+    String? cursor,
+    int limit = 10,
+    String? userId,
+  }) {
+    final cursorValue = (cursor != null && cursor.isNotEmpty) ? cursor : '';
+    final base =
+        '$baseUrl/api/community/feed?cursor=$cursorValue&limit=$limit';
+    if (userId != null && userId.isNotEmpty) {
+      return '$base&user_id=$userId';
+    }
+    return base;
+  }
   static const String createPost = '$baseUrl/api/community/post';
 
   static String updatePost(String postId) =>
@@ -131,7 +146,25 @@ class ApiEndpoints {
   static const String getMyProfile = '$baseUrl/api/community/my-profile';
 
   static String voteOnAPoll(String postId, String optionId) =>
-      '$baseUrl/api/community/vote/$postId/$optionId';
+      '$baseUrl/api/community/post/$postId/vote/$optionId';
+
+  /// ----- Community: post like / comments (current API) ----------------------
+  static String likePost(String postId) =>
+      '$baseUrl/api/community/posts/$postId/like';
+
+  static String getPostComments(String postId, {String? cursor, int limit = 10}) {
+    final cursorValue = (cursor != null && cursor.isNotEmpty) ? cursor : '';
+    return '$baseUrl/api/community/post/$postId/comments?cursor=$cursorValue&limit=$limit';
+  }
+
+  static String createPostComment(String postId) =>
+      '$baseUrl/api/community/post/$postId/comment';
+
+  static String likeComment(String commentId) =>
+      '$baseUrl/api/community/posts/comments/$commentId/like';
+
+  static String deleteComment(String commentId) =>
+      '$baseUrl/api/community/posts/comments/$commentId/delete';
 
 
   // chat

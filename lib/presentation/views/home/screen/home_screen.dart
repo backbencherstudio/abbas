@@ -1,4 +1,5 @@
 import 'package:abbas/presentation/views/course_screen/view_model/get_all_courses_provider.dart';
+import 'package:abbas/presentation/views/home/view_model/events_provider.dart';
 import 'package:abbas/presentation/views/home/view_model/get_home_data_provider.dart';
 import 'package:abbas/presentation/widgets/animated_loading.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +25,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(getHomeDataProvider.notifier).getHomeData();
+      ref.read(getAllEventsProvider.notifier).getAllEvents();
     });
     super.initState();
   }
@@ -118,7 +120,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final homeData = homeDataWatch.value;
     final upComingClassesValues = homeData?.upcomingClasses;
     final upComingAssignmentsValues = homeData?.upcomingAssignments;
-    final upComingEventsValues = homeData?.upcomingEvents;
+    final allEventsData = ref.watch(getAllEventsProvider);
+    final events = allEventsData.value ?? [];
+    final unregisteredEvents =
+        events.where((event) => event.isRegistered != true).toList();
+    final upComingEventsValues =
+        unregisteredEvents.isNotEmpty ? unregisteredEvents.first : null;
     
     final profileProvider = context.watch<ProfileScreenProvider>();
     final userName = profileProvider.profile?.data?.name ?? 'N/A';
@@ -542,7 +549,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       borderRadius: BorderRadius.circular(14),
                     ),
                     padding: EdgeInsets.all(16.r),
-                    child: upComingEventsValues == null
+                    child: allEventsData.isLoading
+                        ? Padding(
+                            padding: EdgeInsets.symmetric(vertical: 28.h),
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.white54,
+                              ),
+                            ),
+                          )
+                        : upComingEventsValues == null
                         ? _emptySectionMessage(
                             message: 'No upcoming events at the moment',
                             icon: Icons.event_outlined,
@@ -568,7 +584,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             ),
                             SizedBox(width: 6.w),
                             Text(
-                              formattedDate(upComingEventsValues.date),
+                              formattedDate(upComingEventsValues.startAt),
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 12.sp,
@@ -650,12 +666,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             const SizedBox(width: 14),
                             Expanded(
                               child: ElevatedButton(
-                                onPressed: () {
-                                  Navigator.pushNamed(
-                                    context,
-                                    RouteNames.completePayment,
-                                  );
-                                },
+                                onPressed: upComingEventsValues.isRegistered == true
+                                    ? null
+                                    : () {
+                                        Navigator.pushNamed(
+                                          context,
+                                          RouteNames.completePayment,
+                                          arguments: upComingEventsValues.id,
+                                        );
+                                      },
                                 style: ElevatedButton.styleFrom(
                                   fixedSize: const Size.fromHeight(56),
                                   backgroundColor: AppColors.splashRed,
@@ -679,7 +698,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                     ),
                                     SizedBox(width: 6.w),
                                     Text(
-                                      'Get Tickets',
+                                      upComingEventsValues.isRegistered == true
+                                          ? 'Registered'
+                                          : 'Get Tickets',
                                       style: TextStyle(
                                         fontSize: 14.sp,
                                         fontWeight: FontWeight.w600,
@@ -740,13 +761,9 @@ class _QuickGrid extends StatelessWidget {
         Navigator.pushNamed(context, RouteNames.scanner);
         break;
       case 'book':
-        Navigator.pushNamed(context, RouteNames.homeMyCourseScreen);
-        break;
       case 'note':
-        Navigator.pushNamed(context, RouteNames.allAssignmentsScreen);
-        break;
       case 'folder':
-        Navigator.pushNamed(context, RouteNames.homeAssetsCoursesScreen);
+        Navigator.pushNamed(context, RouteNames.homeMyCourseScreen);
         break;
       default:
         Navigator.pushNamed(context, RouteNames.scanner);

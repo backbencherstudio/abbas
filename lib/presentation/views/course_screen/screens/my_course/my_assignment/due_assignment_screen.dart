@@ -253,17 +253,18 @@ class _DueAssignmentScreenState extends ConsumerState<DueAssignmentScreen> {
 
         return Scaffold(
           backgroundColor: const Color(0xff030D15),
-          body: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SecondaryAppBar(title: assignment.title ?? 'Assignment'),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: 15.h),
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SecondaryAppBar(title: assignment.title ?? 'Assignment'),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: 15.h),
                       Text(
                         '${assignment.classInfo?.classTitle ?? 'N/A'} : ${assignment.classInfo?.className ?? 'N/A'}',
                         style: TextStyle(
@@ -619,9 +620,10 @@ class _DueAssignmentScreenState extends ConsumerState<DueAssignmentScreen> {
                     ],
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
+          ],
+        ),
         );
       },
     );

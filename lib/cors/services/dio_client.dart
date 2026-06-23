@@ -78,16 +78,78 @@ class DioClient {
     }
   }
 
+  /// -------------------------- Patch Http ------------------------------------
+  Future<dynamic> patchHttp(String path, [Object? data]) async {
+    final token = await _tokenStorage.getToken();
+    try {
+      final response = await _dio.patch(
+        path,
+        data: data,
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+      return ResponseHandle.handleResponse(response);
+    } catch (e) {
+      if (e is DioException) {
+        return ResponseModel(
+          success: false,
+          message: ErrorHandle.handleError(e),
+        );
+      } else {
+        return ResponseModel(success: false, message: "$e");
+      }
+    }
+  }
+
+  /// -------------------------- Delete Http -----------------------------------
+  Future<dynamic> deleteHttp(String path) async {
+    final token = await _tokenStorage.getToken();
+    try {
+      final response = await _dio.delete(
+        path,
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+      return ResponseHandle.handleResponse(response);
+    } catch (e) {
+      if (e is DioException) {
+        return ResponseModel(
+          success: false,
+          message: ErrorHandle.handleError(e),
+        );
+      } else {
+        return ResponseModel(success: false, message: "$e");
+      }
+    }
+  }
+
   /// -------------------- Post Multipart --------------------------------------
-  Future<dynamic> postMultipart(String path, FormData formData) async {
+  Future<dynamic> postMultipart(
+    String path,
+    FormData formData, {
+    ProgressCallback? onSendProgress,
+    Duration sendTimeout = const Duration(minutes: 15),
+    Duration receiveTimeout = const Duration(minutes: 2),
+  }) async {
     final token = await _tokenStorage.getToken();
 
     try {
       final response = await _dio.post(
         path,
         data: formData,
+        onSendProgress: onSendProgress,
         options: Options(
           headers: {'Authorization': 'Bearer $token'},
+          sendTimeout: sendTimeout,
+          receiveTimeout: receiveTimeout,
         ),
       );
       return ResponseHandle.handleResponse(response);

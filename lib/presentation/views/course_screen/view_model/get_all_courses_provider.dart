@@ -8,7 +8,6 @@ import 'package:abbas/presentation/views/course_screen/model/course_assets_model
 import 'package:abbas/presentation/views/course_screen/model/get_module_details_model.dart';
 import 'package:abbas/presentation/views/course_screen/model/get_my_assignments_model.dart';
 import 'package:abbas/presentation/views/course_screen/model/my_course_details_model.dart';
-import 'package:abbas/presentation/views/course_screen/model/my_courses_model.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
@@ -117,37 +116,41 @@ class GetAllCoursesProvider
 
 /// ------------------------- My Course ----------------------------------------
 final myCourseProvider =
-    StateNotifierProvider<MyCourseProvider, AsyncValue<MyCoursesModel?>>(
+    StateNotifierProvider<MyCourseProvider, AsyncValue<GetAllCoursesModel?>>(
       (ref) => MyCourseProvider(dioClient: DioClient()),
     );
 
-class MyCourseProvider extends StateNotifier<AsyncValue<MyCoursesModel?>> {
+class MyCourseProvider extends StateNotifier<AsyncValue<GetAllCoursesModel?>> {
   final DioClient dioClient;
 
   MyCourseProvider({required this.dioClient})
     : super(const AsyncValue.data(null));
 
   Future<void> getMyCourse() async {
-    state = const AsyncLoading();
+    state = const AsyncValue.loading();
 
     try {
-      final res = await dioClient.getHttp(ApiEndpoints.getMyCourses);
+      final res = await dioClient.getHttp(ApiEndpoints.getEnrolledCourses);
 
       if (res is ResponseModel) {
-        state = AsyncError(res.message, StackTrace.current);
+        state = AsyncValue.error(res.message, StackTrace.current);
         return;
       }
 
       if (res['success'] == true) {
-        final data = MyCoursesModel.fromJson(res);
-
-        state = AsyncData(data);
+        final model = GetAllCoursesModel.fromJson(
+          Map<String, dynamic>.from(res as Map),
+        );
+        state = AsyncValue.data(model);
       } else {
-        state = AsyncError("Failed to load courses", StackTrace.current);
+        final message = res is Map
+            ? (res['message'] ?? 'Failed to load courses')
+            : 'Failed to load courses';
+        state = AsyncValue.error(message, StackTrace.current);
       }
     } catch (e, stackTrace) {
       logger.e("Load Data Error: $e");
-      state = AsyncError(e, stackTrace);
+      state = AsyncValue.error(e, stackTrace);
     }
   }
 }

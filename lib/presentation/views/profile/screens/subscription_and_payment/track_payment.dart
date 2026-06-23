@@ -18,20 +18,19 @@ class _TrackPaymentState extends State<TrackPayment> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SingleChildScrollView(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SecondaryAppBar(title: 'Track Payment'),
-
-            Padding(
-              padding: EdgeInsets.all(16.0.sp),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: 20.h),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SecondaryAppBar(title: 'Track Payment'),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.all(16.0.sp),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 20.h),
                   Padding(
                     padding: EdgeInsets.all(0.0.sp),
                     child: Column(
@@ -418,8 +417,9 @@ class _TrackPaymentState extends State<TrackPayment> {
                 ],
               ),
             ),
-          ],
+          ),
         ),
+        ],
       ),
     );
   }

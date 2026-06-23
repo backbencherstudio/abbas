@@ -25,18 +25,11 @@ class _AllEventsState extends ConsumerState<AllEvents> {
     super.initState();
   }
 
-  /// ------------------- Format Created At ------------------------------------
-  String formatCreatedAt(String? createdAt) {
-    if (createdAt == null) return 'N/A';
-    final dateTime = DateTime.parse(createdAt);
-    final formatted = DateFormat('dd-MM-yyyy').format(dateTime);
-    return formatted;
-  }
-
-  /// ------------------------ Convert to ISO ----------------------------------
-  String convertToIso(String date) {
-    final parseDate = DateTime.parse(date);
-    return parseDate.toUtc().toIso8601String();
+  String formatEventDate(String? startAt) {
+    if (startAt == null || startAt.isEmpty) return 'N/A';
+    final dateTime = DateTime.tryParse(startAt);
+    if (dateTime == null) return 'N/A';
+    return DateFormat('dd-MM-yyyy').format(dateTime.toLocal());
   }
 
   @override
@@ -45,6 +38,25 @@ class _AllEventsState extends ConsumerState<AllEvents> {
     final allEvents = allEventsData.value ?? [];
     if (allEventsData.isLoading) {
       return AnimatedLoading();
+    }
+    if (allEventsData.hasError) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        body: Column(
+          children: [
+            const SecondaryAppBar(title: 'Upcoming Events'),
+            Expanded(
+              child: Center(
+                child: Text(
+                  allEventsData.error.toString(),
+                  style: TextStyle(color: Colors.white, fontSize: 14.sp),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
     }
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -70,8 +82,22 @@ class _AllEventsState extends ConsumerState<AllEvents> {
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: ListView.builder(
                 padding: EdgeInsets.zero,
-                itemCount: allEvents.length,
+                itemCount: allEvents.isEmpty ? 1 : allEvents.length,
                 itemBuilder: (context, index) {
+                  if (allEvents.isEmpty) {
+                    return Padding(
+                      padding: EdgeInsets.symmetric(vertical: 40.h),
+                      child: Center(
+                        child: Text(
+                          'No events available',
+                          style: TextStyle(
+                            color: Colors.white54,
+                            fontSize: 14.sp,
+                          ),
+                        ),
+                      ),
+                    );
+                  }
                   final event = allEvents[index];
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,7 +120,7 @@ class _AllEventsState extends ConsumerState<AllEvents> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              event?.name ?? 'N/A',
+                              event.name ?? 'N/A',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 15.sp,
@@ -111,7 +137,7 @@ class _AllEventsState extends ConsumerState<AllEvents> {
                                 ),
                                 SizedBox(width: 6.w),
                                 Text(
-                                  formatCreatedAt(event?.createdAt),
+                                  formatEventDate(event.startAt),
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 12.sp,
@@ -124,7 +150,7 @@ class _AllEventsState extends ConsumerState<AllEvents> {
                                 ),
                                 SizedBox(width: 7.w),
                                 Text(
-                                  event?.time ?? 'N/A',
+                                  event.time ?? 'N/A',
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 12.sp,
@@ -142,7 +168,7 @@ class _AllEventsState extends ConsumerState<AllEvents> {
                                 ),
                                 SizedBox(width: 6.w),
                                 Text(
-                                  event?.location ?? 'N/A',
+                                  event.location ?? 'N/A',
                                   style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 14.sp,
@@ -152,7 +178,7 @@ class _AllEventsState extends ConsumerState<AllEvents> {
                             ),
                             SizedBox(height: 8.h),
                             Text(
-                              event?.description ?? 'N/A',
+                              event.description ?? 'N/A',
                               style: TextStyle(
                                 color: Color(0xFFE5E7EB),
                                 fontSize: 12.sp,
@@ -167,7 +193,7 @@ class _AllEventsState extends ConsumerState<AllEvents> {
                                       Navigator.pushNamed(
                                         context,
                                         RouteNames.eventDetails,
-                                        arguments: event?.id,
+                                        arguments: event.id,
                                       );
                                     },
                                     style: OutlinedButton.styleFrom(
@@ -195,12 +221,15 @@ class _AllEventsState extends ConsumerState<AllEvents> {
                                 SizedBox(width: 14.w),
                                 Expanded(
                                   child: ElevatedButton(
-                                    onPressed: () {
-                                      Navigator.pushNamed(
-                                        context,
-                                        RouteNames.completePayment,
-                                      );
-                                    },
+                                    onPressed: event.isRegistered == true
+                                        ? null
+                                        : () {
+                                            Navigator.pushNamed(
+                                              context,
+                                              RouteNames.completePayment,
+                                              arguments: event.id,
+                                            );
+                                          },
                                     style: ElevatedButton.styleFrom(
                                       fixedSize: Size.fromHeight(56.h),
                                       backgroundColor: AppColors.splashRed,
@@ -227,7 +256,9 @@ class _AllEventsState extends ConsumerState<AllEvents> {
                                         ),
                                         SizedBox(width: 6.w),
                                         Text(
-                                          'Get Tickets',
+                                          event.isRegistered == true
+                                              ? 'Registered'
+                                              : 'Get Tickets',
                                           style: TextStyle(
                                             fontSize: 14.sp,
                                             fontWeight: FontWeight.w600,

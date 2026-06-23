@@ -32,6 +32,7 @@ class CourseListItem {
   String? startDate;
   int? moduleCount;
   bool? isEnrolled;
+  double? courseProgress;
 
   CourseListItem({
     this.id,
@@ -40,6 +41,7 @@ class CourseListItem {
     this.startDate,
     this.moduleCount,
     this.isEnrolled,
+    this.courseProgress,
   });
 
   CourseListItem.fromJson(Map<String, dynamic> json) {
@@ -53,7 +55,16 @@ class CourseListItem {
         ? json['module_count'] as int
         : int.tryParse(json['module_count']?.toString() ?? '');
     isEnrolled = json['is_enrolled'] == true;
+    courseProgress = json['course_progress'] is num
+        ? (json['course_progress'] as num).toDouble()
+        : double.tryParse(json['course_progress']?.toString() ?? '');
   }
+
+  double get progressFraction =>
+      ((courseProgress ?? 0).clamp(0, 100)) / 100;
+
+  String get progressLabel =>
+      '${(courseProgress ?? 0).round()}% Complete';
 
   String get infoLine {
     final parts = <String>[];
@@ -88,6 +99,7 @@ class CourseListItem {
       'start_date': startDate,
       'module_count': moduleCount,
       'is_enrolled': isEnrolled,
+      'course_progress': courseProgress,
     };
   }
 }

@@ -14,21 +14,23 @@ class PaymentHistory extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            SecondaryAppBar(title: 'Payment History'),
-            Padding(
-              padding: EdgeInsets.all(16.w),
-              child: Column(
-                spacing: 16.h,
-                children: List.generate(3, (index) {
-                  return _buildReceiptContainer(context);
-                }),
+      body: Column(
+        children: [
+          SecondaryAppBar(title: 'Payment History'),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.all(16.w),
+                child: Column(
+                  spacing: 16.h,
+                  children: List.generate(3, (index) {
+                    return _buildReceiptContainer(context);
+                  }),
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

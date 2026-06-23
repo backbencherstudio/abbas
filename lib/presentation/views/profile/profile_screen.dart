@@ -48,32 +48,42 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   SizedBox(height: 24.h),
 
-                  profile?.avatar != null
-                      ? CircleAvatar(
-                          radius: 30, // 30 px radius
-                          backgroundImage: NetworkImage(profile!.avatar!),
-                        )
-                      : CircleAvatar(
-                          radius: 30,
-                          backgroundColor: Colors.grey[200],
-                          child: const Icon(
-                            Icons.person,
-                            color: Colors.grey,
-                            size: 30,
+                  GestureDetector(
+                    onTap: () {
+                      final userId = profile?.id;
+                      if (userId == null || userId.isEmpty) return;
+                      Navigator.pushNamed(
+                        context,
+                        RouteNames.communityProfile,
+                        arguments: userId,
+                      );
+                    },
+                    child: Column(
+                      children: [
+                        profile?.avatar != null
+                            ? CircleAvatar(
+                                radius: 30,
+                                backgroundImage: NetworkImage(profile!.avatar!),
+                              )
+                            : CircleAvatar(
+                                radius: 30,
+                                backgroundColor: Colors.grey[200],
+                                child: const Icon(
+                                  Icons.person,
+                                  color: Colors.grey,
+                                  size: 30,
+                                ),
+                              ),
+                        SizedBox(height: 16.h),
+                        Text(userName, style: textTheme.headlineSmall),
+                        SizedBox(height: 4.h),
+                        Text(
+                          "Membership Active",
+                          style: textTheme.bodySmall?.copyWith(
+                            color: const Color(0xFF5F6CA0),
                           ),
                         ),
-
-                  SizedBox(height: 16.h),
-
-                  /// Name
-                  Text(userName, style: textTheme.headlineSmall),
-
-                  SizedBox(height: 4.h),
-
-                  Text(
-                    "Membership Active",
-                    style: textTheme.bodySmall?.copyWith(
-                      color: const Color(0xFF5F6CA0),
+                      ],
                     ),
                   ),
 

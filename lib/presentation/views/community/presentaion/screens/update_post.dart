@@ -169,9 +169,10 @@ class _UpdatePostState extends State<UpdatePost> {
           body: Column(
             children: [
               SecondaryAppBar(title: 'Edit Post'),
-              SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Padding(
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Padding(
                   padding: EdgeInsets.all(16.w),
                   child: Column(
                     children: [
@@ -455,6 +456,7 @@ class _UpdatePostState extends State<UpdatePost> {
                   ),
                 ),
               ),
+            ),
             ],
           ),
         );

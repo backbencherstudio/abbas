@@ -14,13 +14,13 @@ import '../../presentation/views/auth/login/presentaion/screen/login_screen.dart
 import '../../presentation/views/auth/otp_verify/screen/otp_verify_screen.dart';
 import '../../presentation/views/auth/register/presentaion/screen/register_screen.dart';
 import '../../presentation/views/auth/set_new_password/screen/set_new_password_screen.dart';
+import '../../presentation/views/community/presentaion/screen/community_profile_screen.dart';
 import '../../presentation/views/community/presentaion/screen/comment/comment_post_screen.dart';
+import '../../presentation/views/community/presentaion/screen/post_detail_screen.dart';
 import '../../presentation/views/community/presentaion/screens/create_pool.dart';
 import '../../presentation/views/community/presentaion/screens/create_post.dart';
 import '../../presentation/views/community/presentaion/screens/edit_profile.dart';
-import '../../presentation/views/community/presentaion/screens/my_profile_private.dart';
 import '../../presentation/views/community/presentaion/screens/my_profile_public.dart';
-import '../../presentation/views/community/presentaion/screens/others_profile.dart';
 import '../../presentation/views/community/presentaion/screens/report_list_page.dart';
 import '../../presentation/views/community/presentaion/screens/report_user_screen.dart';
 import '../../presentation/views/course_screen/screens/course_modele/course_module_screen.dart';
@@ -231,17 +231,28 @@ class AppRoutes {
     RouteNames.supportUser: (context) => const SupportUser(),
     RouteNames.pushNotifications: (context) => const PushNotifications(),
     RouteNames.commentScreen: (context) => CommentPostScreen(),
+    RouteNames.communityPostDetail: (context) {
+      final postId = ModalRoute.of(context)!.settings.arguments as String;
+      return PostDetailScreen(postId: postId);
+    },
     RouteNames.createPost: (context) => CreatePost(),
     RouteNames.createPool: (context) => CreatePool(),
+    RouteNames.communityProfile: (context) {
+      final userId = ModalRoute.of(context)!.settings.arguments as String;
+      return CommunityProfileScreen(userId: userId);
+    },
     RouteNames.myProfilePublic: (context) => MyProfilePublic(),
 
     RouteNames.myProfilePrivate: (context) {
       final userId = ModalRoute.of(context)!.settings.arguments as String;
-      return MyProfilePrivate(userId: userId);
+      return CommunityProfileScreen(userId: userId);
     },
 
     RouteNames.editProfile: (context) => EditProfile(),
-    RouteNames.othersProfile: (context) => OthersProfile(),
+    RouteNames.othersProfile: (context) {
+      final userId = ModalRoute.of(context)!.settings.arguments as String;
+      return CommunityProfileScreen(userId: userId);
+    },
     RouteNames.reportListPage: (context) => ReportListPage(),
     RouteNames.reportUserScreen: (context) {
       final args = ModalRoute.of(context)!.settings.arguments;
@@ -315,7 +326,11 @@ class AppRoutes {
       final eventId = args is String ? args : '';
       return EventDetails(eventId: eventId);
     },
-    RouteNames.completePayment: (context) => CompletePayment(),
+    RouteNames.completePayment: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments;
+      final eventId = args is String ? args : '';
+      return CompletePayment(eventId: eventId);
+    },
     RouteNames.prosHome: (context) => ProsHome(),
     RouteNames.allAssignmentDetails: (context) {
       final args = ModalRoute.of(context)!.settings.arguments;

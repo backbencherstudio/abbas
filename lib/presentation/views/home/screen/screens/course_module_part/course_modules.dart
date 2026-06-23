@@ -11,12 +11,16 @@ class CourseModules extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xff030D15),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SecondaryAppBar(title: 'Course Module'),
-            SizedBox(height: 23),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SecondaryAppBar(title: 'Course Module'),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 23),
 
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20.w),
@@ -404,8 +408,11 @@ class CourseModules extends StatelessWidget {
               ),
             ),
             SizedBox(height: 20.h),
-          ],
-        ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

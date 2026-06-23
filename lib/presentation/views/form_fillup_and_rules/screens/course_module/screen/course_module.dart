@@ -49,15 +49,16 @@ class _CourseModuleState extends ConsumerState<CourseModule> {
 
           final modules = courseDetails.data?.modules;
 
-          return SingleChildScrollView(
-            child: Column(
-              children: [
-                SecondaryAppBar(title: 'Course Module'),
-                Padding(
-                  padding: EdgeInsets.all(16.w),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+          return Column(
+            children: [
+              SecondaryAppBar(title: 'Course Module'),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.w),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                       Text(
                         courseDetails.data?.title ?? 'N/A',
                         style: TextStyle(
@@ -207,8 +208,9 @@ class _CourseModuleState extends ConsumerState<CourseModule> {
                     ],
                   ),
                 ),
-              ],
+              ),
             ),
+            ],
           );
         },
       ),

@@ -107,6 +107,8 @@ class SecondaryAppBar extends StatelessWidget {
   final bool isEdit;
   final bool isSearch;
   final VoidCallback? onEditButtonTap;
+  final Widget? trailing;
+  final VoidCallback? onBack;
 
   const SecondaryAppBar({
     super.key,
@@ -115,6 +117,8 @@ class SecondaryAppBar extends StatelessWidget {
     this.onEditButtonTap,
     this.isEdit = false,
     this.isSearch = false,
+    this.trailing,
+    this.onBack,
   });
 
   @override
@@ -139,7 +143,7 @@ class SecondaryAppBar extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 GestureDetector(
-                  onTap: () => Navigator.pop(context),
+                  onTap: onBack ?? () => Navigator.pop(context),
                   child: Icon(
                     Icons.arrow_back_ios_new,
                     color: Colors.white,
@@ -154,7 +158,9 @@ class SecondaryAppBar extends StatelessWidget {
                   ).textTheme.titleLarge?.copyWith(color: Colors.white),
                 ),
                 Spacer(),
-                if (hasButton)
+                if (trailing != null)
+                  trailing!
+                else if (hasButton)
                   isEdit
                       ? GestureDetector(
                           onTap: onEditButtonTap,
@@ -191,4 +197,51 @@ class SecondaryAppBar extends StatelessWidget {
   // REMOVE THIS LINE - it's causing the error
   // @override
   // Size get preferredSize => throw UnimplementedError();
+}
+
+/// Keeps [SecondaryAppBar] fixed while [body] scrolls underneath.
+class SecondaryScreenBody extends StatelessWidget {
+  final String title;
+  final Widget body;
+  final Color? backgroundColor;
+  final bool hasButton;
+  final bool isEdit;
+  final bool isSearch;
+  final VoidCallback? onEditButtonTap;
+  final Widget? trailing;
+  final VoidCallback? onBack;
+
+  const SecondaryScreenBody({
+    super.key,
+    required this.title,
+    required this.body,
+    this.backgroundColor,
+    this.hasButton = false,
+    this.isEdit = false,
+    this.isSearch = false,
+    this.onEditButtonTap,
+    this.trailing,
+    this.onBack,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: backgroundColor ?? AppColors.background,
+      body: Column(
+        children: [
+          SecondaryAppBar(
+            title: title,
+            hasButton: hasButton,
+            isEdit: isEdit,
+            isSearch: isSearch,
+            onEditButtonTap: onEditButtonTap,
+            trailing: trailing,
+            onBack: onBack,
+          ),
+          Expanded(child: body),
+        ],
+      ),
+    );
+  }
 }
