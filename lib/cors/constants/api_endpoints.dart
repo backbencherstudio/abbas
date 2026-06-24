@@ -118,6 +118,14 @@ class ApiEndpoints {
     }
     return base;
   }
+
+  static String communitySearchFeed({
+    required String search,
+    int limit = 10,
+  }) {
+    final encoded = Uri.encodeQueryComponent(search.trim());
+    return '$baseUrl/api/community/feed?search=$encoded&limit=$limit';
+  }
   static const String createPost = '$baseUrl/api/community/post';
 
   static String updatePost(String postId) =>

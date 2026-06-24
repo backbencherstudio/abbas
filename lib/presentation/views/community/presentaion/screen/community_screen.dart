@@ -7,6 +7,7 @@ import 'package:abbas/presentation/widgets/animated_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../widgets/custom_appbar.dart';
 import '../../widgets/create_post_widget.dart';
 
@@ -76,6 +77,19 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
     );
   }
 
+  Future<void> _openSearch() async {
+    final result = await Navigator.pushNamed(
+      context,
+      RouteNames.communitySearch,
+    );
+    final query = result is String ? result : null;
+    if (!mounted || query == null || query.isEmpty) return;
+    await ref.read(communityFeedProvider.notifier).search(query);
+  }
+
+  Future<void> _clearSearch() =>
+      ref.read(communityFeedProvider.notifier).clearSearch();
+
   void _openAuthorProfile(String? authorId) {
     if (authorId == null || authorId.isEmpty) return;
     Navigator.pushNamed(
@@ -93,7 +107,21 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          const CustomAppbar(title: 'Community'),
+          CustomAppbar(
+            title: 'Community',
+            trailing: GestureDetector(
+              onTap: _openSearch,
+              child: SvgPicture.asset(
+                'assets/icons/search.svg',
+                width: 24.w,
+                height: 24.h,
+                colorFilter: const ColorFilter.mode(
+                  Colors.white,
+                  BlendMode.srcIn,
+                ),
+              ),
+            ),
+          ),
           Expanded(
             child: RefreshIndicator(
               onRefresh: _onRefresh,
@@ -108,12 +136,27 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
   }
 
   Widget _buildBody(CommunityFeedState state) {
-    final children = <Widget>[
-      Padding(
-        padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 8.h),
-        child: const CreatePostWidget(),
-      ),
-    ];
+    final children = <Widget>[];
+
+    if (state.isSearchMode) {
+      children.add(
+        Padding(
+          padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 8.h),
+          child: _SearchResultsHeader(
+            query: state.searchQuery!,
+            onClear: _clearSearch,
+            onEditSearch: _openSearch,
+          ),
+        ),
+      );
+    } else {
+      children.add(
+        Padding(
+          padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 8.h),
+          child: const CreatePostWidget(),
+        ),
+      );
+    }
 
     if (state.isInitialLoading && state.isEmpty) {
       children.add(
@@ -125,7 +168,23 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
     } else if (state.error != null && state.isEmpty) {
       children.add(_ErrorView(message: state.error!, onRetry: _onRefresh));
     } else if (state.isEmpty) {
-      children.add(const _EmptyView());
+      children.add(
+        state.isSearchMode
+            ? Padding(
+                padding: EdgeInsets.only(top: 80.h),
+                child: Center(
+                  child: Text(
+                    'No posts found for "${state.searchQuery}"',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: Colors.white54,
+                    ),
+                  ),
+                ),
+              )
+            : const _EmptyView(),
+      );
     } else {
       for (final post in state.posts) {
         children.add(
@@ -162,6 +221,8 @@ class _PaginationFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (state.isSearchMode) return const SizedBox.shrink();
+
     if (state.isLoadingMore) {
       return Padding(
         padding: EdgeInsets.symmetric(vertical: 16.h),
@@ -257,6 +318,55 @@ class _ErrorView extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _SearchResultsHeader extends StatelessWidget {
+  final String query;
+  final VoidCallback onClear;
+  final VoidCallback onEditSearch;
+
+  const _SearchResultsHeader({
+    required this.query,
+    required this.onClear,
+    required this.onEditSearch,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0A1A29),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: const Color(0xFF3D4566)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.search, color: Colors.white54, size: 18.sp),
+          SizedBox(width: 10.w),
+          Expanded(
+            child: GestureDetector(
+              onTap: onEditSearch,
+              child: Text(
+                query,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: onClear,
+            child: Icon(Icons.close, color: Colors.white54, size: 20.sp),
+          ),
+        ],
       ),
     );
   }

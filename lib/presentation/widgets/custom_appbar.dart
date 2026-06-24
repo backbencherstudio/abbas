@@ -8,6 +8,7 @@ class CustomAppbar extends StatelessWidget {
   final String? image;
   final String? image2;
   final VoidCallback? onTap;
+  final Widget? trailing;
 
   const CustomAppbar({
     super.key,
@@ -16,6 +17,7 @@ class CustomAppbar extends StatelessWidget {
     this.image,
     this.image2,
     this.onTap,
+    this.trailing,
   });
 
   @override
@@ -64,6 +66,7 @@ class CustomAppbar extends StatelessWidget {
                   ],
                 ),
               ),
+              if (trailing != null) trailing!,
               if (image != null) GestureDetector(
                   onTap: onTap,
                   child: Image.asset(image!)),

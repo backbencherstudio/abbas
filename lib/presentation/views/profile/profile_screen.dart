@@ -102,7 +102,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         SizedBox(height: 12.h),
 
                         OptionCard(
-                          title: "Subscription & Payment",
+                          title: "Payments",
                           iconPath: "assets/icons/credit.svg",
                           route: RouteNames.subscriptions,
                         ),
@@ -123,13 +123,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           route: RouteNames.accountSettingsScreen,
                         ),
 
-                        SizedBox(height: 12.h),
-
-                        OptionCard(
-                          title: "Certificates",
-                          iconPath: "assets/icons/certificate.svg",
-                          route: RouteNames.feedbackScreen,
-                        ),
+                        // SizedBox(height: 12.h),
+                        //
+                        // OptionCard(
+                        //   title: "Certificates",
+                        //   iconPath: "assets/icons/certificate.svg",
+                        //   route: RouteNames.feedbackScreen,
+                        // ),
 
                         SizedBox(height: 12.h),
 

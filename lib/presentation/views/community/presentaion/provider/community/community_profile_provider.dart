@@ -222,6 +222,9 @@ class CommunityProfileNotifier extends StateNotifier<CommunityProfileState> {
     state = state.copyWith(posts: posts);
   }
 
+  /// Syncs a post after edit from the update screen.
+  void replacePost(FeedPost updated) => _replacePost(updated);
+
   Future<void> togglePostLike(String postId) async {
     final match = state.posts.where((p) => p.id == postId).toList();
     if (match.isEmpty) return;

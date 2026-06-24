@@ -1,547 +1,425 @@
-import 'package:abbas/cors/services/api_client.dart';
 import 'package:abbas/cors/theme/app_colors.dart';
 import 'package:abbas/cors/utils/app_utils.dart';
-import 'package:abbas/presentation/views/community/presentaion/provider/community/community_screen_provider.dart';
+import 'package:abbas/presentation/views/community/model/community_feed_model.dart';
+import 'package:abbas/presentation/views/community/presentaion/provider/community/community_feed_provider.dart';
+import 'package:abbas/presentation/views/community/presentaion/provider/community/community_profile_provider.dart';
+import 'package:abbas/presentation/views/community/presentaion/provider/community/edit_post_provider.dart';
+import 'package:abbas/presentation/views/profile/view_model/profile_screen_provider.dart';
 import 'package:abbas/presentation/widgets/secondary_appber.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:provider/provider.dart';
-import 'dart:io';
+import 'package:provider/provider.dart' as legacy_provider;
 
-import 'package:abbas/cors/network/api_response_model.dart';
-import '../../../profile/view_model/profile_screen_provider.dart';
+class UpdatePost extends ConsumerStatefulWidget {
+  final FeedPost post;
+  final String? userId;
 
-class UpdatePost extends StatefulWidget {
-  final String postId;
-  final String postContent;
-  const UpdatePost({
-    super.key,
-    required this.postId,
-    required this.postContent,
-  });
+  const UpdatePost({super.key, required this.post, this.userId});
 
   @override
-  State<UpdatePost> createState() => _UpdatePostState();
+  ConsumerState<UpdatePost> createState() => _UpdatePostState();
 }
 
-class _UpdatePostState extends State<UpdatePost> {
-  final TextEditingController _goalsController = TextEditingController();
-  final FocusNode _goalsFocus = FocusNode();
-  final ImagePicker _imagePicker = ImagePicker();
+class _UpdatePostState extends ConsumerState<UpdatePost> {
+  late final TextEditingController _contentController;
+  late String _visibility;
 
-  bool _hasText = false;
+  final List<TextEditingController> _optionControllers = [];
+  static const int _minOptions = 2;
+  static const int _maxOptions = 8;
 
   @override
   void initState() {
     super.initState();
-    _goalsController.addListener(_onTextChanged);
-    _goalsController.text = widget.postContent;
+    _contentController = TextEditingController(text: widget.post.content ?? '');
+    _contentController.addListener(_onFormChanged);
+    _visibility = _visibilityFromPost(widget.post.visibility);
+
+    if (widget.post.isPoll) {
+      for (final option in widget.post.pollOptions) {
+        final controller = TextEditingController(text: option.title ?? '');
+        controller.addListener(_onFormChanged);
+        _optionControllers.add(controller);
+      }
+      while (_optionControllers.length < _minOptions) {
+        final controller = TextEditingController();
+        controller.addListener(_onFormChanged);
+        _optionControllers.add(controller);
+      }
+    }
   }
 
-  void _onTextChanged() {
+  void _onFormChanged() => setState(() {});
+
+  String _visibilityFromPost(PostVisibility visibility) {
+    switch (visibility) {
+      case PostVisibility.public:
+        return 'PUBLIC';
+      case PostVisibility.private:
+        return 'PRIVATE';
+      case PostVisibility.unknown:
+        return 'PUBLIC';
+    }
+  }
+
+  @override
+  void dispose() {
+    _contentController.dispose();
+    for (final c in _optionControllers) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  bool get _canSave {
+    if (_contentController.text.trim().isEmpty) return false;
+    if (!widget.post.isPoll) return true;
+    final filled = _optionControllers
+        .map((c) => c.text.trim())
+        .where((t) => t.isNotEmpty)
+        .length;
+    return filled >= _minOptions;
+  }
+
+  void _addOption() {
+    if (_optionControllers.length >= _maxOptions) {
+      Utils.showToast(
+        msg: 'You can add up to $_maxOptions options',
+        backgroundColor: AppColors.cardBackground,
+        textColor: Colors.white,
+      );
+      return;
+    }
     setState(() {
-      _hasText = _goalsController.text.isNotEmpty;
+      final controller = TextEditingController();
+      controller.addListener(_onFormChanged);
+      _optionControllers.add(controller);
     });
   }
 
-  Future<void> _pickImage(ImageSource source) async {
-    try {
-      context.read<CommunityScreenProvider>().setIsPickingImage(true);
-
-      final XFile? image = await _imagePicker.pickImage(
-        source: source,
-        imageQuality: 85,
-      );
-
-      if (image != null) {
-        context.read<CommunityScreenProvider>().setSelectedMedia(
-          File(image.path),
-          'PHOTO',
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        Utils.showToast(
-          msg: 'Error picking image: $e',
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-        );
-      }
-    } finally {
-      if (mounted) {
-        context.read<CommunityScreenProvider>().setIsPickingImage(false);
-      }
-    }
+  void _removeOption(int index) {
+    if (_optionControllers.length <= _minOptions) return;
+    setState(() {
+      _optionControllers[index].dispose();
+      _optionControllers.removeAt(index);
+    });
   }
 
-  Future<void> _pickVideo(ImageSource source) async {
-    try {
-      context.read<CommunityScreenProvider>().setIsPickingImage(true);
-
-      final XFile? video = await _imagePicker.pickVideo(source: source);
-
-      if (video != null) {
-        context.read<CommunityScreenProvider>().setSelectedMedia(
-          File(video.path),
-          'VIDEO',
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        Utils.showToast(
-          msg: 'Error picking video: $e',
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-        );
-      }
-    } finally {
-      if (mounted) {
-        context.read<CommunityScreenProvider>().setIsPickingImage(false);
-      }
-    }
-  }
-
-  void _removeMedia() {
-    context.read<CommunityScreenProvider>().removeMedia();
-  }
-
-  Future<void> _updatePost(CommunityScreenProvider provider) async {
-    if (!_hasText && provider.selectedMedia == null) {
+  Future<void> _save() async {
+    if (!_canSave) {
       Utils.showToast(
-        msg: 'Please add text or media',
+        msg: widget.post.isPoll
+            ? 'Enter a question and at least two options'
+            : 'Please enter post content',
         backgroundColor: Colors.red,
         textColor: Colors.white,
       );
       return;
     }
 
-    logger.d("Update Post : ${widget.postId}");
-    // Call the provider method
-    final response = await provider.updatePost(
-      widget.postId,
-      _goalsController.text.trim(),
-      provider.selectedMedia,
-    );
+    final notifier = ref.read(editPostProvider.notifier);
+    final result = widget.post.isPoll
+        ? await notifier.updatePoll(
+            postId: widget.post.id,
+            content: _contentController.text,
+            visibility: _visibility,
+            pollOptions:
+                _optionControllers.map((c) => c.text).toList(growable: false),
+            previous: widget.post,
+          )
+        : await notifier.updatePost(
+            postId: widget.post.id,
+            content: _contentController.text,
+            visibility: _visibility,
+            previous: widget.post,
+          );
 
-    if (mounted) {
-      if (response is ApiResponseModel && response.success) {
-        Utils.showToast(
-          msg: 'Post updated successfully',
-          backgroundColor: Colors.green,
-          textColor: Colors.white,
-        );
-        Navigator.pop(context, true);
-      } else {
-        String msg = 'Failed to update post';
-        if (response is ApiResponseModel) {
-          msg = response.message;
-        } else if (response is String) {
-          msg = response;
-        }
+    if (!mounted) return;
 
-        Utils.showToast(
-          msg: msg,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-        );
+    if (result.error != null) {
+      Utils.showToast(
+        msg: result.error!,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+      return;
+    }
+
+    final updated = result.post;
+    if (updated != null) {
+      ref.read(communityFeedProvider.notifier).replacePost(updated);
+      final userId = widget.userId;
+      if (userId != null && userId.isNotEmpty) {
+        ref.read(communityProfileProvider(userId).notifier).replacePost(updated);
       }
     }
-  }
 
-  @override
-  void dispose() {
-    _goalsController.removeListener(_onTextChanged);
-    _goalsController.dispose();
-    _goalsFocus.dispose();
-    super.dispose();
+    Utils.showToast(
+      msg: 'Post updated successfully',
+      backgroundColor: Colors.green,
+      textColor: Colors.white,
+    );
+    Navigator.pop(context, true);
   }
 
   @override
   Widget build(BuildContext context) {
-    final profileProvider = Provider.of<ProfileScreenProvider>(context);
-    final authorImage = profileProvider.profile?.data?.avatar;
-    final authorName = profileProvider.profile?.data?.name ?? '';
-    return Consumer<CommunityScreenProvider>(
-      builder: (context, provider, child) {
-        return Scaffold(
-          backgroundColor: AppColors.background,
-          body: Column(
-            children: [
-              SecondaryAppBar(title: 'Edit Post'),
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Padding(
-                  padding: EdgeInsets.all(16.w),
-                  child: Column(
-                    children: [
-                      SizedBox(height: 10.h),
+    final isSaving = ref.watch(editPostProvider).isSaving;
+    final profile = legacy_provider.Provider.of<ProfileScreenProvider>(context);
+    final authorImage = profile.profile?.data?.avatar;
+    final authorName = profile.profile?.data?.name ?? '';
 
-                      /// ---------------- Author Info -------------------------
-                      Row(
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(100.r),
-                              border: Border.all(color: Color(0xFF5F6CA0)),
-                            ),
-                            child: CircleAvatar(
-                              radius: 20.r,
-                              backgroundImage: NetworkImage(authorImage ?? ''),
-                            ),
-                          ),
-                          SizedBox(width: 12.w),
-                          Text(
-                            authorName,
-                            style: TextStyle(
-                              fontSize: 16.sp,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const Spacer(),
-                          PopupMenuButton<String>(
-                            initialValue: provider.privacy,
-                            color: const Color(0xFF0A1A29),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12.r),
-                            ),
-                            onSelected: (String newValue) {
-                              provider.setPrivacy(newValue);
-                            },
-                            itemBuilder: (BuildContext context) =>
-                                <PopupMenuEntry<String>>[
-                                  PopupMenuItem<String>(
-                                    value: 'PUBLIC',
-                                    child: Text(
-                                      'PUBLIC',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12.sp,
-                                        fontWeight: FontWeight.w400,
-                                      ),
-                                    ),
-                                  ),
-                                  PopupMenuItem<String>(
-                                    value: 'FRIENDS',
-                                    child: Text(
-                                      'FRIENDS',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12.sp,
-                                        fontWeight: FontWeight.w400,
-                                      ),
-                                    ),
-                                  ),
-                                  PopupMenuItem<String>(
-                                    value: 'ONLY ME',
-                                    child: Text(
-                                      'ONLY ME',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12.sp,
-                                        fontWeight: FontWeight.w400,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 12.w,
-                                vertical: 6.h,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF0A1A29),
-                                borderRadius: BorderRadius.circular(20.r),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    provider.privacy == 'PUBLIC'
-                                        ? Icons.public
-                                        : provider.privacy == 'FRIENDS'
-                                        ? Icons.group
-                                        : Icons.lock,
-                                    color: Colors.white,
-                                    size: 16.sp,
-                                  ),
-                                  SizedBox(width: 4.w),
-                                  Text(
-                                    provider.privacy,
-                                    style: TextStyle(
-                                      fontSize: 12.sp,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  Icon(
-                                    Icons.arrow_drop_down,
-                                    color: Colors.white,
-                                    size: 16.sp,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Column(
+        children: [
+          SecondaryAppBar(title: widget.post.isPoll ? 'Edit Poll' : 'Edit Post'),
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: EdgeInsets.all(16.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _AuthorRow(
+                    authorImage: authorImage,
+                    authorName: authorName,
+                    visibility: _visibility,
+                    enabled: !isSaving,
+                    onVisibilityChanged: (v) => setState(() => _visibility = v),
+                  ),
+                  SizedBox(height: 20.h),
+                  Text(
+                    widget.post.isPoll ? 'Poll Question' : 'Content',
+                    style: TextStyle(
+                      color: const Color(0xffB2B5B8),
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
+                  _TextArea(
+                    controller: _contentController,
+                    hintText: widget.post.isPoll
+                        ? 'Ask a question...'
+                        : "What's on your mind?",
+                    enabled: !isSaving,
+                    maxLines: widget.post.isPoll ? 4 : 8,
+                  ),
+                  if (widget.post.isPoll) ...[
+                    SizedBox(height: 20.h),
+                    Text(
+                      'Poll Options',
+                      style: TextStyle(
+                        color: const Color(0xffB2B5B8),
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w400,
                       ),
-
-                      SizedBox(height: 16.h),
-
-                      /// ------------- Text input field -----------------------
-                      _buildTextField(
-                        "What's on your mind?",
-                        controller: _goalsController,
-                        maxLines: 8,
-                        focusNode: _goalsFocus,
-                      ),
-
-                      if (provider.selectedMedia != null) ...[
-                        SizedBox(height: 16.h),
-                        Stack(
+                    ),
+                    SizedBox(height: 8.h),
+                    ...List.generate(_optionControllers.length, (index) {
+                      return Padding(
+                        padding: EdgeInsets.only(bottom: 10.h),
+                        child: Row(
                           children: [
-                            if (provider.mediaType == 'PHOTO')
-                              Container(
-                                width: double.infinity,
-                                height: 200.h,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12.r),
-                                  image: DecorationImage(
-                                    image: FileImage(provider.selectedMedia!),
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              )
-                            else
-                              Container(
-                                width: double.infinity,
-                                height: 200.h,
-                                decoration: BoxDecoration(
-                                  color: Colors.black26,
-                                  borderRadius: BorderRadius.circular(12.r),
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.video_file,
-                                      color: Colors.white,
-                                      size: 48,
-                                    ),
-                                    SizedBox(height: 8.h),
-                                    Text(
-                                      'Video Selected',
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            Positioned(
-                              top: 8,
-                              right: 8,
-                              child: GestureDetector(
-                                onTap: _removeMedia,
-                                child: Container(
-                                  padding: EdgeInsets.all(4.r),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withValues(alpha: 0.5),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    Icons.close,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                ),
+                            Expanded(
+                              child: _TextArea(
+                                controller: _optionControllers[index],
+                                hintText: 'Option ${index + 1}',
+                                enabled: !isSaving,
+                                maxLines: 1,
                               ),
                             ),
-                          ],
-                        ),
-                      ],
-
-                      SizedBox(height: 20.h),
-
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: Row(
-                              children: [
-                                _buildMediaButton(
-                                  icon: 'assets/icons/video.png',
-                                  onTap: () => _pickVideo(ImageSource.gallery),
-                                ),
-                                SizedBox(width: 10.w),
-                                _buildMediaButton(
-                                  icon: 'assets/icons/photo.png',
-                                  onTap: () => _pickImage(ImageSource.gallery),
-                                ),
-                                // const Spacer(),
-                              ],
-                            ),
-                          ),
-                          Expanded(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                ElevatedButton(
-                                  onPressed:
-                                      (_hasText ||
-                                              provider.selectedMedia != null) &&
-                                          !provider.isLoading
-                                      ? () => _updatePost(provider)
-                                      : null,
-                                  style: ElevatedButton.styleFrom(
-                                    fixedSize: Size(95.w, 48.h),
-                                    backgroundColor: const Color(0xFFE9201D),
-                                    padding: EdgeInsets.symmetric(
-                                      vertical: 12.h,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12.r),
-                                    ),
-                                    elevation: 0,
-                                  ),
-                                  child: Text(
-                                    'Post',
-                                    style: TextStyle(
-                                      fontSize: 16.sp,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      SizedBox(height: 20.h),
-
-                      // Show error message if any
-                      if (provider.errorMessage != null) ...[
-                        SizedBox(height: 16.h),
-                        Container(
-                          padding: EdgeInsets.all(12.w),
-                          decoration: BoxDecoration(
-                            color: Colors.red.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8.r),
-                            border: Border.all(color: Colors.red),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.error_outline,
-                                color: Colors.red,
-                                size: 20,
-                              ),
+                            if (_optionControllers.length > _minOptions) ...[
                               SizedBox(width: 8.w),
-                              Expanded(
-                                child: Text(
-                                  provider.errorMessage!,
-                                  style: const TextStyle(
-                                    color: Colors.red,
-                                    fontSize: 14,
-                                  ),
+                              IconButton(
+                                onPressed:
+                                    isSaving ? null : () => _removeOption(index),
+                                icon: Icon(
+                                  Icons.close,
+                                  color: Colors.white54,
+                                  size: 20.sp,
                                 ),
                               ),
                             ],
-                          ),
+                          ],
                         ),
-                      ],
-                    ],
+                      );
+                    }),
+                    if (_optionControllers.length < _maxOptions)
+                      TextButton.icon(
+                        onPressed: isSaving ? null : _addOption,
+                        icon: Icon(Icons.add, color: Colors.white, size: 18.sp),
+                        label: Text(
+                          'Add option',
+                          style: TextStyle(color: Colors.white, fontSize: 14.sp),
+                        ),
+                      ),
+                  ],
+                  SizedBox(height: 28.h),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: !isSaving && _canSave ? _save : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFE9201D),
+                        disabledBackgroundColor: const Color(0xFFE9201D).withValues(alpha: 0.4),
+                        padding: EdgeInsets.symmetric(vertical: 14.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: isSaving
+                          ? SizedBox(
+                              height: 22.h,
+                              width: 22.h,
+                              child: const CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              'Save',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
+                              ),
+                            ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ),
-            ],
           ),
-        );
-      },
-    );
-  }
-
-  Widget _buildMediaButton({
-    required String icon,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.all(8.r),
-        decoration: BoxDecoration(
-          color: Color(0xFF0E1B27),
-          borderRadius: BorderRadius.circular(12.r),
-        ),
-        child: Image.asset(icon, width: 24.w, height: 24.h),
+        ],
       ),
     );
   }
+}
 
-  Widget _buildTextField(
-    String hintText, {
-    int? maxLines,
-    TextEditingController? controller,
-    FocusNode? focusNode,
-  }) {
+class _AuthorRow extends StatelessWidget {
+  final String? authorImage;
+  final String authorName;
+  final String visibility;
+  final bool enabled;
+  final ValueChanged<String> onVisibilityChanged;
+
+  const _AuthorRow({
+    required this.authorImage,
+    required this.authorName,
+    required this.visibility,
+    required this.enabled,
+    required this.onVisibilityChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasAvatar = authorImage != null && authorImage!.isNotEmpty;
+
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 20.r,
+          backgroundColor: const Color(0xFF1B2A3A),
+          backgroundImage: hasAvatar ? NetworkImage(authorImage!) : null,
+          child: hasAvatar
+              ? null
+              : Icon(Icons.person, color: Colors.grey, size: 20.sp),
+        ),
+        SizedBox(width: 12.w),
+        Expanded(
+          child: Text(
+            authorName,
+            style: TextStyle(
+              fontSize: 16.sp,
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        PopupMenuButton<String>(
+          enabled: enabled,
+          initialValue: visibility,
+          color: const Color(0xFF0A1A29),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          onSelected: onVisibilityChanged,
+          itemBuilder: (context) => const [
+            PopupMenuItem(value: 'PUBLIC', child: Text('PUBLIC', style: TextStyle(color: Colors.white))),
+            PopupMenuItem(value: 'PRIVATE', child: Text('PRIVATE', style: TextStyle(color: Colors.white))),
+          ],
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0A1A29),
+              borderRadius: BorderRadius.circular(20.r),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  visibility == 'PUBLIC' ? Icons.public : Icons.lock,
+                  color: Colors.white,
+                  size: 16.sp,
+                ),
+                SizedBox(width: 4.w),
+                Text(
+                  visibility,
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                  ),
+                ),
+                Icon(Icons.arrow_drop_down, color: Colors.white, size: 16.sp),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TextArea extends StatelessWidget {
+  final TextEditingController controller;
+  final String hintText;
+  final bool enabled;
+  final int maxLines;
+
+  const _TextArea({
+    required this.controller,
+    required this.hintText,
+    required this.enabled,
+    this.maxLines = 5,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Color(0xFF05111C),
+        color: const Color(0xFF05111C),
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Color(0xFF3D4566)),
+        border: Border.all(color: const Color(0xFF3D4566)),
       ),
       child: TextField(
         controller: controller,
-        focusNode: focusNode,
+        enabled: enabled,
         maxLines: maxLines,
         maxLength: 500,
-        buildCounter:
-            (context, {required currentLength, required isFocused, maxLength}) {
-              return null; // Hide default counter
-            },
+        buildCounter: (_, {required currentLength, required isFocused, maxLength}) => null,
+        style: TextStyle(color: Colors.white, fontSize: 14.sp),
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14.sp),
           contentPadding: EdgeInsets.all(16.w),
           border: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          enabledBorder: InputBorder.none,
         ),
       ),
-    );
-  }
-
-  void _showDiscardDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Discard Post?'),
-          content: const Text(
-            'You have unsaved changes. Are you sure you want to discard this post?',
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12.r),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Cancel', style: TextStyle(color: Colors.grey[600])),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.pop(context);
-              },
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
-              child: const Text('Discard'),
-            ),
-          ],
-        );
-      },
     );
   }
 }

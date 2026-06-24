@@ -89,7 +89,7 @@ class _CommunityProfileScreenState extends ConsumerState<CommunityProfileScreen>
     final updated = await Navigator.pushNamed(
       context,
       RouteNames.updatePost,
-      arguments: {'id': post.id, 'content': post.content ?? ''},
+      arguments: {'post': post, 'userId': widget.userId},
     );
     if (!mounted) return;
     if (updated == true) {
@@ -376,7 +376,12 @@ class _ProfileHeader extends StatelessWidget {
           if (about != null && about.isNotEmpty)
             _AboutCard(title: profile!.aboutTitle, about: about),
           SizedBox(height: 16.h),
-          _ActionRow(isOwn: isOwn, userId: userId, profileName: name),
+          _ActionRow(
+            isOwn: isOwn,
+            userId: userId,
+            profileName: name,
+            profile: profile,
+          ),
         ],
       ),
     );
@@ -429,11 +434,13 @@ class _ActionRow extends StatelessWidget {
   final bool isOwn;
   final String userId;
   final String profileName;
+  final CommunityProfile? profile;
 
   const _ActionRow({
     required this.isOwn,
     required this.userId,
     required this.profileName,
+    this.profile,
   });
 
   @override
@@ -482,7 +489,14 @@ class _ActionRow extends StatelessWidget {
         if (isOwn) ...[
           SizedBox(width: 10.w),
           GestureDetector(
-            onTap: () => Navigator.pushNamed(context, RouteNames.editProfile),
+            onTap: () => Navigator.pushNamed(
+              context,
+              RouteNames.editProfile,
+              arguments: {
+                'profile': profile,
+                'userId': userId,
+              },
+            ),
             child: Container(
               padding: EdgeInsets.all(14.r),
               decoration: BoxDecoration(

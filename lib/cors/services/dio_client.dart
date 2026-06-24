@@ -164,4 +164,38 @@ class DioClient {
       }
     }
   }
+
+  /// -------------------- Patch Multipart -------------------------------------
+  Future<dynamic> patchMultipart(
+    String path,
+    FormData formData, {
+    ProgressCallback? onSendProgress,
+    Duration sendTimeout = const Duration(minutes: 15),
+    Duration receiveTimeout = const Duration(minutes: 2),
+  }) async {
+    final token = await _tokenStorage.getToken();
+
+    try {
+      final response = await _dio.patch(
+        path,
+        data: formData,
+        onSendProgress: onSendProgress,
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+          sendTimeout: sendTimeout,
+          receiveTimeout: receiveTimeout,
+        ),
+      );
+      return ResponseHandle.handleResponse(response);
+    } catch (e) {
+      if (e is DioException) {
+        return ResponseModel(
+          success: false,
+          message: ErrorHandle.handleError(e),
+        );
+      } else {
+        return ResponseModel(success: false, message: "$e");
+      }
+    }
+  }
 }

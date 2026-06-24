@@ -1,44 +1,81 @@
 import 'dart:io';
+
 import 'package:abbas/cors/utils/app_utils.dart';
-import 'package:abbas/presentation/views/community/presentaion/provider/community/community_screen_provider.dart';
+import 'package:abbas/presentation/views/community/model/community_profile_model.dart';
+import 'package:abbas/presentation/views/community/presentaion/provider/community/community_profile_provider.dart';
+import 'package:abbas/presentation/views/community/presentaion/provider/community/edit_profile_provider.dart';
 import 'package:abbas/presentation/views/profile/view_model/profile_screen_provider.dart';
 import 'package:abbas/presentation/widgets/custom_text_field.dart';
 import 'package:abbas/presentation/widgets/validator.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:provider/provider.dart';
+import 'package:provider/provider.dart' as legacy_provider;
+
 import '../../../../widgets/primary_button.dart';
 import '../../../../widgets/secondary_appber.dart';
 
-class EditProfile extends StatefulWidget {
-  const EditProfile({super.key});
+class EditProfile extends ConsumerStatefulWidget {
+  final CommunityProfile? initialProfile;
+  final String? userId;
+
+  const EditProfile({super.key, this.initialProfile, this.userId});
 
   @override
-  State<EditProfile> createState() => _EditProfileState();
+  ConsumerState<EditProfile> createState() => _EditProfileState();
 }
 
-class _EditProfileState extends State<EditProfile> {
-  @override
-  void initState() {
-    super.initState();
-    _updateProfile();
-  }
-
+class _EditProfileState extends ConsumerState<EditProfile> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
+  final ImagePicker _imagePicker = ImagePicker();
 
-  void _updateProfile() {
-    final editProfileData = context
-        .read<ProfileScreenProvider>()
-        .myProfileModel
-        ?.data;
-    if (editProfileData != null) {
-      _nameController.text = editProfileData.name ?? '';
-      _usernameController.text = editProfileData.username ?? '';
-      _bioController.text = editProfileData.about ?? '';
+  String? _existingAvatarUrl;
+  String? _existingCoverUrl;
+  File? _pickedAvatar;
+  File? _pickedCover;
+  bool _isPickingImage = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _prefillFields();
+  }
+
+  void _prefillFields() {
+    final profile = widget.initialProfile;
+    if (profile != null) {
+      _nameController.text = profile.name ?? '';
+      _usernameController.text = profile.username ?? '';
+      _bioController.text = profile.about ?? '';
+      _existingAvatarUrl = profile.avatar;
+      _existingCoverUrl = profile.coverImage;
+      return;
+    }
+
+    final legacyProfile = legacy_provider.Provider.of<ProfileScreenProvider>(
+      context,
+      listen: false,
+    );
+
+    final myData = legacyProfile.myProfileModel?.data;
+    if (myData != null) {
+      _nameController.text = myData.name ?? '';
+      _usernameController.text = myData.username ?? '';
+      _bioController.text = myData.about ?? '';
+      _existingAvatarUrl = myData.avatar;
+      _existingCoverUrl = myData.coverImage;
+      return;
+    }
+
+    final authData = legacyProfile.profile?.data;
+    if (authData != null) {
+      _nameController.text = authData.name ?? '';
+      _bioController.text = authData.about ?? '';
+      _existingAvatarUrl = authData.avatar;
     }
   }
 
@@ -50,23 +87,16 @@ class _EditProfileState extends State<EditProfile> {
     super.dispose();
   }
 
-  /// -------------------- Image Picker ----------------------------------------
-  final ImagePicker _imagePicker = ImagePicker();
-
-  Future<void> _pickerImage() async {
+  Future<void> _pickCoverImage() async {
+    if (_isPickingImage) return;
+    setState(() => _isPickingImage = true);
     try {
-      context.read<CommunityScreenProvider>().setIsPickingImage(true);
-      final pickedImage = await _imagePicker.pickImage(
+      final picked = await _imagePicker.pickImage(
         source: ImageSource.gallery,
-        maxWidth: double.infinity,
-        maxHeight: double.infinity,
         imageQuality: 85,
       );
-
-      if (pickedImage != null) {
-        context.read<CommunityScreenProvider>().setImagePicked(
-          File(pickedImage.path),
-        );
+      if (picked != null) {
+        setState(() => _pickedCover = File(picked.path));
       }
     } on Exception catch (e) {
       if (mounted) {
@@ -77,24 +107,20 @@ class _EditProfileState extends State<EditProfile> {
         );
       }
     } finally {
-      context.read<CommunityScreenProvider>().setIsPickingImage(false);
+      if (mounted) setState(() => _isPickingImage = false);
     }
   }
 
-  Future<void> _pickerProfileImage() async {
+  Future<void> _pickAvatarImage() async {
+    if (_isPickingImage) return;
+    setState(() => _isPickingImage = true);
     try {
-      context.read<CommunityScreenProvider>().setIsPickingImage(true);
-      final pickedImage = await _imagePicker.pickImage(
+      final picked = await _imagePicker.pickImage(
         source: ImageSource.gallery,
-        maxWidth: double.infinity,
-        maxHeight: double.infinity,
         imageQuality: 85,
       );
-
-      if (pickedImage != null) {
-        context.read<CommunityScreenProvider>().setProfilePicked(
-          File(pickedImage.path),
-        );
+      if (picked != null) {
+        setState(() => _pickedAvatar = File(picked.path));
       }
     } on Exception catch (e) {
       if (mounted) {
@@ -105,17 +131,80 @@ class _EditProfileState extends State<EditProfile> {
         );
       }
     } finally {
-      context.read<CommunityScreenProvider>().setIsPickingImage(false);
+      if (mounted) setState(() => _isPickingImage = false);
     }
+  }
+
+  ImageProvider? get _coverImageProvider {
+    if (_pickedCover != null) return FileImage(_pickedCover!);
+    if (_existingCoverUrl != null && _existingCoverUrl!.isNotEmpty) {
+      return NetworkImage(_existingCoverUrl!);
+    }
+    return null;
+  }
+
+  ImageProvider? get _avatarImageProvider {
+    if (_pickedAvatar != null) return FileImage(_pickedAvatar!);
+    if (_existingAvatarUrl != null && _existingAvatarUrl!.isNotEmpty) {
+      return NetworkImage(_existingAvatarUrl!);
+    }
+    return null;
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final error = await ref.read(editProfileProvider.notifier).updateProfile(
+          name: _nameController.text,
+          username: _usernameController.text,
+          about: _bioController.text,
+          avatar: _pickedAvatar,
+          coverImage: _pickedCover,
+        );
+
+    if (!mounted) return;
+
+    if (error != null) {
+      Utils.showToast(
+        msg: error,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+      return;
+    }
+
+    final userId = widget.userId ?? widget.initialProfile?.id;
+    if (userId != null && userId.isNotEmpty) {
+      await ref.read(communityProfileProvider(userId).notifier).refresh();
+    }
+
+    if (mounted) {
+      legacy_provider.Provider.of<ProfileScreenProvider>(
+        context,
+        listen: false,
+      ).getProfile();
+    }
+
+    Utils.showToast(
+      msg: 'User updated successfully',
+      backgroundColor: Colors.green,
+      textColor: Colors.white,
+    );
+
+    if (mounted) Navigator.pop(context, true);
   }
 
   @override
   Widget build(BuildContext context) {
+    final isSaving = ref.watch(editProfileProvider).isSaving;
+    final coverProvider = _coverImageProvider;
+    final avatarProvider = _avatarImageProvider;
+
     return Scaffold(
       backgroundColor: const Color(0xFF030C15),
       body: Column(
         children: [
-          const SecondaryAppBar(title: 'Edit Profile', hasButton: true),
+          const SecondaryAppBar(title: 'Edit Profile'),
           Expanded(
             child: SingleChildScrollView(
               child: Padding(
@@ -123,7 +212,6 @@ class _EditProfileState extends State<EditProfile> {
                 child: Column(
                   children: [
                     SizedBox(height: 15.h),
-                    // Main profile header stack
                     SizedBox(
                       height: 180.h,
                       width: double.infinity,
@@ -131,25 +219,18 @@ class _EditProfileState extends State<EditProfile> {
                         clipBehavior: Clip.none,
                         alignment: Alignment.topCenter,
                         children: [
-                          // Cover Image
                           Stack(
                             children: [
                               SizedBox(
                                 height: 130.h,
                                 width: double.infinity,
-                                child:
-                                    context
-                                            .watch<CommunityScreenProvider>()
-                                            .selectImage ==
-                                        null
-                                    ? Image.asset(
-                                        'assets/images/profile_cover.png',
+                                child: coverProvider != null
+                                    ? Image(
+                                        image: coverProvider,
                                         fit: BoxFit.cover,
                                       )
-                                    : Image.file(
-                                        context
-                                            .watch<CommunityScreenProvider>()
-                                            .selectImage!,
+                                    : Image.asset(
+                                        'assets/images/profile_cover.png',
                                         fit: BoxFit.cover,
                                       ),
                               ),
@@ -157,7 +238,7 @@ class _EditProfileState extends State<EditProfile> {
                                 right: 16.w,
                                 bottom: 16.h,
                                 child: GestureDetector(
-                                  onTap: _pickerImage,
+                                  onTap: _pickCoverImage,
                                   child: Image.asset(
                                     'assets/icons/button.png',
                                     scale: 3.sp,
@@ -167,9 +248,8 @@ class _EditProfileState extends State<EditProfile> {
                               ),
                             ],
                           ),
-                          // Profile Picture
                           Positioned(
-                            top: 80.h, // 130h cover - 50h (half of avatar)
+                            top: 80.h,
                             child: Stack(
                               clipBehavior: Clip.none,
                               children: [
@@ -181,43 +261,26 @@ class _EditProfileState extends State<EditProfile> {
                                   ),
                                   child: CircleAvatar(
                                     radius: 50.r,
-                                    backgroundImage:
-                                        context
-                                                .watch<
-                                                  CommunityScreenProvider
-                                                >()
-                                                .selectProfile ==
-                                            null
-                                        ? const AssetImage(
-                                            'assets/images/profile.png',
+                                    backgroundColor: const Color(0xFF1B2A3A),
+                                    backgroundImage: avatarProvider,
+                                    child: avatarProvider == null
+                                        ? Icon(
+                                            Icons.person,
+                                            size: 40.sp,
+                                            color: Colors.grey,
                                           )
-                                        : FileImage(
-                                                context
-                                                    .watch<
-                                                      CommunityScreenProvider
-                                                    >()
-                                                    .selectProfile!,
-                                              )
-                                              as ImageProvider,
+                                        : null,
                                   ),
                                 ),
                                 Positioned(
                                   right: 10,
                                   bottom: 0,
-                                  child: Container(
-                                    width: 30.w,
-                                    height: 30.h,
-                                    decoration: const BoxDecoration(
-                                      color: Colors.transparent,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: GestureDetector(
-                                      onTap: _pickerProfileImage,
-                                      child: Image.asset(
-                                        'assets/icons/button.png',
-                                        scale: 3.sp,
-                                        fit: BoxFit.cover,
-                                      ),
+                                  child: GestureDetector(
+                                    onTap: _pickAvatarImage,
+                                    child: Image.asset(
+                                      'assets/icons/button.png',
+                                      scale: 3.sp,
+                                      fit: BoxFit.cover,
                                     ),
                                   ),
                                 ),
@@ -238,7 +301,7 @@ class _EditProfileState extends State<EditProfile> {
                             style: TextStyle(
                               fontWeight: FontWeight.w400,
                               fontSize: 14.sp,
-                              color: Color(0xffB2B5B8),
+                              color: const Color(0xffB2B5B8),
                             ),
                           ),
                           SizedBox(height: 4.h),
@@ -253,7 +316,7 @@ class _EditProfileState extends State<EditProfile> {
                             style: TextStyle(
                               fontWeight: FontWeight.w400,
                               fontSize: 14.sp,
-                              color: Color(0xffB2B5B8),
+                              color: const Color(0xffB2B5B8),
                             ),
                           ),
                           SizedBox(height: 4.h),
@@ -268,7 +331,7 @@ class _EditProfileState extends State<EditProfile> {
                             style: TextStyle(
                               fontWeight: FontWeight.w400,
                               fontSize: 14.sp,
-                              color: Color(0xffB2B5B8),
+                              color: const Color(0xffB2B5B8),
                             ),
                           ),
                           SizedBox(height: 4.h),
@@ -279,57 +342,18 @@ class _EditProfileState extends State<EditProfile> {
                           ),
                           SizedBox(height: 24.h),
                           PrimaryButton(
-                            onTap: () async {
-                              if (_formKey.currentState!.validate()) {
-                                final res = await context
-                                    .read<CommunityScreenProvider>()
-                                    .editMyProfile(
-                                      name: _nameController.text,
-                                      userName: _usernameController.text,
-                                      about: _bioController.text,
-                                      avatar: context
-                                          .read<CommunityScreenProvider>()
-                                          .selectProfile,
-                                      coverImage: context
-                                          .read<CommunityScreenProvider>()
-                                          .selectImage,
-                                    );
-
-                                if (res.success) {
-                                  context
-                                      .read<CommunityScreenProvider>()
-                                      .fetchFeeds();
-                                  Utils.showToast(
-                                    msg: res.message,
-                                    backgroundColor: Colors.green,
-                                    textColor: Colors.white,
-                                  );
-                                  if (mounted) {
-                                    Navigator.pop(context);
-                                  }
-                                } else {
-                                  Utils.showToast(
-                                    msg: res.message,
-                                    backgroundColor: Colors.red,
-                                    textColor: Colors.white,
-                                  );
-                                }
-                              }
-                            },
+                            onTap: isSaving ? null : _save,
                             color: Colors.white,
                             textColor: Colors.black,
                             icon: '',
-                            child:
-                                context
-                                    .watch<CommunityScreenProvider>()
-                                    .isLoading
+                            child: isSaving
                                 ? const Center(
                                     child: CircularProgressIndicator(
                                       color: Colors.black,
                                     ),
                                   )
                                 : Text(
-                                    "Save",
+                                    'Save',
                                     style: TextStyle(
                                       fontSize: 16.sp,
                                       color: const Color(0xFF030C15),

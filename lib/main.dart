@@ -30,6 +30,7 @@ Future<void> main() async {
 
   await Hive.initFlutter();
   await Hive.openBox('userBox');
+  await Hive.openBox('communitySearchBox');
 
   await ScreenUtil.ensureScreenSize();
 

@@ -1,5 +1,6 @@
 import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:abbas/cors/routes/route_names.dart';
+import 'package:abbas/presentation/views/community/model/community_feed_model.dart';
 import 'package:abbas/presentation/views/community/presentaion/screens/update_post.dart';
 import 'package:abbas/presentation/views/course_screen/screens/my_class/class_assignments_screen.dart';
 import 'package:abbas/presentation/views/course_screen/screens/my_class/pdf_viewer_screen.dart';
@@ -16,9 +17,11 @@ import '../../presentation/views/auth/register/presentaion/screen/register_scree
 import '../../presentation/views/auth/set_new_password/screen/set_new_password_screen.dart';
 import '../../presentation/views/community/presentaion/screen/community_profile_screen.dart';
 import '../../presentation/views/community/presentaion/screen/comment/comment_post_screen.dart';
+import '../../presentation/views/community/presentaion/screen/community_search_screen.dart';
 import '../../presentation/views/community/presentaion/screen/post_detail_screen.dart';
 import '../../presentation/views/community/presentaion/screens/create_pool.dart';
 import '../../presentation/views/community/presentaion/screens/create_post.dart';
+import '../../presentation/views/community/model/community_profile_model.dart';
 import '../../presentation/views/community/presentaion/screens/edit_profile.dart';
 import '../../presentation/views/community/presentaion/screens/my_profile_public.dart';
 import '../../presentation/views/community/presentaion/screens/report_list_page.dart';
@@ -235,6 +238,7 @@ class AppRoutes {
       final postId = ModalRoute.of(context)!.settings.arguments as String;
       return PostDetailScreen(postId: postId);
     },
+    RouteNames.communitySearch: (context) => const CommunitySearchScreen(),
     RouteNames.createPost: (context) => CreatePost(),
     RouteNames.createPool: (context) => CreatePool(),
     RouteNames.communityProfile: (context) {
@@ -248,7 +252,21 @@ class AppRoutes {
       return CommunityProfileScreen(userId: userId);
     },
 
-    RouteNames.editProfile: (context) => EditProfile(),
+    RouteNames.editProfile: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      CommunityProfile? profile;
+      String? userId;
+
+      if (args is CommunityProfile) {
+        profile = args;
+        userId = args.id;
+      } else if (args is Map) {
+        profile = args['profile'] as CommunityProfile?;
+        userId = args['userId']?.toString() ?? profile?.id;
+      }
+
+      return EditProfile(initialProfile: profile, userId: userId);
+    },
     RouteNames.othersProfile: (context) {
       final userId = ModalRoute.of(context)!.settings.arguments as String;
       return CommunityProfileScreen(userId: userId);
@@ -362,10 +380,26 @@ class AppRoutes {
     },
     RouteNames.updatePost: (context) {
       final args = ModalRoute.of(context)!.settings.arguments;
-      final postId = args is Map ? args['id'] : '';
-      logger.d("App Routes : $postId");
-      final postContent = args is Map ? args['content'] : '';
-      return UpdatePost(postId: postId, postContent: postContent);
+      FeedPost post;
+      String? userId;
+
+      if (args is Map) {
+        if (args['post'] is FeedPost) {
+          post = args['post'] as FeedPost;
+          userId = args['userId']?.toString();
+        } else {
+          post = FeedPost(
+            id: args['id']?.toString() ?? '',
+            content: args['content']?.toString(),
+          );
+        }
+      } else if (args is FeedPost) {
+        post = args;
+      } else {
+        post = const FeedPost(id: '');
+      }
+
+      return UpdatePost(post: post, userId: userId);
     },
   };
 }

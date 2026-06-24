@@ -21,6 +21,7 @@ class CommunityFeedState {
   final String? nextCursor;
   final bool hasMore;
   final String? currentUserId;
+  final String? searchQuery;
 
   const CommunityFeedState({
     this.posts = const [],
@@ -31,9 +32,13 @@ class CommunityFeedState {
     this.nextCursor,
     this.hasMore = true,
     this.currentUserId,
+    this.searchQuery,
   });
 
   bool get isEmpty => posts.isEmpty;
+
+  bool get isSearchMode =>
+      searchQuery != null && searchQuery!.trim().isNotEmpty;
 
   CommunityFeedState copyWith({
     List<FeedPost>? posts,
@@ -46,6 +51,8 @@ class CommunityFeedState {
     bool clearNextCursor = false,
     bool? hasMore,
     String? currentUserId,
+    String? searchQuery,
+    bool clearSearchQuery = false,
   }) {
     return CommunityFeedState(
       posts: posts ?? this.posts,
@@ -56,6 +63,7 @@ class CommunityFeedState {
       nextCursor: clearNextCursor ? null : (nextCursor ?? this.nextCursor),
       hasMore: hasMore ?? this.hasMore,
       currentUserId: currentUserId ?? this.currentUserId,
+      searchQuery: clearSearchQuery ? null : (searchQuery ?? this.searchQuery),
     );
   }
 }
@@ -108,6 +116,9 @@ class CommunityFeedNotifier extends StateNotifier<CommunityFeedState> {
     state = state.copyWith(posts: posts);
   }
 
+  /// Syncs a post after edit from the update screen.
+  void replacePost(FeedPost updated) => _replacePost(updated);
+
   /// First load (or retry after an error on an empty feed).
   Future<void> loadInitial() async {
     if (_isFetching) return;
@@ -119,14 +130,84 @@ class CommunityFeedNotifier extends StateNotifier<CommunityFeedState> {
   Future<void> refresh() async {
     if (_isFetching) return;
     state = state.copyWith(isRefreshing: true, clearError: true);
+    if (state.isSearchMode) {
+      await _fetchSearch(state.searchQuery!);
+      return;
+    }
     await _fetch(cursor: null, append: false);
   }
 
   /// Fetch the next page using the cursor returned by the previous page.
   Future<void> loadMore() async {
+    if (state.isSearchMode) return;
     if (_isFetching || !state.hasMore || state.nextCursor == null) return;
     state = state.copyWith(isLoadingMore: true, clearError: true);
     await _fetch(cursor: state.nextCursor, append: true);
+  }
+
+  /// Search posts by content and show results on the community feed.
+  Future<void> search(String query) async {
+    if (_isFetching) return;
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) return;
+
+    state = state.copyWith(
+      searchQuery: trimmed,
+      isInitialLoading: true,
+      clearError: true,
+      posts: const [],
+      clearNextCursor: true,
+      hasMore: false,
+    );
+    await _fetchSearch(trimmed);
+  }
+
+  /// Clears search mode and reloads the normal feed.
+  Future<void> clearSearch() async {
+    if (_isFetching) return;
+    state = state.copyWith(clearSearchQuery: true, isInitialLoading: true);
+    await _fetch(cursor: null, append: false);
+  }
+
+  Future<void> _fetchSearch(String query) async {
+    _isFetching = true;
+    try {
+      final user = await _resolveCurrentUser();
+      final res = await dioClient.getHttp(
+        ApiEndpoints.communitySearchFeed(search: query),
+      );
+
+      if (res is ResponseModel) {
+        _emitError(res.message);
+        return;
+      }
+
+      if (res is Map && res['success'] == true) {
+        final model = CommunityFeedResponse.fromJson(
+          Map<String, dynamic>.from(res),
+        );
+        state = state.copyWith(
+          posts: model.data,
+          isInitialLoading: false,
+          isLoadingMore: false,
+          isRefreshing: false,
+          clearError: true,
+          clearNextCursor: true,
+          hasMore: false,
+          currentUserId: user.userId,
+        );
+      } else {
+        final message = res is Map
+            ? (res['message']?.toString() ?? 'Search failed')
+            : 'Search failed';
+        _emitError(message);
+      }
+    } catch (e) {
+      logger.e('Community search error: $e');
+      _emitError(e.toString());
+    } finally {
+      _isFetching = false;
+    }
   }
 
   Future<void> _fetch({required String? cursor, required bool append}) async {
