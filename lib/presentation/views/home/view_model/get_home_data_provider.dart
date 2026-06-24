@@ -43,29 +43,3 @@ class GetHomeDataProvider extends StateNotifier<AsyncValue<GetHomeDataModel?>> {
     }
   }
 }
-
-final scanQrCodeProvider =
-    StateNotifierProvider<ScanQrCodeProvider, AsyncValue<ResponseModel>>(
-      (ref) => ScanQrCodeProvider(dioClient: DioClient()),
-    );
-
-class ScanQrCodeProvider extends StateNotifier<AsyncValue<ResponseModel>> {
-  DioClient dioClient;
-
-  ScanQrCodeProvider({required this.dioClient}) : super(AsyncValue.loading());
-
-  Future<Object> scanQrCode({required String token}) async {
-    var body = {'token': token};
-    try {
-      final res = await dioClient.postHttp(ApiEndpoints.scanQrCode, body);
-      if (res['success']) {
-        return ResponseModel(success: true, message: res['message']);
-      } else {
-        return {'success': false, 'error': res['error']};
-      }
-    } catch (e) {
-      logger.e("Scan Qr Code Error : $e");
-      return {'success': false, 'error': '$e'};
-    }
-  }
-}
