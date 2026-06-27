@@ -16,7 +16,9 @@ class CreateChatProvider extends ChangeNotifier {
 
   bool _isLoading = false;
   String? _errorMessage;
+  String? _creatingParticipantId;
   bool get isLoading => _isLoading;
+  String? get creatingParticipantId => _creatingParticipantId;
   String? get errorMessage => _errorMessage;
 
   CreateConversationModel? _createConversationModel;
@@ -28,9 +30,7 @@ class CreateChatProvider extends ChangeNotifier {
 
   String selectedFilter = 'All';
 
-  CreateChatProvider() {
-    getAllConversation();
-  }
+  CreateChatProvider();
 
   void toggleFilter(String value) {
     selectedFilter = value;
@@ -45,12 +45,11 @@ class CreateChatProvider extends ChangeNotifier {
     };
   }
 
-  /// Create or get existing DM conversation.
-  /// The /conversations/dm API returns a flat conversation object directly
-  /// (no {success, data} wrapper).
-  Future<CreateConversationModel?> createConversation(String otherId) async {
+  /// `POST /api/conversations` — create or return existing DM.
+  Future<CreateConversationModel?> createConversation(String participantId) async {
     _errorMessage = null;
     _isLoading = true;
+    _creatingParticipantId = participantId;
     notifyListeners();
 
     try {
@@ -58,26 +57,37 @@ class CreateChatProvider extends ChangeNotifier {
       final response = await http.post(
         Uri.parse(ApiEndpoints.createConversation),
         headers: headers,
-        body: jsonEncode({"otherUserId": otherId}),
+        body: jsonEncode({
+          'type': 'DM',
+          'participant_id': participantId,
+        }),
       );
 
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
+
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final json = jsonDecode(response.body) as Map<String, dynamic>;
-        _createConversationModel = CreateConversationModel.fromJson(json);
-        return _createConversationModel;
-      } else {
-        final json = jsonDecode(response.body);
-        _errorMessage =
-            json['message']?.toString() ?? 'Failed to create conversation';
-        logger.e("Create conversation failed: ${response.statusCode}");
-        return null;
+        if (json['success'] == true && json['data'] is Map) {
+          _createConversationModel = CreateConversationModel.fromApiResponse(
+            Map<String, dynamic>.from(json['data'] as Map),
+          );
+          logger.i(
+            'Create conversation: ${json['message']} — id=${_createConversationModel!.id}',
+          );
+          return _createConversationModel;
+        }
       }
+
+      _errorMessage =
+          json['message']?.toString() ?? 'Failed to create conversation';
+      logger.e('Create conversation failed: ${response.statusCode} — $_errorMessage');
+      return null;
     } catch (error) {
       _errorMessage = error.toString();
-      logger.e("Create conversation error: $error");
+      logger.e('Create conversation error: $error');
       return null;
     } finally {
       _isLoading = false;
+      _creatingParticipantId = null;
       notifyListeners();
     }
   }

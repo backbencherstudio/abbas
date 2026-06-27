@@ -24,6 +24,7 @@ import '../../presentation/views/community/presentaion/screens/create_post.dart'
 import '../../presentation/views/community/model/community_profile_model.dart';
 import '../../presentation/views/community/presentaion/screens/edit_profile.dart';
 import '../../presentation/views/community/presentaion/screens/my_profile_public.dart';
+import '../../presentation/views/community/model/report_route_args.dart';
 import '../../presentation/views/community/presentaion/screens/report_list_page.dart';
 import '../../presentation/views/community/presentaion/screens/report_user_screen.dart';
 import '../../presentation/views/course_screen/screens/course_modele/course_module_screen.dart';
@@ -54,10 +55,10 @@ import '../../presentation/views/home/screen/screens/my_course/my_course.dart';
 import '../../presentation/views/home/screen/screens/scanner/scanner.dart';
 import '../../presentation/views/message/screens/add_group_member.dart';
 import '../../presentation/views/message/screens/create_group_screen.dart';
-import '../../presentation/views/message/screens/group_chat_screen.dart';
+import '../../presentation/views/message/model/conversation_model.dart';
+import '../../presentation/views/message/screens/chat_screen.dart';
 import '../../presentation/views/message/screens/group_profile_screen.dart';
 import '../../presentation/views/message/screens/new_message_screens.dart';
-import '../../presentation/views/message/screens/one_two_one_chat_screen.dart';
 import '../../presentation/views/message/screens/see_group_member_screen.dart';
 import '../../presentation/views/message/screens/user_profile_screen.dart';
 import '../../presentation/views/onboarding/screen/login_and_signup_screen.dart';
@@ -231,7 +232,11 @@ class AppRoutes {
 
 
     RouteNames.certificate: (context) => const Certificate(),
-    RouteNames.supportUser: (context) => const SupportUser(),
+    RouteNames.supportUser: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments;
+      final reason = args is String ? args : '';
+      return SupportUser(reason: reason);
+    },
     RouteNames.pushNotifications: (context) => const PushNotifications(),
     RouteNames.commentScreen: (context) => CommentPostScreen(),
     RouteNames.communityPostDetail: (context) {
@@ -271,24 +276,47 @@ class AppRoutes {
       final userId = ModalRoute.of(context)!.settings.arguments as String;
       return CommunityProfileScreen(userId: userId);
     },
-    RouteNames.reportListPage: (context) => ReportListPage(),
-    RouteNames.reportUserScreen: (context) {
+    RouteNames.reportListPage: (context) {
       final args = ModalRoute.of(context)!.settings.arguments;
-      final reason = args is String ? args : '';
-      return ReportUserScreen(reason: reason);
+      final userId = args is String ? args : '';
+      return ReportListPage(userId: userId);
+    },
+    RouteNames.reportUserScreen: (context) {
+      final args = ReportRouteArgs.fromArguments(
+        ModalRoute.of(context)?.settings.arguments,
+      );
+      return ReportUserScreen(
+        userId: args.userId,
+        reason: args.reason,
+      );
     },
     RouteNames.newMessageScreens: (context) => NewMessageScreens(),
     RouteNames.createGroupScreen: (context) => CreateGroupScreen(),
+    RouteNames.chatScreen: (context) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
+          {};
+      return ChatScreen(
+        conversationId: (args['conversationId'] ?? '').toString(),
+        type: ConversationType.fromApi(args['type']?.toString()),
+        title: (args['title'] ?? args['receiverName'] ?? args['groupName'] ?? 'Chat')
+            .toString(),
+        avatarUrl: (args['avatarUrl'] ?? '').toString().isEmpty
+            ? null
+            : (args['avatarUrl'] ?? '').toString(),
+        currentUserId: (args['currentUserId'] ?? '').toString(),
+      );
+    },
     RouteNames.oneTwoOneChatScreen: (context) {
       final args =
           ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
           {};
 
-      return OneToOneChatScreen(
+      return ChatScreen(
         conversationId: (args['conversationId'] ?? '').toString(),
-        token: (args['token'] ?? '').toString(),
-        myUserId: (args['currentUserId'] ?? '').toString(),
-        receiverName: (args['receiverName'] ?? 'Chat').toString(),
+        type: ConversationType.dm,
+        title: (args['receiverName'] ?? 'Chat').toString(),
+        currentUserId: (args['currentUserId'] ?? args['myUserId'] ?? '').toString(),
       );
     },
 
@@ -297,12 +325,12 @@ class AppRoutes {
           ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
           {};
 
-      return GroupChatScreen(
+      return ChatScreen(
         conversationId: (args['conversationId'] ?? '').toString(),
-        token: (args['token'] ?? '').toString(),
-        currentUserId: (args['currentUserId'] ?? '').toString(),
-        groupName: (args['groupName'] ?? args['receiverName'] ?? 'Group Chat')
+        type: ConversationType.group,
+        title: (args['groupName'] ?? args['receiverName'] ?? 'Group Chat')
             .toString(),
+        currentUserId: (args['currentUserId'] ?? '').toString(),
       );
     },
 
@@ -321,9 +349,7 @@ class AppRoutes {
       return GroupProfileScreen(
         conversationId: (args['conversationId'] ?? '').toString(),
         groupName: (args['groupName'] ?? 'Group').toString(),
-        token: (args['token'] ?? '').toString(),
         currentUserId: (args['currentUserId'] ?? '').toString(),
-        memberships: (args['memberships'] as List?)?.cast() ?? [],
       );
     },
     RouteNames.addGroupMember: (context) => AddGroupMember(),
@@ -332,11 +358,9 @@ class AppRoutes {
           ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
           {};
       return SeeGroupMemberScreen(
-        memberships: (args['memberships'] as List?)?.cast() ?? [],
-        groupName: (args['groupName'] ?? 'Group').toString(),
-        token: (args['token'] ?? '').toString(),
         conversationId: (args['conversationId'] ?? '').toString(),
         currentUserId: (args['currentUserId'] ?? '').toString(),
+        groupName: (args['groupName'] ?? 'Group').toString(),
       );
     },
     RouteNames.eventDetails: (context) {

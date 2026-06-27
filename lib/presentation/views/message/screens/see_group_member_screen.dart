@@ -1,26 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:provider/provider.dart';
 
 import '../../../../cors/constants/api_endpoints.dart';
+import '../../../../cors/services/dio_client.dart';
 import '../../../widgets/secondary_appber.dart';
-import '../model/all_conversation_model.dart';
+import '../model/conversation_detail_model.dart';
+import '../provider/conversation_detail_provider.dart';
 
 class SeeGroupMemberScreen extends StatefulWidget {
-  final List<Memberships> memberships;
-  final String groupName;
-  final String token;
   final String conversationId;
   final String currentUserId;
+  final String groupName;
 
   const SeeGroupMemberScreen({
     super.key,
-    this.memberships = const [],
+    required this.conversationId,
+    required this.currentUserId,
     this.groupName = 'Group',
-    this.token = '',
-    this.conversationId = '',
-    this.currentUserId = '',
   });
 
   @override
@@ -28,131 +25,146 @@ class SeeGroupMemberScreen extends StatefulWidget {
 }
 
 class _SeeGroupMemberScreenState extends State<SeeGroupMemberScreen> {
-  late List<Memberships> _memberships;
-  bool _iAmAdmin = false;
+  late final ConversationDetailProvider _provider;
+  final DioClient _dioClient = DioClient();
 
   @override
   void initState() {
     super.initState();
-    _memberships = List.from(widget.memberships);
-    _checkMyRole();
+    _provider = ConversationDetailProvider();
+    _provider.fetchMembers(widget.conversationId);
   }
 
-  void _checkMyRole() {
+  @override
+  void dispose() {
+    _provider.dispose();
+    super.dispose();
+  }
+
+  bool get _iAmAdmin {
     try {
-      final myMember = _memberships.firstWhere((m) => m.userId == widget.currentUserId);
-      _iAmAdmin = myMember.role?.toUpperCase() == 'ADMIN';
+      return _provider.members
+          .firstWhere((m) => m.isMe)
+          .isAdmin;
     } catch (_) {
-      _iAmAdmin = false;
+      return false;
     }
   }
 
+  int get _adminCount =>
+      _provider.members.where((m) => m.isAdmin).length;
+
   Future<void> _removeMember(String userId) async {
-    try {
-      final res = await http.delete(
-        Uri.parse(ApiEndpoints.removeMember(widget.conversationId, userId)),
-        headers: {
-          'Authorization': 'Bearer ${widget.token}',
-          'Content-Type': 'application/json',
-        },
+    final res = await _dioClient.deleteHttp(
+      ApiEndpoints.removeMember(widget.conversationId, userId),
+    );
+
+    if (!mounted) return;
+
+    if (res is Map && res['success'] == true) {
+      await _provider.fetchMembers(widget.conversationId);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to remove member')),
       );
-      if (res.statusCode == 200 || res.statusCode == 201) {
-        setState(() {
-          _memberships.removeWhere((m) => m.userId == userId);
-        });
-      }
-    } catch (e) {
-      debugPrint("Error removing member: $e");
     }
   }
 
   Future<void> _updateRole(String userId, String newRole) async {
-    try {
-      final res = await http.patch(
-        Uri.parse(ApiEndpoints.updateMemberRole(widget.conversationId, userId)),
-        headers: {
-          'Authorization': 'Bearer ${widget.token}',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({"role": newRole}),
+    final res = await _dioClient.patchHttp(
+      ApiEndpoints.updateMemberRole(widget.conversationId, userId),
+      {'role': newRole},
+    );
+
+    if (!mounted) return;
+
+    if (res is Map && res['success'] == true) {
+      await _provider.fetchMembers(widget.conversationId);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to update role')),
       );
-      if (res.statusCode == 200 || res.statusCode == 201) {
-        setState(() {
-          final idx = _memberships.indexWhere((m) => m.userId == userId);
-          if (idx != -1) {
-            final old = _memberships[idx];
-            _memberships[idx] = Memberships(
-              userId: old.userId,
-              role: newRole.toUpperCase(),
-              lastReadAt: old.lastReadAt,
-              clearedAt: old.clearedAt,
-            );
-          }
-        });
-      }
-    } catch (e) {
-      debugPrint("Error updating role: $e");
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final admins = _memberships.where((m) => m.role?.toUpperCase() == 'ADMIN').toList();
-    final allMembers = _memberships;
+    return ChangeNotifierProvider.value(
+      value: _provider,
+      child: Consumer<ConversationDetailProvider>(
+        builder: (context, provider, _) {
+          final allMembers = provider.members;
+          final admins =
+              allMembers.where((m) => m.isAdmin).toList();
+          final total = provider.membersTotal > 0
+              ? provider.membersTotal
+              : allMembers.length;
 
-    return Scaffold(
-      backgroundColor: const Color(0xff030D15),
-      body: Column(
-        children: [
-          SecondaryAppBar(title: "Members"),
-          Expanded(
-            child: DefaultTabController(
-              length: 2,
-              child: Column(
-                children: [
-                  Container(
-                    width: MediaQuery.of(context).size.width * 0.9,
-                    decoration: BoxDecoration(
-                      color: const Color(0xff030D15),
-                      borderRadius: BorderRadius.circular(12.r),
+          return Scaffold(
+            backgroundColor: const Color(0xff030D15),
+            body: Column(
+              children: [
+                SecondaryAppBar(title: 'Members'),
+                if (provider.isLoadingMembers && allMembers.isEmpty)
+                  const Expanded(
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xffE9201D),
+                      ),
                     ),
-                    child: TabBar(
-                      tabAlignment: TabAlignment.fill,
-                      indicatorSize: TabBarIndicatorSize.tab,
-                      unselectedLabelColor: const Color(0xff8D9CDC),
-                      labelColor: Colors.white,
-                      indicatorColor: const Color(0xffE9201D),
-                      tabs: [
-                        Tab(text: "All (${allMembers.length})"),
-                        Tab(text: "Admins (${admins.length})"),
-                      ],
-                    ),
-                  ),
+                  )
+                else
                   Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 10.w),
-                      child: TabBarView(
+                    child: DefaultTabController(
+                      length: 2,
+                      child: Column(
                         children: [
-                          _buildMemberList(allMembers),
-                          _buildMemberList(admins),
+                          Container(
+                            width: MediaQuery.of(context).size.width * 0.9,
+                            decoration: BoxDecoration(
+                              color: const Color(0xff030D15),
+                              borderRadius: BorderRadius.circular(12.r),
+                            ),
+                            child: TabBar(
+                              tabAlignment: TabAlignment.fill,
+                              indicatorSize: TabBarIndicatorSize.tab,
+                              unselectedLabelColor: const Color(0xff8D9CDC),
+                              labelColor: Colors.white,
+                              indicatorColor: const Color(0xffE9201D),
+                              tabs: [
+                                Tab(text: 'All ($total)'),
+                                Tab(text: 'Admins ($_adminCount)'),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 10.w),
+                              child: TabBarView(
+                                children: [
+                                  _buildMemberList(allMembers),
+                                  _buildMemberList(admins),
+                                ],
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
                   ),
-                ],
-              ),
+              ],
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildMemberList(List<Memberships> members) {
+  Widget _buildMemberList(List<GroupMember> members) {
     if (members.isEmpty) {
       return const Center(
         child: Text(
-          "No members found",
+          'No members found',
           style: TextStyle(color: Color(0xff8C9196)),
         ),
       );
@@ -163,92 +175,162 @@ class _SeeGroupMemberScreenState extends State<SeeGroupMemberScreen> {
       itemCount: members.length,
       itemBuilder: (context, index) {
         final member = members[index];
-        final isAdmin = member.role?.toUpperCase() == 'ADMIN';
-
-        return ListTile(
-          contentPadding: EdgeInsets.symmetric(vertical: 4.h, horizontal: 4.w),
-          leading: Container(
-            width: 50.w,
-            height: 50.w,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Color(0xff1F283D),
-            ),
-            child: const Icon(Icons.person, color: Colors.white, size: 26),
-          ),
-          title: Text(
-            member.userId ?? 'Unknown',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 15.sp,
-              fontWeight: FontWeight.w500,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          subtitle: Row(
-            children: [
-              Text(
-                member.role ?? 'Member',
-                style: TextStyle(
-                  color: isAdmin ? const Color(0xffE9201D) : const Color(0xff8C9196),
-                  fontSize: 12.sp,
-                ),
-              ),
-              if (isAdmin) ...[
-                SizedBox(width: 8.w),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
-                  decoration: BoxDecoration(
-                    color: const Color(0xffE9201D).withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xffE9201D).withValues(alpha: 0.4)),
-                  ),
-                  child: Text(
-                    "Admin",
-                    style: TextStyle(
-                      color: const Color(0xffE9201D),
-                      fontSize: 11.sp,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-          trailing: (_iAmAdmin && member.userId != widget.currentUserId)
-              ? PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert, color: Colors.white70),
-                  color: const Color(0xff152033),
-                  onSelected: (value) {
-                    if (value == 'remove') {
-                      _removeMember(member.userId!);
-                    } else if (value == 'make_admin') {
-                      _updateRole(member.userId!, 'ADMIN');
-                    } else if (value == 'dismiss_admin') {
-                      _updateRole(member.userId!, 'MEMBER');
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    if (!isAdmin)
-                      const PopupMenuItem(
-                        value: 'make_admin',
-                        child: Text('Make Admin', style: TextStyle(color: Colors.white)),
-                      ),
-                    if (isAdmin)
-                      const PopupMenuItem(
-                        value: 'dismiss_admin',
-                        child: Text('Dismiss as Admin', style: TextStyle(color: Colors.white)),
-                      ),
-                    const PopupMenuItem(
-                      value: 'remove',
-                      child: Text('Remove from Group', style: TextStyle(color: Colors.red)),
-                    ),
-                  ],
-                )
-              : null,
+        return _MemberTile(
+          member: member,
+          showAdminActions: _iAmAdmin && !member.isMe,
+          onRemove: () => _removeMember(member.userId),
+          onMakeAdmin: () => _updateRole(member.userId, 'ADMIN'),
+          onDismissAdmin: () => _updateRole(member.userId, 'MEMBER'),
         );
       },
     );
+  }
+}
+
+class _MemberTile extends StatelessWidget {
+  final GroupMember member;
+  final bool showAdminActions;
+  final VoidCallback onRemove;
+  final VoidCallback onMakeAdmin;
+  final VoidCallback onDismissAdmin;
+
+  const _MemberTile({
+    required this.member,
+    required this.showAdminActions,
+    required this.onRemove,
+    required this.onMakeAdmin,
+    required this.onDismissAdmin,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final displayName =
+        member.isMe ? '${member.name} (You)' : member.name;
+    final hasAvatar =
+        member.avatar != null && member.avatar!.isNotEmpty;
+
+    return ListTile(
+      contentPadding: EdgeInsets.symmetric(vertical: 4.h, horizontal: 4.w),
+      leading: Container(
+        width: 50.w,
+        height: 50.w,
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: Color(0xff1F283D),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: hasAvatar
+            ? Image.network(
+                member.avatar!,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => const Icon(
+                  Icons.person,
+                  color: Colors.white,
+                  size: 26,
+                ),
+              )
+            : const Icon(Icons.person, color: Colors.white, size: 26),
+      ),
+      title: Text(
+        displayName,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 15.sp,
+          fontWeight: FontWeight.w500,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Row(
+        children: [
+          if (member.username != null && member.username!.isNotEmpty)
+            Text(
+              '@${member.username}',
+              style: TextStyle(
+                color: const Color(0xff8C9196),
+                fontSize: 12.sp,
+              ),
+            ),
+          if (member.username != null && member.username!.isNotEmpty)
+            SizedBox(width: 8.w),
+          Text(
+            _formatRole(member.role),
+            style: TextStyle(
+              color: member.isAdmin
+                  ? const Color(0xffE9201D)
+                  : const Color(0xff8C9196),
+              fontSize: 12.sp,
+            ),
+          ),
+          if (member.isAdmin) ...[
+            SizedBox(width: 8.w),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+              decoration: BoxDecoration(
+                color: const Color(0xffE9201D).withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: const Color(0xffE9201D).withValues(alpha: 0.4),
+                ),
+              ),
+              child: Text(
+                'Admin',
+                style: TextStyle(
+                  color: const Color(0xffE9201D),
+                  fontSize: 11.sp,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+      trailing: showAdminActions
+          ? PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert, color: Colors.white70),
+              color: const Color(0xff152033),
+              onSelected: (value) {
+                switch (value) {
+                  case 'remove':
+                    onRemove();
+                  case 'make_admin':
+                    onMakeAdmin();
+                  case 'dismiss_admin':
+                    onDismissAdmin();
+                }
+              },
+              itemBuilder: (context) => [
+                if (!member.isAdmin)
+                  const PopupMenuItem(
+                    value: 'make_admin',
+                    child: Text(
+                      'Make Admin',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                if (member.isAdmin)
+                  const PopupMenuItem(
+                    value: 'dismiss_admin',
+                    child: Text(
+                      'Dismiss as Admin',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                const PopupMenuItem(
+                  value: 'remove',
+                  child: Text(
+                    'Remove from Group',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+              ],
+            )
+          : null,
+    );
+  }
+
+  String _formatRole(String role) {
+    if (role.isEmpty) return 'Member';
+    return role[0].toUpperCase() + role.substring(1).toLowerCase();
   }
 }

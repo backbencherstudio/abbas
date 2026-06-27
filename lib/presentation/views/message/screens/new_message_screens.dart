@@ -3,9 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../cors/routes/route_names.dart';
-import '../../../../cors/services/token_storage.dart';
 import '../../../../cors/services/user_id_storage.dart';
-import '../../../widgets/primary_button.dart';
 import '../../../widgets/secondary_appber.dart';
 import '../model/suggest_model.dart';
 import '../provider/create_chat_provider.dart';
@@ -20,17 +18,19 @@ class NewMessageScreens extends StatefulWidget {
 
 class _NewMessageScreensState extends State<NewMessageScreens> {
   final TextEditingController _searchController = TextEditingController();
-  String? _token;
   String? _currentUserId;
 
   @override
   void initState() {
     super.initState();
-    _loadCredentials();
+    _searchController.addListener(() => setState(() {}));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CreateGroupProvider>().loadSuggestedUsers();
+      _loadCurrentUserId();
+    });
   }
 
-  Future<void> _loadCredentials() async {
-    _token = await TokenStorage().getToken();
+  Future<void> _loadCurrentUserId() async {
     _currentUserId = await UserIdStorage().getUserId();
     if (mounted) setState(() {});
   }
@@ -41,30 +41,31 @@ class _NewMessageScreensState extends State<NewMessageScreens> {
     super.dispose();
   }
 
-  /// Start a DM with the selected user.
   Future<void> _startDm(BuildContext context, Items user) async {
-    final provider = context.read<CreateChatProvider>();
+    if (user.id.isEmpty) return;
+
+    final chatProvider = context.read<CreateChatProvider>();
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
 
-    final conv = await provider.createConversation(user.id);
-
+    final conv = await chatProvider.createConversation(user.id);
     if (!mounted) return;
 
-    if (conv != null) {
-      navigator.pushNamed(
-        RouteNames.oneTwoOneChatScreen,
+    if (conv != null && conv.id.isNotEmpty) {
+      await navigator.pushNamed(
+        RouteNames.chatScreen,
         arguments: {
-          "conversationId": conv.id,
-          "token": _token ?? '',
-          "currentUserId": _currentUserId ?? '',
-          "receiverName": user.name,
+          'conversationId': conv.id,
+          'type': 'DM',
+          'title': user.name,
+          'avatarUrl': user.avatarUrl ?? '',
+          'currentUserId': _currentUserId ?? '',
         },
       );
     } else {
       messenger.showSnackBar(
         SnackBar(
-          content: Text(provider.errorMessage ?? 'Failed to start chat'),
+          content: Text(chatProvider.errorMessage ?? 'Failed to start chat'),
           backgroundColor: Colors.red,
         ),
       );
@@ -77,168 +78,99 @@ class _NewMessageScreensState extends State<NewMessageScreens> {
       backgroundColor: const Color(0xff060C11),
       body: Column(
         children: [
-          const SecondaryAppBar(title: "New Message"),
+          const SecondaryAppBar(title: 'New message'),
           Expanded(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SizedBox(height: 18.h),
-                  // Search field
-                  Consumer<CreateGroupProvider>(
-                    builder: (context, searchProvider, _) {
-                      return TextFormField(
-                        controller: _searchController,
-                        style: const TextStyle(color: Colors.white),
-                        onChanged: (value) {
-                          searchProvider.searchUsers(value);
-                        },
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.transparent,
-                          contentPadding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 20.w),
-                          hintText: "To: Type a user name",
-                          hintStyle: const TextStyle(color: Color(0xff5C6580)),
-                          suffixIcon: _searchController.text.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(Icons.clear,
-                                      color: Color(0xff5C6580)),
-                                  onPressed: () {
-                                    _searchController.clear();
-                                    searchProvider.clearSearch();
-                                  },
-                                )
-                              : null,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16.r),
-                            borderSide: const BorderSide(
-                              color: Color(0xff1F283D),
-                              width: 1,
-                            ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16.r),
-                            borderSide: const BorderSide(
-                              color: Color(0xff1F283D),
-                              width: 1,
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16.r),
-                            borderSide: const BorderSide(
-                              color: Color(0xff3D4566),
-                              width: 1,
-                            ),
-                          ),
-                        ),
-                      );
+                  SizedBox(height: 12.h),
+                  _SearchField(
+                    controller: _searchController,
+                    onChanged: (value) {
+                      context.read<CreateGroupProvider>().searchUsers(value);
                     },
+                    onClear: () {
+                      _searchController.clear();
+                      context.read<CreateGroupProvider>().clearSearch();
+                    },
+                  ),
+                  SizedBox(height: 8.h),
+                  _GroupChatTile(
+                    onTap: () =>
+                        Navigator.pushNamed(context, RouteNames.addGroupMember),
                   ),
                   SizedBox(height: 16.h),
-                  // Create Group button
-                  PrimaryButton(
-                    onTap: () {
-                      Navigator.pushNamed(
-                          context, RouteNames.addGroupMember);
-                    },
-                    color: const Color(0xffE9201D),
-                    textColor: Colors.white,
-                    // borderRadius: BorderRadius.circular(16.r),
-                    // height: 54.h,
-                    child: const Text("Create Group Chat", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                  Text(
+                    'Suggested',
+                    style: TextStyle(
+                      color: const Color(0xffB2B5B8),
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                  SizedBox(height: 18.h),
-                  // Search results / Suggested label
-                  Consumer<CreateGroupProvider>(
-                    builder: (context, searchProvider, _) {
-                      final results =
-                          searchProvider.suggestModel?.items ?? [];
-                      final isSearching = _searchController.text.isNotEmpty;
-
-                      if (searchProvider.isLoading) {
-                        return const Expanded(
-                          child: Center(
+                  SizedBox(height: 8.h),
+                  Expanded(
+                    child: Consumer2<CreateGroupProvider, CreateChatProvider>(
+                      builder: (context, discover, chat, _) {
+                        if (discover.isLoading && discover.users.isEmpty) {
+                          return const Center(
                             child: CircularProgressIndicator(
                               color: Color(0xffE9201D),
                             ),
-                          ),
-                        );
-                      }
+                          );
+                        }
 
-                      return Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // SizedBox(height: 16.h),
-                            // Text(
-                            //   isSearching ? "Results" : "Suggested",
-                            //   style: const TextStyle(
-                            //     color: Color(0xffB2B5B8),
-                            //     fontSize: 14,
-                            //   ),
-                            // ),
-                            // if (!isSearching) ...[
-                            //   SizedBox(height: 16.h),
-                            //   SizedBox(
-                            //     height: 38.h,
-                            //     child: ListView(
-                            //       scrollDirection: Axis.horizontal,
-                            //       children: ['Students', 'Teachers', 'Admin'].map((filter) {
-                            //         final isSelected = filter == 'Students';
-                            //         return Padding(
-                            //           padding: EdgeInsets.only(right: 12.w),
-                            //           child: Container(
-                            //             padding: EdgeInsets.symmetric(
-                            //               horizontal: 20.w,
-                            //               vertical: 8.h,
-                            //             ),
-                            //             decoration: BoxDecoration(
-                            //               border: Border.all(
-                            //                 color: const Color(0xff1F283D),
-                            //                 width: 1.w,
-                            //               ),
-                            //               borderRadius: BorderRadius.circular(50.r),
-                            //               color: isSelected
-                            //                   ? const Color(0xff3D4566)
-                            //                   : Colors.transparent,
-                            //             ),
-                            //             child: Text(
-                            //               filter,
-                            //               style: TextStyle(
-                            //                 color: Colors.white,
-                            //                 fontSize: 14.sp,
-                            //                 fontWeight: FontWeight.w400,
-                            //               ),
-                            //             ),
-                            //           ),
-                            //         );
-                            //       }).toList(),
-                            //     ),
-                            //   ),
-                            // ],
-                            if (isSearching && results.isEmpty)
-                              const Center(
-                                child: Text(
-                                  "No users found",
-                                  style: TextStyle(color: Color(0xff8C9196)),
+                        if (discover.errorMessage != null &&
+                            discover.users.isEmpty) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  discover.errorMessage!,
+                                  style: const TextStyle(color: Colors.white70),
+                                  textAlign: TextAlign.center,
                                 ),
-                              )
-                            else
-                              Expanded(
-                                child: ListView.builder(
-                                  padding: EdgeInsets.only(top: 5),
-                                  itemCount: results.length,
-                                  itemBuilder: (context, index) {
-                                    final user = results[index];
-                                    return _buildUserItem(context, user);
-                                  },
+                                TextButton(
+                                  onPressed: discover.loadSuggestedUsers,
+                                  child: const Text('Retry'),
                                 ),
-                              ),
-                          ],
-                        ),
-                      );
-                    },
+                              ],
+                            ),
+                          );
+                        }
+
+                        if (discover.users.isEmpty) {
+                          return Center(
+                            child: Text(
+                              _searchController.text.trim().isEmpty
+                                  ? 'No suggested users'
+                                  : 'No users found',
+                              style: const TextStyle(color: Color(0xff8C9196)),
+                            ),
+                          );
+                        }
+
+                        return ListView.separated(
+                          itemCount: discover.users.length,
+                          separatorBuilder: (_, __) => SizedBox(height: 4.h),
+                          itemBuilder: (context, index) {
+                            final user = discover.users[index];
+                            final isCreating =
+                                chat.creatingParticipantId == user.id;
+                            return _UserTile(
+                              user: user,
+                              isLoading: isCreating,
+                              onTap: isCreating
+                                  ? null
+                                  : () => _startDm(context, user),
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -248,80 +180,160 @@ class _NewMessageScreensState extends State<NewMessageScreens> {
       ),
     );
   }
+}
 
-  Widget _buildUserItem(BuildContext context, Items user) {
-    return Consumer<CreateChatProvider>(
-      builder: (context, chatProvider, _) {
-        return GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: chatProvider.isLoading
-              ? null
-              : () => _startDm(context, user),
-          child: Container(
-            padding: EdgeInsets.symmetric(vertical: 10.h),
-            child: Row(
-              children: [
-                Container(
-                  width: 44.w,
-                  height: 44.h,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Color(0xff1F283D),
-                  ),
-                  child: user.avatarUrl != null && user.avatarUrl!.isNotEmpty
-                      ? ClipOval(
-                          child: Image.network(
-                            user.avatarUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) =>
-                                const Icon(Icons.person, color: Colors.white),
-                          ),
-                        )
-                      : const Icon(Icons.person, color: Colors.white),
-                ),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        user.name,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      if (user.username != null && user.username!.isNotEmpty)
-                        Text(
-                          user.username!,
-                          style: const TextStyle(
-                            color: Color(0xff8C9196),
-                            fontSize: 13,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                if (chatProvider.isLoading)
-                  const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Color(0xffE9201D),
-                    ),
-                  )
-                else
-                  const Icon(
-                    Icons.chevron_right,
-                    color: Color(0xff8C9196),
-                  ),
-              ],
+class _SearchField extends StatelessWidget {
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+  final VoidCallback onClear;
+
+  const _SearchField({
+    required this.controller,
+    required this.onChanged,
+    required this.onClear,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      style: const TextStyle(color: Colors.white),
+      onChanged: onChanged,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.transparent,
+        contentPadding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 4.w),
+        hintText: 'To: Type a name or group',
+        hintStyle: const TextStyle(color: Color(0xff5C6580)),
+        prefixIcon: Padding(
+          padding: EdgeInsets.only(left: 4.w, right: 8.w),
+          child: Text(
+            'To:',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w500,
             ),
           ),
-        );
-      },
+        ),
+        prefixIconConstraints: BoxConstraints(minWidth: 36.w),
+        suffixIcon: controller.text.isNotEmpty
+            ? IconButton(
+                icon: const Icon(Icons.clear, color: Color(0xff5C6580)),
+                onPressed: onClear,
+              )
+            : null,
+        border: InputBorder.none,
+      ),
+    );
+  }
+}
+
+class _GroupChatTile extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _GroupChatTile({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12.r),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 10.h),
+        child: Row(
+          children: [
+            Container(
+              width: 44.r,
+              height: 44.r,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: Color(0xff1F283D),
+              ),
+              child: Icon(Icons.groups_outlined, color: Colors.white, size: 22.sp),
+            ),
+            SizedBox(width: 14.w),
+            Text(
+              'Group chat',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _UserTile extends StatelessWidget {
+  final Items user;
+  final bool isLoading;
+  final VoidCallback? onTap;
+
+  const _UserTile({
+    required this.user,
+    required this.isLoading,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final hasAvatar = user.avatarUrl != null && user.avatarUrl!.isNotEmpty;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12.r),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 10.h),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 22.r,
+              backgroundColor: const Color(0xff1F283D),
+              backgroundImage: hasAvatar ? NetworkImage(user.avatarUrl!) : null,
+              child: hasAvatar
+                  ? null
+                  : Icon(Icons.person, color: Colors.white, size: 22.sp),
+            ),
+            SizedBox(width: 14.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    user.name,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  if (user.username != null && user.username!.isNotEmpty)
+                    Text(
+                      '@${user.username}',
+                      style: TextStyle(
+                        color: const Color(0xff8C9196),
+                        fontSize: 13.sp,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            if (isLoading)
+              SizedBox(
+                width: 20.r,
+                height: 20.r,
+                child: const CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Color(0xffE9201D),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

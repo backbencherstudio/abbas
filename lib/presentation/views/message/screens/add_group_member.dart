@@ -25,8 +25,11 @@ class _AddGroupMemberState extends State<AddGroupMember> {
   @override
   void initState() {
     super.initState();
-    _groupTitleController.text = "New Group";
+    _groupTitleController.text = 'New Group';
     _loadCredentials();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CreateGroupProvider>().loadSuggestedUsers();
+    });
   }
 
   Future<void> _loadCredentials() async {
@@ -75,7 +78,7 @@ class _AddGroupMemberState extends State<AddGroupMember> {
                   await createProvider.createGroup(
                     selectedUserIds: _selectedUserIds,
                     groupTitle: _groupTitleController.text.trim().isEmpty
-                        ? "New Group"
+                        ? 'New Group'
                         : _groupTitleController.text.trim(),
                   );
 
@@ -84,12 +87,12 @@ class _AddGroupMemberState extends State<AddGroupMember> {
                   if (createProvider.createGroupModel != null) {
                     final group = createProvider.createGroupModel!;
                     navigator.pushReplacementNamed(
-                      RouteNames.groupChatScreen,
+                      RouteNames.chatScreen,
                       arguments: {
-                        "conversationId": group.id ?? '',
-                        "token": _token ?? '',
-                        "currentUserId": _currentUserId ?? '',
-                        "groupName": group.title ?? 'Group Chat',
+                        'conversationId': group.id ?? '',
+                        'type': 'GROUP',
+                        'title': group.title ?? 'Group Chat',
+                        'currentUserId': _currentUserId ?? '',
                       },
                     );
                   } else {
@@ -203,10 +206,12 @@ class _AddGroupMemberState extends State<AddGroupMember> {
                         itemCount: _selectedUserIds.length,
                         itemBuilder: (context, index) {
                           final userId = _selectedUserIds.elementAt(index);
-                          final user = provider.suggestModel?.items.firstWhere(
-                            (u) => u.id == userId,
-                            orElse: () => Items(id: userId, name: "User", username: "", avatarUrl: ""),
-                          );
+                          Items user;
+                          try {
+                            user = provider.users.firstWhere((u) => u.id == userId);
+                          } catch (_) {
+                            user = Items(id: userId, name: 'User');
+                          }
                           return Padding(
                             padding: EdgeInsets.only(right: 16.w),
                             child: Column(
@@ -270,19 +275,20 @@ class _AddGroupMemberState extends State<AddGroupMember> {
 
                   // Suggested Users List
                   Expanded(
-                    child: provider.isLoading
-                        ? const Center(child: CircularProgressIndicator(color: Colors.white))
-                        : provider.suggestModel == null || provider.suggestModel!.items.isEmpty
+                    child: provider.isLoading && provider.users.isEmpty
                         ? const Center(
-                      child: Text(
-                        "No suggestions found",
-                        style: TextStyle(color: Colors.grey, fontSize: 16),
-                      ),
-                    )
-                        : ListView.builder(
-                      itemCount: provider.suggestModel!.items.length,
-                      itemBuilder: (context, index) {
-                        final Items user = provider.suggestModel!.items[index];
+                            child: CircularProgressIndicator(color: Colors.white))
+                        : provider.users.isEmpty
+                            ? const Center(
+                                child: Text(
+                                  'No suggestions found',
+                                  style: TextStyle(color: Colors.grey, fontSize: 16),
+                                ),
+                              )
+                            : ListView.builder(
+                                itemCount: provider.users.length,
+                                itemBuilder: (context, index) {
+                                  final Items user = provider.users[index];
                         final bool isSelected = _selectedUserIds.contains(user.id);
 
                         return GestureDetector(

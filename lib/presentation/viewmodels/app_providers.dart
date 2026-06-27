@@ -11,6 +11,8 @@ import '../views/message/provider/create_group_provider.dart';
 import '../views/message/provider/group_chat_provider.dart';
 import '../views/message/provider/real_time_message_provider.dart';
 import '../views/profile/view_model/profile_screen_provider.dart';
+import '../views/profile/view_model/signed_documents_provider.dart';
+import '../views/profile/view_model/support_provider.dart';
 import 'auth/forgot_password/forgot_password_viewmodel.dart';
 import 'auth/otp_verify/otp_verify_viewmodel.dart';
 import 'auth/profile/edit_personal_info_viewmodel.dart';
@@ -48,6 +50,8 @@ class AppProviders {
     ChangeNotifierProvider(create: (_) => getIt<PersonalInfoProvider>()),
     ChangeNotifierProvider(create: (_) => getIt<CommunityScreenProvider>()),
     ChangeNotifierProvider(create: (_) => getIt<ProfileScreenProvider>()),
+    ChangeNotifierProvider(create: (_) => SupportProvider()),
+    ChangeNotifierProvider(create: (_) => SignedDocumentsProvider()),
     ChangeNotifierProvider(create: (_) => getIt<CreateChatProvider>()),
 
     ChangeNotifierProvider(create: (_) => CreateGroupProvider()),  // Direct instantiation

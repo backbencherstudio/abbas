@@ -26,6 +26,8 @@ class ApiEndpoints {
   ///----------------------- profile -------------------------------------------
   static const String profileInfo = '/api/auth/me';
   static const String accountGetProfile = '$baseUrl/api/profile';
+  static const String profileSupport = '$baseUrl/api/profile/support';
+  static const String signedDocuments = '$baseUrl/api/profile/signed_documents';
   static const String deleteAccount = '$baseUrl/api/profile/delete-account';
 
   /// -------------------- Home ------------------------------------------------
@@ -176,11 +178,60 @@ class ApiEndpoints {
 
 
   // chat
-  static const String createConversation = '$baseUrl/api/conversations/dm';
+  static const String createConversation = '$baseUrl/api/conversations';
   static const String allConversationList = '$baseUrl/api/conversations';
+
+  static String conversationsList({
+    String? type,
+    int limit = 10,
+    String? cursor,
+    String? search,
+  }) {
+    final params = <String, String>{
+      'limit': '$limit',
+      'cursor': (cursor != null && cursor.isNotEmpty) ? cursor : '',
+      'search': search?.trim() ?? '',
+    };
+    if (type != null && type.isNotEmpty) {
+      params['type'] = type;
+    }
+    final query = params.entries
+        .map((e) => '${e.key}=${Uri.encodeQueryComponent(e.value)}')
+        .join('&');
+    return '$baseUrl/api/conversations?$query';
+  }
+
+  static String conversationMessages(
+    String conversationId, {
+    int limit = 20,
+    String? cursor,
+  }) {
+    if (cursor != null && cursor.isNotEmpty) {
+      return '$baseUrl/api/conversations/$conversationId/messages?limit=$limit&cursor=$cursor';
+    }
+    return '$baseUrl/api/conversations/$conversationId/messages?limit=$limit';
+  }
   static const String groupConversationList =
       '$baseUrl/api/conversations/group-conversations';
   static const String createGroupChat = '$baseUrl/api/conversations/group';
+
+  static String usersDiscover({
+    String search = '',
+    String type = 'student',
+    int limit = 20,
+    String? cursor,
+  }) {
+    final params = <String, String>{
+      'search': search.trim(),
+      'type': type,
+      'limit': '$limit',
+      'cursor': (cursor != null && cursor.isNotEmpty) ? cursor : '',
+    };
+    final query = params.entries
+        .map((e) => '${e.key}=${Uri.encodeQueryComponent(e.value)}')
+        .join('&');
+    return '$baseUrl/api/users/discover?$query';
+  }
 
   static String searchUser(String query) =>
       '$baseUrl/api/users/suggest?q=$query';
@@ -194,8 +245,18 @@ class ApiEndpoints {
   static String clearConversation(String conversationId) =>
       '$baseUrl/api/conversations/$conversationId/clear';
 
-  static String conversationMembers(String conversationId) =>
-      '$baseUrl/api/conversations/$conversationId/members';
+  static String conversationDetail(String conversationId) =>
+      '$baseUrl/api/conversations/$conversationId';
+
+  static String conversationMembers(
+    String conversationId, {
+    String? role,
+  }) {
+    if (role != null && role.isNotEmpty) {
+      return '$baseUrl/api/conversations/$conversationId/members?role=$role';
+    }
+    return '$baseUrl/api/conversations/$conversationId/members';
+  }
 
   static String updateMemberRole(String conversationId, String userId) =>
       '$baseUrl/api/conversations/$conversationId/members/$userId/role';

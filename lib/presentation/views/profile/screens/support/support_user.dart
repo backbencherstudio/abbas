@@ -1,165 +1,184 @@
 import 'package:abbas/cors/theme/app_colors.dart';
+import 'package:abbas/cors/utils/app_utils.dart';
+import 'package:abbas/presentation/views/profile/view_model/support_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 import '../../../../widgets/secondary_appber.dart';
 
 class SupportUser extends StatefulWidget {
-  const SupportUser({super.key});
+  final String reason;
+
+  const SupportUser({super.key, required this.reason});
 
   @override
   State<SupportUser> createState() => _SupportUserState();
 }
 
 class _SupportUserState extends State<SupportUser> {
-  final TextEditingController _goalsController = TextEditingController();
-  final FocusNode _goalsFocus = FocusNode();
+  final TextEditingController _messageController = TextEditingController();
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submitSupport() async {
+    final message = _messageController.text.trim();
+
+    if (message.isEmpty) {
+      Utils.showToast(
+        msg: 'Please describe your issue before submitting.',
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+      return;
+    }
+
+    final res = await context.read<SupportProvider>().submitSupport(
+          reason: widget.reason,
+          message: message,
+        );
+
+    if (!mounted) return;
+
+    if (res.success) {
+      Utils.showToast(
+        msg: res.message,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+      );
+      Navigator.pop(context);
+    } else {
+      Utils.showToast(
+        msg: res.message,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = context.watch<SupportProvider>().isLoading;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          SecondaryAppBar(title: 'Support User'),
-          SizedBox(height: 10.h,),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              children: [
-                _buildTextEdit(context,'Reason for Support:', 'Account or Login Issues'),
-                Padding(
-                  padding: const EdgeInsets.all(0.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildFormSection(
-                          'Message',
-                          _buildTextField('Describe the reason..',
-                              controller: _goalsController,
-                              maxLines: 5,
-                              focusNode: _goalsFocus)),
-
-                      const SizedBox(height: 20),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            // Navigator.pushNamed(context, RouteNames.profileSetup);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:  Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: const Text(
-                            'Submit',
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
+          const SecondaryAppBar(title: 'Support'),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.all(16.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(16.w),
+                    decoration: BoxDecoration(
+                      color: const Color(0xff0A1A29),
+                      borderRadius: BorderRadius.circular(12.r),
+                      border: Border.all(color: const Color(0xff3D4566)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Reason for Support:',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: const Color(0xFF8C9196),
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-
-                    ],
+                        SizedBox(height: 8.h),
+                        Text(
+                          widget.reason,
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                )
-              ],
+                  SizedBox(height: 20.h),
+                  Text(
+                    'Message',
+                    style: TextStyle(
+                      color: const Color(0xFF8C9196),
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
+                  TextFormField(
+                    controller: _messageController,
+                    maxLines: 6,
+                    style: TextStyle(fontSize: 16.sp, color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: 'Describe the reason...',
+                      hintStyle: TextStyle(
+                        color: const Color(0xFF8C9196),
+                        fontSize: 16.sp,
+                      ),
+                      contentPadding: EdgeInsets.all(16.w),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                        borderSide: const BorderSide(color: Color(0xff3D4566)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                        borderSide: const BorderSide(color: Color(0xff3D4566)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                        borderSide: const BorderSide(color: Color(0xff3D4566)),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 24.h),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: isLoading ? null : _submitSupport,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xff030C15),
+                        disabledBackgroundColor: Colors.white54,
+                        padding: EdgeInsets.symmetric(vertical: 16.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                      ),
+                      child: isLoading
+                          ? SizedBox(
+                              height: 22.h,
+                              width: 22.w,
+                              child: const CircularProgressIndicator(
+                                color: Colors.black,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              'Submit',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 18.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          )
+          ),
         ],
       ),
     );
   }
 }
-Widget _buildTextEdit(BuildContext context, String title, String subTitle) {
-  return Padding(
-    padding: const EdgeInsets.all(0.0),
-    child: GestureDetector(
-      onTap: (){},
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10.r),
-          color: Color(0xff0A1A29),
-          border: Border.all(
-            color: Color(0xff3D4566),
-            width: 0.5,
-          ),
-          boxShadow: const [
-            BoxShadow(offset: Offset(0, 0)),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-
-                Text(
-                  title,
-                  style: const TextStyle(
-                      fontSize: 14, fontWeight: FontWeight.w500,color: Color(0xFF8C9196)),
-                ),
-               SizedBox(height: 10.h,),
-            Text(
-              subTitle,
-              style: const TextStyle(
-                  fontSize: 16, fontWeight: FontWeight.w500),
-            ),
-            SizedBox(height: 5.h),
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
-Widget _buildFormSection(String label, Widget child) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      const SizedBox(height: 16),
-      Text(
-        label,
-        style: const TextStyle(
-            color: Color(0xFF8C9196), fontSize: 16, fontWeight: FontWeight.w500),
-      ),
-      const SizedBox(height: 8),
-      child,
-    ],
-  );
-}
-
-Widget _buildTextField(String hintText,
-    {int? maxLines,
-      TextInputType? keyboardType,
-      TextEditingController? controller,
-      FocusNode? focusNode}) {
-  return TextFormField(
-    controller: controller,
-    focusNode: focusNode,
-    keyboardType: keyboardType,
-    maxLines: maxLines,
-    decoration: InputDecoration(
-      hintText: hintText,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 15.0),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.0),
-        borderSide: const BorderSide(color: Colors.white, width: 1.5),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12.0),
-        borderSide: const BorderSide(color: Colors.white, width: 1.5),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16.0),
-        borderSide: const BorderSide(color: Color(0xFF3D4566), width: 1),
-      ),
-    ),
-  );
-}
-

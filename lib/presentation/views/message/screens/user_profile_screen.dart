@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../cors/routes/route_names.dart';
 import '../../../widgets/secondary_appber.dart';
+import '../provider/conversation_detail_provider.dart';
 
-class UserProfileScreen extends StatelessWidget {
+class UserProfileScreen extends StatefulWidget {
   final String conversationId;
   final String receiverName;
   final String avatarUrl;
@@ -17,152 +19,291 @@ class UserProfileScreen extends StatelessWidget {
   });
 
   @override
+  State<UserProfileScreen> createState() => _UserProfileScreenState();
+}
+
+class _UserProfileScreenState extends State<UserProfileScreen> {
+  late final ConversationDetailProvider _provider;
+
+  @override
+  void initState() {
+    super.initState();
+    _provider = ConversationDetailProvider();
+    if (widget.conversationId.isNotEmpty) {
+      _provider.fetchDetail(widget.conversationId);
+    }
+  }
+
+  @override
+  void dispose() {
+    _provider.dispose();
+    super.dispose();
+  }
+
+  String _displayName(ConversationDetailProvider provider) {
+    final detail = provider.detail;
+    if (detail != null) {
+      return detail.displayTitle(null);
+    }
+    return widget.receiverName;
+  }
+
+  String? _displayAvatar(ConversationDetailProvider provider) {
+    final detail = provider.detail;
+    if (detail != null) {
+      return detail.displayAvatar();
+    }
+    return widget.avatarUrl.isNotEmpty ? widget.avatarUrl : null;
+  }
+
+  bool _isSilenced(ConversationDetailProvider provider) =>
+      provider.detail?.isSilenced ?? false;
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xff030D15),
-      body: Column(
-        children: [
-          SecondaryAppBar(title: "Profile"),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+    return ChangeNotifierProvider.value(
+      value: _provider,
+      child: Consumer<ConversationDetailProvider>(
+        builder: (context, provider, _) {
+          final name = _displayName(provider);
+          final avatarUrl = _displayAvatar(provider);
+          final isSilenced = _isSilenced(provider);
+          final mutedUntil = provider.detail?.mutedUntil;
+          final memberCount = provider.detail?.totalMembers ?? 0;
+
+          return Scaffold(
+            backgroundColor: const Color(0xff030D15),
+            body: Column(
               children: [
-                SizedBox(height: 12.h),
-                Container(
-                  width: 100.w,
-                  height: 100.w,
-                  decoration: const BoxDecoration(
-                    color: Color(0xff1F283D),
-                    shape: BoxShape.circle,
-                  ),
-                  child: avatarUrl.isNotEmpty
-                      ? ClipOval(
-                          child: Image.network(
-                            avatarUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Icon(
-                              Icons.person,
+                SecondaryAppBar(title: 'Profile'),
+                if (provider.isLoadingDetail && provider.detail == null)
+                  const Expanded(
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xffE9201D),
+                      ),
+                    ),
+                  )
+                else
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.symmetric(horizontal: 16.w),
+                      child: Column(
+                        children: [
+                          SizedBox(height: 12.h),
+                          Container(
+                            width: 100.w,
+                            height: 100.w,
+                            decoration: const BoxDecoration(
+                              color: Color(0xff1F283D),
+                              shape: BoxShape.circle,
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: avatarUrl != null && avatarUrl.isNotEmpty
+                                ? Image.network(
+                                    avatarUrl,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => const Icon(
+                                      Icons.person,
+                                      color: Colors.white,
+                                      size: 50,
+                                    ),
+                                  )
+                                : const Icon(
+                                    Icons.person,
+                                    color: Colors.white,
+                                    size: 50,
+                                  ),
+                          ),
+                          SizedBox(height: 10.h),
+                          Text(
+                            name,
+                            style: TextStyle(
                               color: Colors.white,
-                              size: 50,
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        )
-                      : const Icon(
-                          Icons.person,
-                          color: Colors.white,
-                          size: 50,
-                        ),
-                ),
-                SizedBox(height: 10.h),
-                Text(
-                  receiverName,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.bold,
+                          if (provider.detail?.participant?.username != null &&
+                              provider.detail!.participant!.username!
+                                  .isNotEmpty) ...[
+                            SizedBox(height: 4.h),
+                            Text(
+                              '@${provider.detail!.participant!.username}',
+                              style: TextStyle(
+                                color: const Color(0xff8C9196),
+                                fontSize: 14.sp,
+                              ),
+                            ),
+                          ],
+                          SizedBox(height: 8.h),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 10.w,
+                              vertical: 5.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xff0A1A2A),
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            child: Text(
+                              provider.detail?.typeLabel() ?? 'Direct Message',
+                              style: TextStyle(
+                                color: const Color(0xff8D9CDC),
+                                fontSize: 12.sp,
+                              ),
+                            ),
+                          ),
+                          if (memberCount > 0) ...[
+                            SizedBox(height: 8.h),
+                            Text(
+                              '$memberCount participants',
+                              style: TextStyle(
+                                color: const Color(0xff5F6CA0),
+                                fontSize: 14.sp,
+                              ),
+                            ),
+                          ],
+                          if (isSilenced) ...[
+                            SizedBox(height: 8.h),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.notifications_off,
+                                  color: const Color(0xffE9201D),
+                                  size: 16.sp,
+                                ),
+                                SizedBox(width: 6.w),
+                                Text(
+                                  mutedUntil != null && mutedUntil.isNotEmpty
+                                      ? 'Muted until ${_formatMutedUntil(mutedUntil)}'
+                                      : 'Notifications muted',
+                                  style: TextStyle(
+                                    color: const Color(0xffE9201D),
+                                    fontSize: 13.sp,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                          SizedBox(height: 20.h),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              _mainSection(
+                                title: 'Audio',
+                                icon: Icons.call,
+                                ontap: () {
+                                  if (widget.conversationId.isNotEmpty) {
+                                    Navigator.pushNamed(
+                                      context,
+                                      RouteNames.audioCallScreen,
+                                      arguments: {
+                                        'conversationId': widget.conversationId,
+                                        'callKind': 'AUDIO',
+                                        'autoStart': true,
+                                        'callerName': name,
+                                      },
+                                    );
+                                  }
+                                },
+                              ),
+                              SizedBox(width: 20.w),
+                              _mainSection(
+                                title: 'Video',
+                                icon: Icons.videocam,
+                                ontap: () {
+                                  if (widget.conversationId.isNotEmpty) {
+                                    Navigator.pushNamed(
+                                      context,
+                                      RouteNames.videoCallScreen,
+                                      arguments: {
+                                        'conversationId': widget.conversationId,
+                                        'callKind': 'VIDEO',
+                                        'autoStart': true,
+                                      },
+                                    );
+                                  }
+                                },
+                              ),
+                              SizedBox(width: 20.w),
+                              _mainSection(
+                                title: isSilenced ? 'Muted' : 'Mute',
+                                icon: isSilenced
+                                    ? Icons.notifications_off
+                                    : Icons.notifications_off_outlined,
+                                iconColor: isSilenced
+                                    ? const Color(0xffE9201D)
+                                    : const Color(0xff8D9CDC),
+                                ontap: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        isSilenced
+                                            ? 'This conversation is muted'
+                                            : 'Mute settings coming soon',
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              SizedBox(width: 20.w),
+                              _mainSection(
+                                title: 'Profile',
+                                icon: Icons.person,
+                                ontap: () {},
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 20.h),
+                          const Divider(thickness: 0.7),
+                          SizedBox(height: 12.h),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'Action',
+                              style: TextStyle(
+                                color: const Color(0xffB2B5B8),
+                                fontSize: 14.sp,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 20.h),
+                          _action(
+                            title: 'View media & file',
+                            icon: Icons.perm_media_sharp,
+                          ),
+                          SizedBox(height: 20.h),
+                          _action(title: 'Share contact', icon: Icons.share),
+                          SizedBox(height: 20.h),
+                          _action(
+                            title: 'Report',
+                            icon: Icons.report_problem_outlined,
+                          ),
+                          SizedBox(height: 30.h),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-                SizedBox(height: 5.h),
-                SizedBox(height: 20.h),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    mainSection(
-                      title: "Audio",
-                      icon: Icons.call,
-                      ontap: () {
-                        if (conversationId.isNotEmpty) {
-                          Navigator.pushNamed(
-                            context,
-                            RouteNames.audioCallScreen,
-                            arguments: {
-                              'conversationId': conversationId,
-                              'callKind': 'AUDIO',
-                              'autoStart': true,
-                              'callerName': receiverName,
-                            },
-                          );
-                        }
-                      },
-                    ),
-                    SizedBox(width: 20.w),
-                    mainSection(
-                      title: "Video",
-                      icon: Icons.videocam,
-                      ontap: () {
-                        if (conversationId.isNotEmpty) {
-                          Navigator.pushNamed(
-                            context,
-                            RouteNames.videoCallScreen,
-                            arguments: {
-                              'conversationId': conversationId,
-                              'callKind': 'VIDEO',
-                              'autoStart': true,
-                            },
-                          );
-                        }
-                      },
-                    ),
-                    SizedBox(width: 20.w),
-                    mainSection(
-                      title: "Mute",
-                      icon: Icons.notifications_off_outlined,
-                      ontap: () {},
-                    ),
-                    SizedBox(width: 20.w),
-                    mainSection(
-                      title: "Profile",
-                      icon: Icons.person,
-                      ontap: () {},
-                    ),
-                  ],
-                ),
-                SizedBox(height: 20),
-
-                Divider(thickness: 0.7),
-                SizedBox(height: 0),
-
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Action",
-                    style: TextStyle(color: Color(0xffB2B5B8)),
-                  ),
-                ),
-
-                SizedBox(height: 20),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    action(title: "View media & file", icon: Icons.perm_media_sharp),
-                    SizedBox(height: 20.h),
-                    action(title: "Share contact", icon: Icons.share),
-                    SizedBox(height: 20.h),
-                    action(
-                      title: "Report",
-                      icon: Icons.report_problem_outlined,
-                    ),
-                  ],
-                ),
               ],
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
-  Widget action({required String title, required IconData icon}) {
+  String _formatMutedUntil(String value) {
+    final parsed = DateTime.tryParse(value);
+    if (parsed == null) return value;
+    return '${parsed.day}/${parsed.month}/${parsed.year}';
+  }
+
+  Widget _action({required String title, required IconData icon}) {
     return Row(
       children: [
-        Icon(
-          icon,
-          color: title == "Delete conversations"
-              ? Colors.red
-              : Color(0xff8D9CDC),
-          size: 20.sp,
-        ),
+        Icon(icon, color: const Color(0xff8D9CDC), size: 20.sp),
         SizedBox(width: 10.w),
         Text(
           title,
@@ -172,7 +313,12 @@ class UserProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget mainSection({required String title, required IconData icon, required VoidCallback ontap}) {
+  Widget _mainSection({
+    required String title,
+    required IconData icon,
+    required VoidCallback ontap,
+    Color iconColor = const Color(0xff8D9CDC),
+  }) {
     return Column(
       children: [
         GestureDetector(
@@ -183,7 +329,7 @@ class UserProfileScreen extends StatelessWidget {
               color: const Color(0xff0A1A2A),
               borderRadius: BorderRadius.circular(100),
             ),
-            child: Icon(icon, color: const Color(0xff8D9CDC), size: 24.sp),
+            child: Icon(icon, color: iconColor, size: 24.sp),
           ),
         ),
         SizedBox(height: 5.h),

@@ -1,4 +1,5 @@
 import 'package:abbas/cors/routes/route_names.dart';
+import 'package:abbas/cors/services/user_id_storage.dart';
 import 'package:abbas/cors/theme/app_colors.dart';
 import 'package:abbas/cors/utils/app_utils.dart';
 import 'package:abbas/presentation/views/community/model/community_feed_model.dart';
@@ -454,11 +455,20 @@ class _ActionRow extends StatelessWidget {
                 onPressed: userId.isEmpty
                     ? null
                     : () async {
-                        await chatProvider.createConversation(userId);
-                        if (!context.mounted) return;
+                        final conv =
+                            await chatProvider.createConversation(userId);
+                        if (!context.mounted || conv == null) return;
+
+                        final myUserId = await UserIdStorage().getUserId();
                         Navigator.pushNamed(
                           context,
-                          RouteNames.oneTwoOneChatScreen,
+                          RouteNames.chatScreen,
+                          arguments: {
+                            'conversationId': conv.id,
+                            'type': 'DM',
+                            'title': profileName,
+                            'currentUserId': myUserId ?? '',
+                          },
                         );
                       },
                 style: ElevatedButton.styleFrom(
@@ -546,11 +556,11 @@ class _ActionRow extends StatelessWidget {
               ),
             ],
             onSelected: (value) {
-              if (value == 'report') {
+              if (value == 'report' && userId.isNotEmpty) {
                 Navigator.pushNamed(
                   context,
-                  RouteNames.reportUserScreen,
-                  arguments: profileName,
+                  RouteNames.reportListPage,
+                  arguments: userId,
                 );
               }
             },

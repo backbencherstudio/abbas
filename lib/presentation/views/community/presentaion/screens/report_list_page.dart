@@ -3,18 +3,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../../cors/routes/route_names.dart';
 import '../../../../widgets/secondary_appber.dart';
 
-class ReportListPage extends StatefulWidget {
-  const ReportListPage({super.key});
+class ReportListPage extends StatelessWidget {
+  final String userId;
 
-  @override
-  State<ReportListPage> createState() => _ReportListPageState();
-}
+  const ReportListPage({super.key, required this.userId});
 
-class _ReportListPageState extends State<ReportListPage> {
-  String? selectedReason;
-
-  final reasons = [
-    "Hate Speech or Offensive Behavior",
+  static const _reasons = [
+    'Hate Speech or Offensive Behavior',
     'Inappropriate Content',
     'Harassment or Bullying',
     'Spam or Scam',
@@ -24,10 +19,10 @@ class _ReportListPageState extends State<ReportListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xff030C15),
+      backgroundColor: const Color(0xff030C15),
       body: Column(
         children: [
-          SecondaryAppBar(title: 'Report', hasButton: true),
+          const SecondaryAppBar(title: 'Report', hasButton: true),
           Expanded(
             child: SingleChildScrollView(
               child: Padding(
@@ -49,47 +44,62 @@ class _ReportListPageState extends State<ReportListPage> {
                       'Select a reason for reporting this user. Your report will remain confidential.',
                       style: TextStyle(
                         fontSize: 14.sp,
-                        color: Color(0xFFD2D2D5),
+                        color: const Color(0xFFD2D2D5),
                         fontWeight: FontWeight.w400,
                       ),
                     ),
                     SizedBox(height: 24.h),
-                    ...reasons.map(
-                      (reasonTitle) => Container(
-                        margin: EdgeInsets.symmetric(vertical: 8.h),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12.w,
-                          vertical: 12.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Color(0xff0A1A29),
+                    ..._reasons.map(
+                      (reasonTitle) => Padding(
+                        padding: EdgeInsets.only(bottom: 12.h),
+                        child: Material(
+                          color: const Color(0xff0A1A29),
                           borderRadius: BorderRadius.circular(12.r),
-                          border: Border.all(
-                            color: Color(0xFF3D4566),
-                            width: 1.h,
-                          ),
-                        ),
-                        child: ListTile(
-                          title: Text(
-                            reasonTitle,
-                            style: TextStyle(
-                              fontSize: 14.sp,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w400,
+                          child: InkWell(
+                            onTap: () {
+                              if (userId.isEmpty) return;
+                              Navigator.pushNamed(
+                                context,
+                                RouteNames.reportUserScreen,
+                                arguments: {
+                                  'userId': userId,
+                                  'reason': reasonTitle,
+                                },
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(12.r),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12.r),
+                                border: Border.all(
+                                  color: const Color(0xFF3D4566),
+                                ),
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 16.w,
+                                vertical: 14.h,
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      reasonTitle,
+                                      style: TextStyle(
+                                        fontSize: 14.sp,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                    ),
+                                  ),
+                                  Icon(
+                                    Icons.arrow_forward_ios,
+                                    size: 16.sp,
+                                    color: Colors.white,
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                          trailing: Icon(
-                            Icons.arrow_forward_ios,
-                            size: 18.sp,
-                            color: Colors.white,
-                          ),
-                          onTap: () {
-                            Navigator.pushNamed(
-                              context,
-                              RouteNames.reportUserScreen,
-                              arguments: reasonTitle,
-                            );
-                          },
                         ),
                       ),
                     ),

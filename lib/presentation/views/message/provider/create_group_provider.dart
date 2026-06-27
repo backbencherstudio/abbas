@@ -1,104 +1,144 @@
+import 'dart:async';
+
 import 'package:abbas/cors/constants/api_endpoints.dart';
-import 'package:abbas/cors/network/api_response_model.dart';
-import 'package:abbas/cors/services/api_client.dart';
+import 'package:abbas/cors/network/api_error_handle.dart';
+import 'package:abbas/cors/services/dio_client.dart';
+import 'package:abbas/data/models/response_model.dart';
 import 'package:abbas/presentation/views/message/model/create_group_model.dart';
 import 'package:abbas/presentation/views/message/model/suggest_model.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:logger/logger.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 class CreateGroupProvider extends ChangeNotifier {
-  final ApiClient _apiClient = ApiClient();
-  final Logger logger = Logger();
+  final DioClient _dioClient = DioClient();
+  Timer? _searchDebounce;
 
   bool _isLoading = false;
+  bool _isCreating = false;
   String? _errorMessage;
   SuggestModel? _suggestModel;
   CreateGroupModel? _createGroupModel;
 
   bool get isLoading => _isLoading;
+  bool get isCreating => _isCreating;
   String? get errorMessage => _errorMessage;
   SuggestModel? get suggestModel => _suggestModel;
   CreateGroupModel? get createGroupModel => _createGroupModel;
+  List<Items> get users => _suggestModel?.items ?? const [];
 
-  // Main Search Function
-  Future<void> searchUsers(String query) async {
-    if (query.trim().isEmpty) {
-      _suggestModel = null;
-      _errorMessage = null;
-      notifyListeners();
-      return;
-    }
+  /// Initial suggested users (`search` empty).
+  Future<void> loadSuggestedUsers() async {
+    await _fetchDiscover(search: '');
+  }
 
+  void searchUsers(String query) {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 400), () {
+      _fetchDiscover(search: query.trim());
+    });
+  }
+
+  Future<void> _fetchDiscover({required String search}) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      final ApiResponseModel response = await _apiClient.get(
-        ApiEndpoints.searchUser(query.trim()),
+      final res = await _dioClient.getHttp(
+        ApiEndpoints.usersDiscover(search: search, limit: 20),
       );
-      debugPrint("========= response ${response.data}");
-      if (response.success && response.data != null) {
-        _suggestModel = SuggestModel.fromJson(response.data);
+
+      if (res is ResponseModel) {
+        _errorMessage = res.message;
+        if (search.isEmpty) _suggestModel = null;
+      } else if (res is Map && res['success'] == true) {
+        _suggestModel = SuggestModel.fromDiscoverResponse(
+          Map<String, dynamic>.from(res),
+        );
         _errorMessage = null;
       } else {
-        _suggestModel = null;
-        _errorMessage = response.message ?? "Something went wrong";
+        _errorMessage = res is Map
+            ? (res['message']?.toString() ?? 'Failed to load users')
+            : 'Failed to load users';
+        if (search.isEmpty) _suggestModel = null;
       }
-    } catch (error) {
-      _suggestModel = null;
-      _errorMessage = "Failed to fetch suggestions";
-      logger.e("Search Users Error: $error");
+    } catch (e) {
+      _errorMessage = 'Failed to load users';
+      logger.e('Discover users error: $e');
+      if (search.isEmpty) _suggestModel = null;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> createGroup({
+  /// `POST /api/conversations` multipart — type GROUP (no avatar unless added later).
+  Future<bool> createGroup({
     required Set<String> selectedUserIds,
-    String? groupTitle,
+    required String groupTitle,
   }) async {
     if (selectedUserIds.isEmpty) {
-      _errorMessage = "Please select at least one member";
+      _errorMessage = 'Please select at least one member';
       notifyListeners();
-      return;
+      return false;
     }
 
-    _isLoading = true;
+    _isCreating = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      final Map<String, dynamic> requestBody = {
-        "title": groupTitle?.trim().isNotEmpty == true ? groupTitle!.trim() : "New Group",
-        "memberIds": selectedUserIds.toList(),   // ← This is what backend expects
-      };
+      final formData = FormData();
+      formData.fields.add(const MapEntry('type', 'GROUP'));
+      formData.fields.add(MapEntry(
+        'title',
+        groupTitle.trim().isNotEmpty ? groupTitle.trim() : 'New Group',
+      ));
+      for (final id in selectedUserIds) {
+        formData.fields.add(MapEntry('participant_ids', id));
+      }
 
-      final ApiResponseModel response = await _apiClient.post(
-        ApiEndpoints.createGroupChat,
-        body: requestBody,
+      final res = await _dioClient.postMultipart(
+        ApiEndpoints.createConversation,
+        formData,
       );
 
-      if (response.success && response.data != null) {
-        _createGroupModel = CreateGroupModel.fromJson(response.data);
-        debugPrint("✅ Group Created Successfully: ${_createGroupModel?.id}");
-      } else {
-        _errorMessage = response.message ?? "Failed to create group";
-        debugPrint(" Group creation failed: ${response.message}");
+      if (res is ResponseModel) {
+        _errorMessage = res.message;
+        return false;
       }
-    } catch (error) {
-      _errorMessage = "Something went wrong while creating group";
-      logger.e("Create Group Error: $error");
-      debugPrint("Create Group Error: $error");
+
+      if (res is Map && res['success'] == true && res['data'] is Map) {
+        _createGroupModel = CreateGroupModel.fromApiResponse(
+          Map<String, dynamic>.from(res['data'] as Map),
+          includeAvatar: false,
+        );
+        logger.i('Group created: ${res['message']} — id=${_createGroupModel?.id}');
+        return true;
+      }
+
+      _errorMessage = res is Map
+          ? (res['message']?.toString() ?? 'Failed to create group')
+          : 'Failed to create group';
+      return false;
+    } catch (e) {
+      _errorMessage = e.toString();
+      logger.e('Create group error: $e');
+      return false;
     } finally {
-      _isLoading = false;
+      _isCreating = false;
       notifyListeners();
     }
   }
+
   void clearSearch() {
-    _suggestModel = null;
-    _errorMessage = null;
-    notifyListeners();
+    _searchDebounce?.cancel();
+    loadSuggestedUsers();
+  }
+
+  @override
+  void dispose() {
+    _searchDebounce?.cancel();
+    super.dispose();
   }
 }

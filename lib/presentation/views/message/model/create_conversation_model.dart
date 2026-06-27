@@ -34,13 +34,13 @@ class CreateConversationModel {
       id: json['id'] ?? '',
       creatorId: json['creator_id'] ?? '',
       participantId: json['participant_id'] ?? '',
-      avatarUrl: json['avatarUrl'] ?? '',
-      createdAt: json['createdAt'] ?? '',
-      createdBy: json['createdBy'] ?? '',
-      dmKey: json['dmKey'] ?? '',
+      avatarUrl: json['avatarUrl'] ?? json['avatar'] ?? '',
+      createdAt: json['createdAt'] ?? json['created_at'] ?? '',
+      createdBy: json['createdBy'] ?? json['created_by'] ?? '',
+      dmKey: json['dmKey'] ?? json['dm_key'] ?? '',
       title: json['title'] ?? '',
       type: json['type'] ?? '',
-      updatedAt: json['updatedAt'] ?? '',
+      updatedAt: json['updatedAt'] ?? json['updated_at'] ?? '',
       receiverTitle: json['receiverTitle'] ?? '',
       senderTitle: json['senderTitle'] ?? '',
       memberships: json['memberships'] != null
@@ -48,6 +48,21 @@ class CreateConversationModel {
               json['memberships'].map((x) => Membership.fromJson(x)),
             )
           : [],
+    );
+  }
+
+  /// Parses the `data` object from `POST /api/conversations`.
+  factory CreateConversationModel.fromApiResponse(Map<String, dynamic> data) {
+    return CreateConversationModel(
+      id: data['id']?.toString() ?? '',
+      creatorId: '',
+      participantId: '',
+      avatarUrl: data['avatar']?.toString() ?? '',
+      createdAt: '',
+      createdBy: '',
+      title: data['title']?.toString() ?? '',
+      type: data['type']?.toString() ?? 'DM',
+      updatedAt: '',
     );
   }
 

@@ -34,7 +34,7 @@ class CreateGroupModel {
       id: json['id'] as String?,
       creatorId: json['creator_id'] as String?,
       participantId: json['participant_id'] as String?,
-      avatarUrl: json['avatarUrl'] as String?,
+      avatarUrl: json['avatarUrl'] as String? ?? json['avatar'] as String?,
       createdAt: json['createdAt'] as String?,
       createdBy: json['createdBy'] as String?,
       dmKey: json['dmKey'] as String?,
@@ -46,6 +46,18 @@ class CreateGroupModel {
       memberships: (json['memberships'] as List<dynamic>?)
           ?.map((v) => Memberships.fromJson(v as Map<String, dynamic>))
           .toList(),
+    );
+  }
+
+  factory CreateGroupModel.fromApiResponse(
+    Map<String, dynamic> data, {
+    bool includeAvatar = false,
+  }) {
+    return CreateGroupModel(
+      id: data['id']?.toString(),
+      title: data['title']?.toString(),
+      avatarUrl: includeAvatar ? data['avatar']?.toString() : null,
+      type: data['type']?.toString() ?? 'GROUP',
     );
   }
 

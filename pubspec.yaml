@@ -73,6 +73,8 @@ dependencies:
   webview_flutter: ^4.14.0
   comment_tree: ^0.3.0
   extended_image: ^10.0.1
+  record: ^7.1.0
+  just_audio: ^0.10.5
 
 dev_dependencies:
   flutter_test:

@@ -1,318 +1,469 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 
-import '../../../../cors/routes/route_names.dart';
 import '../../../../cors/constants/api_endpoints.dart';
-import 'package:http/http.dart' as http;
+import '../../../../cors/routes/route_names.dart';
+import '../../../../cors/services/dio_client.dart';
 import '../../../widgets/secondary_appber.dart';
-import '../model/all_conversation_model.dart';
+import '../provider/conversation_detail_provider.dart';
 
-class GroupProfileScreen extends StatelessWidget {
+class GroupProfileScreen extends StatefulWidget {
   final String conversationId;
   final String groupName;
-  final String token;
   final String currentUserId;
-  final List<Memberships> memberships;
 
   const GroupProfileScreen({
     super.key,
     required this.conversationId,
     required this.groupName,
-    required this.token,
     required this.currentUserId,
-    this.memberships = const [],
   });
 
   @override
+  State<GroupProfileScreen> createState() => _GroupProfileScreenState();
+}
+
+class _GroupProfileScreenState extends State<GroupProfileScreen> {
+  late final ConversationDetailProvider _provider;
+  final DioClient _dioClient = DioClient();
+
+  @override
+  void initState() {
+    super.initState();
+    _provider = ConversationDetailProvider();
+    _provider.fetchDetail(widget.conversationId);
+  }
+
+  @override
+  void dispose() {
+    _provider.dispose();
+    super.dispose();
+  }
+
+  String _title(ConversationDetailProvider provider) {
+    final detail = provider.detail;
+    if (detail != null) {
+      return detail.displayTitle(widget.currentUserId);
+    }
+    return widget.groupName.isNotEmpty ? widget.groupName : 'Group';
+  }
+
+  int _memberCount(ConversationDetailProvider provider) {
+    final detail = provider.detail;
+    if (detail != null && detail.totalMembers > 0) {
+      return detail.totalMembers;
+    }
+    return 0;
+  }
+
+  bool _isSilenced(ConversationDetailProvider provider) =>
+      provider.detail?.isSilenced ?? false;
+
+  @override
   Widget build(BuildContext context) {
-    final memberCount = memberships.length;
+    return ChangeNotifierProvider.value(
+      value: _provider,
+      child: Consumer<ConversationDetailProvider>(
+        builder: (context, provider, _) {
+          final title = _title(provider);
+          final memberCount = _memberCount(provider);
+          final isSilenced = _isSilenced(provider);
+          final mutedUntil = provider.detail?.mutedUntil;
 
-    return Scaffold(
-      backgroundColor: const Color(0xff030D15),
-      body: Column(
-        children: [
-          SecondaryAppBar(title: "Group Profile"),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.w),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(height: 12.h),
-                    // Group Avatar
-                    Container(
-                      padding: EdgeInsets.all(20.w),
-                      decoration: const BoxDecoration(
-                        color: Color(0xff3D4466),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.groups,
-                        color: Colors.white,
-                        size: 50,
+          return Scaffold(
+            backgroundColor: const Color(0xff030D15),
+            body: Column(
+              children: [
+                SecondaryAppBar(title: 'Group Profile'),
+                if (provider.isLoadingDetail && provider.detail == null)
+                  const Expanded(
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xffE9201D),
                       ),
                     ),
-                    SizedBox(height: 10.h),
-                    // Group Name
-                    Text(
-                      groupName.isNotEmpty ? groupName : 'Group',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(height: 5.h),
-                    // Member count
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 10.w,
-                        vertical: 7.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xff0A1A2A),
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                      child: Text(
-                        "$memberCount ${memberCount == 1 ? 'member' : 'members'}",
-                        style: TextStyle(
-                          color: const Color(0xff5F6CA0),
-                          fontSize: 14.sp,
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 20.h),
-                    // Action buttons row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        _mainSection(
-                          title: "Audio",
-                          icon: Icons.call,
-                          ontap: () {
-                            Navigator.pushNamed(
-                              context,
-                              RouteNames.audioCallScreen,
-                              arguments: {
-                                'conversationId': conversationId,
-                                'callKind': 'AUDIO',
-                                'autoStart': true,
-                                'callerName': groupName,
-                              },
-                            );
-                          },
-                        ),
-                        SizedBox(width: 20.w),
-                        _mainSection(
-                          title: "Video",
-                          icon: Icons.videocam,
-                          ontap: () {
-                            Navigator.pushNamed(
-                              context,
-                              RouteNames.videoCallScreen,
-                              arguments: {
-                                'conversationId': conversationId,
-                                'callKind': 'VIDEO',
-                                'autoStart': true,
-                              },
-                            );
-                          },
-                        ),
-                        SizedBox(width: 20.w),
-                        _mainSection(
-                          title: "Mute",
-                          icon: Icons.notifications_off_outlined,
-                          ontap: () {},
-                        ),
-                        SizedBox(width: 20.w),
-                        _mainSection(
-                          title: "Add",
-                          icon: Icons.person_add,
-                          ontap: () {
-                            Navigator.pushNamed(
-                                context, RouteNames.addGroupMember);
-                          },
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 20.h),
-                    const Divider(thickness: 0.7),
-                    SizedBox(height: 12.h),
-
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Chat info",
-                        style:
-                            TextStyle(color: const Color(0xffB2B5B8), fontSize: 14.sp),
-                      ),
-                    ),
-                    SizedBox(height: 16.h),
-
-                    // See members
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pushNamed(
-                          context,
-                          RouteNames.seeGroupMemberScreen,
-                          arguments: {
-                            'memberships': memberships,
-                            'groupName': groupName,
-                            'token': token,
-                            'conversationId': conversationId,
-                            'currentUserId': currentUserId,
-                          },
-                        );
-                      },
-                      child: Row(
-                        children: [
-                          Icon(Icons.groups, color: const Color(0xff8D9CDC)),
-                          SizedBox(width: 12.w),
-                          Text(
-                            "See members ($memberCount)",
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 20.h),
-
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Action",
-                        style:
-                            TextStyle(color: const Color(0xffB2B5B8), fontSize: 14.sp),
-                      ),
-                    ),
-                    SizedBox(height: 16.h),
-
-                    Column(
-                      children: [
-                        _action(title: "View media & file", icon: Icons.perm_media_sharp, onTap: () {}),
-                        SizedBox(height: 20.h),
-                        _action(title: "Share contact", icon: Icons.share, onTap: () {}),
-                        SizedBox(height: 20.h),
-                        _action(title: "Report", icon: Icons.report_problem_outlined, onTap: () {}),
-                        SizedBox(height: 20.h),
-                        _action(
-                          title: "Delete conversation",
-                          icon: Icons.delete_outline,
-                          onTap: () async {
-                            final confirm = await showDialog<bool>(
-                              context: context,
-                              builder: (c) => AlertDialog(
-                                backgroundColor: const Color(0xff152033),
-                                title: const Text('Delete Conversation', style: TextStyle(color: Colors.white)),
-                                content: const Text('Are you sure you want to delete this conversation?', style: TextStyle(color: Colors.white70)),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(c, false),
-                                    child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+                  )
+                else
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16.w),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(height: 12.h),
+                            Container(
+                              padding: EdgeInsets.all(20.w),
+                              decoration: const BoxDecoration(
+                                color: Color(0xff3D4466),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.groups,
+                                color: Colors.white,
+                                size: 50,
+                              ),
+                            ),
+                            SizedBox(height: 10.h),
+                            Text(
+                              title,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 8.h),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 10.w,
+                                vertical: 5.h,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xff0A1A2A),
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              child: Text(
+                                'Group',
+                                style: TextStyle(
+                                  color: const Color(0xff8D9CDC),
+                                  fontSize: 12.sp,
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 8.h),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 10.w,
+                                vertical: 7.h,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xff0A1A2A),
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              child: Text(
+                                provider.detail != null
+                                    ? '$memberCount ${memberCount == 1 ? 'member' : 'members'}'
+                                    : 'Loading members...',
+                                style: TextStyle(
+                                  color: const Color(0xff5F6CA0),
+                                  fontSize: 14.sp,
+                                ),
+                              ),
+                            ),
+                            if (isSilenced) ...[
+                              SizedBox(height: 8.h),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.notifications_off,
+                                    color: const Color(0xffE9201D),
+                                    size: 16.sp,
                                   ),
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(c, true),
-                                    child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                                  SizedBox(width: 6.w),
+                                  Text(
+                                    mutedUntil != null && mutedUntil.isNotEmpty
+                                        ? 'Muted until ${_formatMutedUntil(mutedUntil)}'
+                                        : 'Notifications muted',
+                                    style: TextStyle(
+                                      color: const Color(0xffE9201D),
+                                      fontSize: 13.sp,
+                                    ),
                                   ),
                                 ],
                               ),
-                            );
-
-                            if (confirm == true) {
-                              try {
-                                final res = await http.post(
-                                  Uri.parse(ApiEndpoints.clearConversation(conversationId)),
-                                  headers: {
-                                    'Authorization': 'Bearer $token',
-                                    'Content-Type': 'application/json',
+                            ],
+                            SizedBox(height: 20.h),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                _mainSection(
+                                  title: 'Audio',
+                                  icon: Icons.call,
+                                  ontap: () {
+                                    Navigator.pushNamed(
+                                      context,
+                                      RouteNames.audioCallScreen,
+                                      arguments: {
+                                        'conversationId': widget.conversationId,
+                                        'callKind': 'AUDIO',
+                                        'autoStart': true,
+                                        'callerName': title,
+                                      },
+                                    );
+                                  },
+                                ),
+                                SizedBox(width: 20.w),
+                                _mainSection(
+                                  title: 'Video',
+                                  icon: Icons.videocam,
+                                  ontap: () {
+                                    Navigator.pushNamed(
+                                      context,
+                                      RouteNames.videoCallScreen,
+                                      arguments: {
+                                        'conversationId': widget.conversationId,
+                                        'callKind': 'VIDEO',
+                                        'autoStart': true,
+                                      },
+                                    );
+                                  },
+                                ),
+                                SizedBox(width: 20.w),
+                                _mainSection(
+                                  title: isSilenced ? 'Muted' : 'Mute',
+                                  icon: isSilenced
+                                      ? Icons.notifications_off
+                                      : Icons.notifications_off_outlined,
+                                  iconColor: isSilenced
+                                      ? const Color(0xffE9201D)
+                                      : const Color(0xff8D9CDC),
+                                  ontap: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          isSilenced
+                                              ? 'This conversation is muted'
+                                              : 'Mute settings coming soon',
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                SizedBox(width: 20.w),
+                                _mainSection(
+                                  title: 'Add',
+                                  icon: Icons.person_add,
+                                  ontap: () {
+                                    Navigator.pushNamed(
+                                      context,
+                                      RouteNames.addGroupMember,
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 20.h),
+                            const Divider(thickness: 0.7),
+                            SizedBox(height: 12.h),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                'Chat info',
+                                style: TextStyle(
+                                  color: const Color(0xffB2B5B8),
+                                  fontSize: 14.sp,
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 16.h),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  RouteNames.seeGroupMemberScreen,
+                                  arguments: {
+                                    'conversationId': widget.conversationId,
+                                    'currentUserId': widget.currentUserId,
+                                    'groupName': title,
                                   },
                                 );
-                                if (res.statusCode == 200 || res.statusCode == 201) {
-                                  if (context.mounted) {
-                                    Navigator.popUntil(context, (route) => route.isFirst);
-                                  }
-                                } else {
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to delete conversation')));
-                                  }
-                                }
-                              } catch (e) {
-                                debugPrint("Clear error: $e");
-                              }
-                            }
-                          },
-                        ),
-                        SizedBox(height: 20.h),
-                        _action(
-                          title: "Leave group",
-                          icon: Icons.logout,
-                          onTap: () async {
-                            final confirm = await showDialog<bool>(
-                              context: context,
-                              builder: (c) => AlertDialog(
-                                backgroundColor: const Color(0xff152033),
-                                title: const Text('Leave Group', style: TextStyle(color: Colors.white)),
-                                content: const Text('Are you sure you want to leave this group?', style: TextStyle(color: Colors.white70)),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(c, false),
-                                    child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+                              },
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.groups,
+                                    color: const Color(0xff8D9CDC),
                                   ),
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(c, true),
-                                    child: const Text('Leave', style: TextStyle(color: Colors.red)),
+                                  SizedBox(width: 12.w),
+                                  Text(
+                                    provider.detail != null
+                                        ? 'See members ($memberCount)'
+                                        : 'See members',
+                                    style: const TextStyle(color: Colors.white),
                                   ),
                                 ],
                               ),
-                            );
-
-                            if (confirm == true) {
-                              try {
-                                // Assume DELETE or POST for remove. We use DELETE since it's common.
-                                final res = await http.delete(
-                                  Uri.parse(ApiEndpoints.removeMember(conversationId, currentUserId)),
-                                  headers: {
-                                    'Authorization': 'Bearer $token',
-                                    'Content-Type': 'application/json',
-                                  },
-                                );
-                                if (res.statusCode == 200 || res.statusCode == 201) {
-                                  if (context.mounted) {
-                                    Navigator.popUntil(context, (route) => route.isFirst);
-                                  }
-                                } else {
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Failed to leave group')));
-                                  }
-                                }
-                              } catch (e) {
-                                debugPrint("Leave error: $e");
-                              }
-                            }
-                          },
+                            ),
+                            SizedBox(height: 20.h),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                'Action',
+                                style: TextStyle(
+                                  color: const Color(0xffB2B5B8),
+                                  fontSize: 14.sp,
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 16.h),
+                            Column(
+                              children: [
+                                _action(
+                                  title: 'View media & file',
+                                  icon: Icons.perm_media_sharp,
+                                  onTap: () {},
+                                ),
+                                SizedBox(height: 20.h),
+                                _action(
+                                  title: 'Share contact',
+                                  icon: Icons.share,
+                                  onTap: () {},
+                                ),
+                                SizedBox(height: 20.h),
+                                _action(
+                                  title: 'Report',
+                                  icon: Icons.report_problem_outlined,
+                                  onTap: () {},
+                                ),
+                                SizedBox(height: 20.h),
+                                _action(
+                                  title: 'Delete conversation',
+                                  icon: Icons.delete_outline,
+                                  onTap: () => _confirmDelete(context),
+                                ),
+                                SizedBox(height: 20.h),
+                                _action(
+                                  title: 'Leave group',
+                                  icon: Icons.logout,
+                                  onTap: () => _confirmLeave(context),
+                                ),
+                                SizedBox(height: 30.h),
+                              ],
+                            ),
+                          ],
                         ),
-                        SizedBox(height: 30.h),
-                      ],
+                      ),
                     ),
-                  ],
-                ),
-              ),
+                  ),
+              ],
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
 
-  Widget _action({required String title, required IconData icon, required VoidCallback onTap}) {
+  String _formatMutedUntil(String value) {
+    final parsed = DateTime.tryParse(value);
+    if (parsed == null) return value;
+    return '${parsed.day}/${parsed.month}/${parsed.year}';
+  }
+
+  Future<void> _confirmDelete(BuildContext context) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        backgroundColor: const Color(0xff152033),
+        title: const Text(
+          'Delete Conversation',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          'Are you sure you want to delete this conversation?',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(c, false),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.white54),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(c, true),
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true || !context.mounted) return;
+
+    final res = await _dioClient.postHttp(
+      ApiEndpoints.clearConversation(widget.conversationId),
+      null,
+    );
+
+    if (!context.mounted) return;
+
+    if (res is Map && (res['success'] == true)) {
+      Navigator.popUntil(context, (route) => route.isFirst);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to delete conversation')),
+      );
+    }
+  }
+
+  Future<void> _confirmLeave(BuildContext context) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        backgroundColor: const Color(0xff152033),
+        title: const Text(
+          'Leave Group',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          'Are you sure you want to leave this group?',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(c, false),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.white54),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(c, true),
+            child: const Text('Leave', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true || !context.mounted) return;
+
+    final res = await _dioClient.deleteHttp(
+      ApiEndpoints.removeMember(
+        widget.conversationId,
+        widget.currentUserId,
+      ),
+    );
+
+    if (!context.mounted) return;
+
+    if (res is Map && (res['success'] == true)) {
+      Navigator.popUntil(context, (route) => route.isFirst);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to leave group')),
+      );
+    }
+  }
+
+  Widget _action({
+    required String title,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Row(
         children: [
           Icon(
             icon,
-            color: (title.contains('Delete') || title.contains('Leave') || title.contains('Report')) ? Colors.red : const Color(0xff8D9CDC),
+            color: (title.contains('Delete') ||
+                    title.contains('Leave') ||
+                    title.contains('Report'))
+                ? Colors.red
+                : const Color(0xff8D9CDC),
             size: 20.sp,
           ),
           SizedBox(width: 10.w),
@@ -329,6 +480,7 @@ class GroupProfileScreen extends StatelessWidget {
     required String title,
     required IconData icon,
     required VoidCallback ontap,
+    Color iconColor = const Color(0xff8D9CDC),
   }) {
     return Column(
       children: [
@@ -340,7 +492,7 @@ class GroupProfileScreen extends StatelessWidget {
               color: const Color(0xff0A1A2A),
               borderRadius: BorderRadius.circular(100),
             ),
-            child: Icon(icon, color: const Color(0xff8D9CDC), size: 24.sp),
+            child: Icon(icon, color: iconColor, size: 24.sp),
           ),
         ),
         SizedBox(height: 5.h),
