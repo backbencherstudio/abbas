@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../cors/constants/api_endpoints.dart';
 import '../../../../cors/routes/route_names.dart';
-import '../../../../cors/services/dio_client.dart';
 import '../../../widgets/secondary_appber.dart';
 import '../provider/conversation_detail_provider.dart';
+import '../widgets/conversation_mute_sheet.dart';
+import '../widgets/conversation_media_files_sheet.dart';
 
 class GroupProfileScreen extends StatefulWidget {
   final String conversationId;
@@ -26,7 +26,6 @@ class GroupProfileScreen extends StatefulWidget {
 
 class _GroupProfileScreenState extends State<GroupProfileScreen> {
   late final ConversationDetailProvider _provider;
-  final DioClient _dioClient = DioClient();
 
   @override
   void initState() {
@@ -132,26 +131,26 @@ class _GroupProfileScreenState extends State<GroupProfileScreen> {
                                 ),
                               ),
                             ),
-                            SizedBox(height: 8.h),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 10.w,
-                                vertical: 7.h,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xff0A1A2A),
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              child: Text(
-                                provider.detail != null
-                                    ? '$memberCount ${memberCount == 1 ? 'member' : 'members'}'
-                                    : 'Loading members...',
-                                style: TextStyle(
-                                  color: const Color(0xff5F6CA0),
-                                  fontSize: 14.sp,
-                                ),
-                              ),
-                            ),
+                            // SizedBox(height: 8.h),
+                            // Container(
+                            //   padding: EdgeInsets.symmetric(
+                            //     horizontal: 10.w,
+                            //     vertical: 7.h,
+                            //   ),
+                            //   decoration: BoxDecoration(
+                            //     color: const Color(0xff0A1A2A),
+                            //     borderRadius: BorderRadius.circular(30),
+                            //   ),
+                            //   child: Text(
+                            //     provider.detail != null
+                            //         ? '$memberCount ${memberCount == 1 ? 'member' : 'members'}'
+                            //         : 'Loading members...',
+                            //     style: TextStyle(
+                            //       color: const Color(0xff5F6CA0),
+                            //       fontSize: 14.sp,
+                            //     ),
+                            //   ),
+                            // ),
                             if (isSilenced) ...[
                               SizedBox(height: 8.h),
                               Row(
@@ -164,9 +163,8 @@ class _GroupProfileScreenState extends State<GroupProfileScreen> {
                                   ),
                                   SizedBox(width: 6.w),
                                   Text(
-                                    mutedUntil != null && mutedUntil.isNotEmpty
-                                        ? 'Muted until ${_formatMutedUntil(mutedUntil)}'
-                                        : 'Notifications muted',
+                                    provider.detail?.muteStatusLabel() ??
+                                        'Notifications muted',
                                     style: TextStyle(
                                       color: const Color(0xffE9201D),
                                       fontSize: 13.sp,
@@ -216,31 +214,41 @@ class _GroupProfileScreenState extends State<GroupProfileScreen> {
                                   title: isSilenced ? 'Muted' : 'Mute',
                                   icon: isSilenced
                                       ? Icons.notifications_off
-                                      : Icons.notifications_off_outlined,
+                                      : Icons.notifications,
                                   iconColor: isSilenced
                                       ? const Color(0xffE9201D)
                                       : const Color(0xff8D9CDC),
-                                  ontap: () {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          isSilenced
-                                              ? 'This conversation is muted'
-                                              : 'Mute settings coming soon',
-                                        ),
-                                      ),
-                                    );
-                                  },
+                                  ontap: provider.isUpdatingSilent
+                                      ? () {}
+                                      : () {
+                                          showConversationMuteSheet(
+                                            context: context,
+                                            provider: provider,
+                                            conversationId:
+                                                widget.conversationId,
+                                            contactName: title,
+                                            isSilenced: isSilenced,
+                                            mutedUntil: mutedUntil,
+                                          );
+                                        },
                                 ),
                                 SizedBox(width: 20.w),
                                 _mainSection(
                                   title: 'Add',
                                   icon: Icons.person_add,
-                                  ontap: () {
-                                    Navigator.pushNamed(
+                                  ontap: () async {
+                                    final added = await Navigator.pushNamed(
                                       context,
                                       RouteNames.addGroupMember,
+                                      arguments: {
+                                        'conversationId': widget.conversationId,
+                                      },
                                     );
+                                    if (added == true && mounted) {
+                                      _provider.fetchDetail(
+                                        widget.conversationId,
+                                      );
+                                    }
                                   },
                                 ),
                               ],
@@ -304,7 +312,12 @@ class _GroupProfileScreenState extends State<GroupProfileScreen> {
                                 _action(
                                   title: 'View media & file',
                                   icon: Icons.perm_media_sharp,
-                                  onTap: () {},
+                                  onTap: () {
+                                    showConversationMediaFilesSheet(
+                                      context: context,
+                                      conversationId: widget.conversationId,
+                                    );
+                                  },
                                 ),
                                 SizedBox(height: 20.h),
                                 _action(
@@ -346,12 +359,6 @@ class _GroupProfileScreenState extends State<GroupProfileScreen> {
     );
   }
 
-  String _formatMutedUntil(String value) {
-    final parsed = DateTime.tryParse(value);
-    if (parsed == null) return value;
-    return '${parsed.day}/${parsed.month}/${parsed.year}';
-  }
-
   Future<void> _confirmDelete(BuildContext context) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -383,18 +390,20 @@ class _GroupProfileScreenState extends State<GroupProfileScreen> {
 
     if (confirm != true || !context.mounted) return;
 
-    final res = await _dioClient.postHttp(
-      ApiEndpoints.clearConversation(widget.conversationId),
-      null,
-    );
+    final success =
+        await _provider.deleteConversation(widget.conversationId);
 
     if (!context.mounted) return;
 
-    if (res is Map && (res['success'] == true)) {
+    if (success) {
       Navigator.popUntil(context, (route) => route.isFirst);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to delete conversation')),
+        SnackBar(
+          content: Text(
+            _provider.error ?? 'Failed to delete conversation',
+          ),
+        ),
       );
     }
   }
@@ -430,20 +439,17 @@ class _GroupProfileScreenState extends State<GroupProfileScreen> {
 
     if (confirm != true || !context.mounted) return;
 
-    final res = await _dioClient.deleteHttp(
-      ApiEndpoints.removeMember(
-        widget.conversationId,
-        widget.currentUserId,
-      ),
-    );
+    final success = await _provider.leaveGroup(widget.conversationId);
 
     if (!context.mounted) return;
 
-    if (res is Map && (res['success'] == true)) {
+    if (success) {
       Navigator.popUntil(context, (route) => route.isFirst);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to leave group')),
+        SnackBar(
+          content: Text(_provider.error ?? 'Failed to leave group'),
+        ),
       );
     }
   }

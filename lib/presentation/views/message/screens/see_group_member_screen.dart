@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../cors/constants/api_endpoints.dart';
-import '../../../../cors/services/dio_client.dart';
 import '../../../widgets/secondary_appber.dart';
 import '../model/conversation_detail_model.dart';
 import '../provider/conversation_detail_provider.dart';
@@ -26,7 +24,6 @@ class SeeGroupMemberScreen extends StatefulWidget {
 
 class _SeeGroupMemberScreenState extends State<SeeGroupMemberScreen> {
   late final ConversationDetailProvider _provider;
-  final DioClient _dioClient = DioClient();
 
   @override
   void initState() {
@@ -54,35 +51,37 @@ class _SeeGroupMemberScreenState extends State<SeeGroupMemberScreen> {
   int get _adminCount =>
       _provider.members.where((m) => m.isAdmin).length;
 
-  Future<void> _removeMember(String userId) async {
-    final res = await _dioClient.deleteHttp(
-      ApiEndpoints.removeMember(widget.conversationId, userId),
+  Future<void> _removeMember(String memberId) async {
+    final success = await _provider.removeMember(
+      widget.conversationId,
+      memberId,
     );
 
     if (!mounted) return;
 
-    if (res is Map && res['success'] == true) {
-      await _provider.fetchMembers(widget.conversationId);
-    } else {
+    if (!success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to remove member')),
+        SnackBar(
+          content: Text(_provider.error ?? 'Failed to remove member'),
+        ),
       );
     }
   }
 
-  Future<void> _updateRole(String userId, String newRole) async {
-    final res = await _dioClient.patchHttp(
-      ApiEndpoints.updateMemberRole(widget.conversationId, userId),
-      {'role': newRole},
+  Future<void> _updateRole(String memberId, String newRole) async {
+    final success = await _provider.updateMemberRole(
+      widget.conversationId,
+      memberId,
+      newRole,
     );
 
     if (!mounted) return;
 
-    if (res is Map && res['success'] == true) {
-      await _provider.fetchMembers(widget.conversationId);
-    } else {
+    if (!success) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to update role')),
+        SnackBar(
+          content: Text(_provider.error ?? 'Failed to update role'),
+        ),
       );
     }
   }
@@ -178,9 +177,9 @@ class _SeeGroupMemberScreenState extends State<SeeGroupMemberScreen> {
         return _MemberTile(
           member: member,
           showAdminActions: _iAmAdmin && !member.isMe,
-          onRemove: () => _removeMember(member.userId),
-          onMakeAdmin: () => _updateRole(member.userId, 'ADMIN'),
-          onDismissAdmin: () => _updateRole(member.userId, 'MEMBER'),
+          onRemove: () => _removeMember(member.memberId),
+          onMakeAdmin: () => _updateRole(member.memberId, 'ADMIN'),
+          onDismissAdmin: () => _updateRole(member.memberId, 'MEMBER'),
         );
       },
     );

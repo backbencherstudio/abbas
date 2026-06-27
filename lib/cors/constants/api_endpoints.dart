@@ -248,6 +248,12 @@ class ApiEndpoints {
   static String conversationDetail(String conversationId) =>
       '$baseUrl/api/conversations/$conversationId';
 
+  static String deleteConversation(String conversationId) =>
+      '$baseUrl/api/conversations/$conversationId';
+
+  static String leaveConversation(String conversationId) =>
+      '$baseUrl/api/conversations/$conversationId/leave';
+
   static String conversationMembers(
     String conversationId, {
     String? role,
@@ -258,11 +264,28 @@ class ApiEndpoints {
     return '$baseUrl/api/conversations/$conversationId/members';
   }
 
-  static String updateMemberRole(String conversationId, String userId) =>
-      '$baseUrl/api/conversations/$conversationId/members/$userId/role';
+  static String addConversationMembers(String conversationId) =>
+      '$baseUrl/api/conversations/$conversationId/members';
 
-  static String removeMember(String conversationId, String userId) =>
-      '$baseUrl/api/conversations/$conversationId/members/$userId/remove';
+  static String updateMemberRole(String conversationId, String memberId) =>
+      '$baseUrl/api/conversations/$conversationId/members/$memberId/role';
+
+  static String removeMember(String conversationId, String memberId) =>
+      '$baseUrl/api/conversations/$conversationId/members/$memberId';
+
+  static String conversationSilent(String conversationId) =>
+      '$baseUrl/api/conversations/$conversationId/silent';
+
+  static String conversationAttachments(
+    String conversationId, {
+    required String type,
+    int limit = 10,
+    String? cursor,
+  }) {
+    final cursorParam = (cursor != null && cursor.isNotEmpty) ? cursor : '';
+    return '$baseUrl/api/conversations/$conversationId/attachments'
+        '?type=$type&limit=$limit&cursor=$cursorParam';
+  }
 
   static String dmAllMessage(String conversationId, int take, String? cursor) {
     if (cursor != null && cursor.isNotEmpty) {

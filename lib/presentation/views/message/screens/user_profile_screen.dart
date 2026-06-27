@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import '../../../../cors/routes/route_names.dart';
 import '../../../widgets/secondary_appber.dart';
 import '../provider/conversation_detail_provider.dart';
+import '../widgets/conversation_mute_sheet.dart';
+import '../widgets/conversation_media_files_sheet.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final String conversationId;
@@ -69,7 +71,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           final avatarUrl = _displayAvatar(provider);
           final isSilenced = _isSilenced(provider);
           final mutedUntil = provider.detail?.mutedUntil;
-          final memberCount = provider.detail?.totalMembers ?? 0;
 
           return Scaffold(
             backgroundColor: const Color(0xff030D15),
@@ -128,39 +129,21 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                               provider.detail!.participant!.username!
                                   .isNotEmpty) ...[
                             SizedBox(height: 4.h),
-                            Text(
-                              '@${provider.detail!.participant!.username}',
-                              style: TextStyle(
-                                color: const Color(0xff8C9196),
-                                fontSize: 14.sp,
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 10.w,
+                                vertical: 5.h,
                               ),
-                            ),
-                          ],
-                          SizedBox(height: 8.h),
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 10.w,
-                              vertical: 5.h,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xff0A1A2A),
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            child: Text(
-                              provider.detail?.typeLabel() ?? 'Direct Message',
-                              style: TextStyle(
-                                color: const Color(0xff8D9CDC),
-                                fontSize: 12.sp,
+                              decoration: BoxDecoration(
+                                color: const Color(0xff0A1A2A),
+                                borderRadius: BorderRadius.circular(30),
                               ),
-                            ),
-                          ),
-                          if (memberCount > 0) ...[
-                            SizedBox(height: 8.h),
-                            Text(
-                              '$memberCount participants',
-                              style: TextStyle(
-                                color: const Color(0xff5F6CA0),
-                                fontSize: 14.sp,
+                              child: Text(
+                                '@${provider.detail!.participant!.username}',
+                                style: TextStyle(
+                                  color: const Color(0xff8D9CDC),
+                                  fontSize: 12.sp,
+                                ),
                               ),
                             ),
                           ],
@@ -176,9 +159,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                 ),
                                 SizedBox(width: 6.w),
                                 Text(
-                                  mutedUntil != null && mutedUntil.isNotEmpty
-                                      ? 'Muted until ${_formatMutedUntil(mutedUntil)}'
-                                      : 'Notifications muted',
+                                  provider.detail?.muteStatusLabel() ??
+                                      'Notifications muted',
                                   style: TextStyle(
                                     color: const Color(0xffE9201D),
                                     fontSize: 13.sp,
@@ -232,21 +214,22 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                 title: isSilenced ? 'Muted' : 'Mute',
                                 icon: isSilenced
                                     ? Icons.notifications_off
-                                    : Icons.notifications_off_outlined,
+                                    : Icons.notifications,
                                 iconColor: isSilenced
                                     ? const Color(0xffE9201D)
                                     : const Color(0xff8D9CDC),
-                                ontap: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        isSilenced
-                                            ? 'This conversation is muted'
-                                            : 'Mute settings coming soon',
-                                      ),
-                                    ),
-                                  );
-                                },
+                                ontap: provider.isUpdatingSilent
+                                    ? () {}
+                                    : () {
+                                        showConversationMuteSheet(
+                                          context: context,
+                                          provider: provider,
+                                          conversationId: widget.conversationId,
+                                          contactName: name,
+                                          isSilenced: isSilenced,
+                                          mutedUntil: mutedUntil,
+                                        );
+                                      },
                               ),
                               SizedBox(width: 20.w),
                               _mainSection(
@@ -273,6 +256,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           _action(
                             title: 'View media & file',
                             icon: Icons.perm_media_sharp,
+                            onTap: () {
+                              if (widget.conversationId.isNotEmpty) {
+                                showConversationMediaFilesSheet(
+                                  context: context,
+                                  conversationId: widget.conversationId,
+                                );
+                              }
+                            },
                           ),
                           SizedBox(height: 20.h),
                           _action(title: 'Share contact', icon: Icons.share),
@@ -294,22 +285,24 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     );
   }
 
-  String _formatMutedUntil(String value) {
-    final parsed = DateTime.tryParse(value);
-    if (parsed == null) return value;
-    return '${parsed.day}/${parsed.month}/${parsed.year}';
-  }
-
-  Widget _action({required String title, required IconData icon}) {
-    return Row(
-      children: [
-        Icon(icon, color: const Color(0xff8D9CDC), size: 20.sp),
-        SizedBox(width: 10.w),
-        Text(
-          title,
-          style: TextStyle(color: Colors.white, fontSize: 14.sp),
-        ),
-      ],
+  Widget _action({
+    required String title,
+    required IconData icon,
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Row(
+        children: [
+          Icon(icon, color: const Color(0xff8D9CDC), size: 20.sp),
+          SizedBox(width: 10.w),
+          Text(
+            title,
+            style: TextStyle(color: Colors.white, fontSize: 14.sp),
+          ),
+        ],
+      ),
     );
   }
 

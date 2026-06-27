@@ -352,7 +352,15 @@ class AppRoutes {
         currentUserId: (args['currentUserId'] ?? '').toString(),
       );
     },
-    RouteNames.addGroupMember: (context) => AddGroupMember(),
+    RouteNames.addGroupMember: (context) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
+          {};
+      final conversationId = (args['conversationId'] ?? '').toString();
+      return AddGroupMember(
+        conversationId: conversationId.isNotEmpty ? conversationId : null,
+      );
+    },
     RouteNames.seeGroupMemberScreen: (context) {
       final args =
           ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??

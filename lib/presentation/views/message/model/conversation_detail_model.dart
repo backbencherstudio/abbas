@@ -64,6 +64,40 @@ class ConversationDetail {
         return 'Conversation';
     }
   }
+
+  ConversationDetail copyWith({
+    bool? isSilenced,
+    String? mutedUntil,
+    bool clearMutedUntil = false,
+  }) {
+    return ConversationDetail(
+      id: id,
+      title: title,
+      avatar: avatar,
+      type: type,
+      totalMembers: totalMembers,
+      isSilenced: isSilenced ?? this.isSilenced,
+      mutedUntil: clearMutedUntil ? null : (mutedUntil ?? this.mutedUntil),
+      participant: participant,
+    );
+  }
+
+  String muteStatusLabel() {
+    if (!isSilenced) return '';
+    if (mutedUntil != null && mutedUntil!.isNotEmpty) {
+      return 'Muted until ${formatMutedUntil(mutedUntil!)}';
+    }
+    return 'Muted always';
+  }
+}
+
+String formatMutedUntil(String value) {
+  final parsed = DateTime.tryParse(value);
+  if (parsed == null) return value;
+  final local = parsed.toLocal();
+  final hour = local.hour.toString().padLeft(2, '0');
+  final minute = local.minute.toString().padLeft(2, '0');
+  return '${local.day}/${local.month}/${local.year} $hour:$minute';
 }
 
 class GroupMember {
