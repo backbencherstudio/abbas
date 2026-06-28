@@ -105,13 +105,14 @@ class _OneToOneChatScreenState extends State<OneToOneChatScreen> {
             ),
             Consumer<RealTimeMessageProvider>(
               builder: (_, provider, __) {
+                if (!provider.isOtherUserTyping) {
+                  return const SizedBox.shrink();
+                }
                 return Text(
-                  provider.isOtherUserTyping ? 'typing...' : 'Online',
+                  'typing...',
                   style: TextStyle(
                     fontSize: 12,
-                    color: provider.isOtherUserTyping
-                        ? Colors.greenAccent
-                        : Colors.white70,
+                    color: Colors.greenAccent,
                   ),
                 );
               },

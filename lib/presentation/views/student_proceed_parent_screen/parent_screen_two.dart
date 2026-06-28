@@ -1,4 +1,4 @@
-
+import 'package:abbas/presentation/widgets/exit_on_back_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -15,7 +15,8 @@ class ParentScreenTwo extends StatelessWidget {
   const ParentScreenTwo({super.key});
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return ExitOnBackScope(
+      child: Scaffold(
       backgroundColor: AppColors.background,
       body: Consumer<ParentViewModel>(
         builder: (_, vm, __) {
@@ -32,6 +33,7 @@ class ParentScreenTwo extends StatelessWidget {
         },
       ),
       bottomNavigationBar: const _BottomNavBar(),
+      ),
     );
   }
 }

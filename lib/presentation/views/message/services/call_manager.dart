@@ -5,6 +5,8 @@ import 'package:livekit_client/livekit_client.dart' hide logger;
 class CallManager {
   Room? room;
   EventsListener<RoomEvent>? _listener;
+  bool _disconnecting = false;
+  bool speakerOn = true;
 
   bool get isConnected =>
       room != null && room!.connectionState == ConnectionState.connected;
@@ -37,6 +39,9 @@ class CallManager {
       await room!.localParticipant?.setCameraEnabled(false);
     }
 
+    speakerOn = true;
+    await room!.setSpeakerOn(true, forceSpeakerOutput: true);
+
     app_log.logger.i('[CallManager] Connected to room ${livekit.roomName}');
   }
 
@@ -46,6 +51,28 @@ class CallManager {
 
   Future<void> toggleCamera(bool enabled) async {
     await room?.localParticipant?.setCameraEnabled(enabled);
+  }
+
+  Future<void> toggleSpeaker() async {
+    speakerOn = !speakerOn;
+    await room?.setSpeakerOn(speakerOn, forceSpeakerOutput: speakerOn);
+  }
+
+  Future<void> switchCamera() async {
+    final participant = room?.localParticipant;
+    if (participant == null) return;
+
+    for (final pub in participant.videoTrackPublications) {
+      final track = pub.track;
+      if (track is! LocalVideoTrack) continue;
+      final options = track.currentOptions;
+      if (options is! CameraCaptureOptions) continue;
+      final next = options.cameraPosition == CameraPosition.front
+          ? CameraPosition.back
+          : CameraPosition.front;
+      await track.setCameraPosition(next);
+      return;
+    }
   }
 
   VideoTrack? get localVideoTrack {
@@ -73,12 +100,26 @@ class CallManager {
   }
 
   Future<void> disconnect() async {
-    _listener?.dispose();
-    _listener = null;
-    if (room != null) {
-      await room!.disconnect();
-      await room!.dispose();
+    if (_disconnecting) return;
+    _disconnecting = true;
+    try {
+      _listener?.dispose();
+      _listener = null;
+      final activeRoom = room;
       room = null;
+      if (activeRoom == null) return;
+      try {
+        await activeRoom.disconnect();
+      } catch (e) {
+        app_log.logger.w('[CallManager] disconnect error: $e');
+      }
+      try {
+        await activeRoom.dispose();
+      } catch (e) {
+        app_log.logger.w('[CallManager] dispose error: $e');
+      }
+    } finally {
+      _disconnecting = false;
     }
   }
 }

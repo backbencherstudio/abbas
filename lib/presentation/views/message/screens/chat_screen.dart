@@ -192,8 +192,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         iconTheme: const IconThemeData(color: Colors.white),
         title: Row(
           children: [
-            _HeaderAvatar(
+            _UserAvatar(
               url: widget.avatarUrl,
+              radius: 18.r,
               isGroup: widget.type.isGroup,
             ),
             SizedBox(width: 10.w),
@@ -211,21 +212,24 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  Text(
-                    state.isOtherUserTyping
-                        ? (state.typingUserName != null
-                            ? '${state.typingUserName} is typing...'
-                            : 'typing...')
-                        : widget.type.isGroup
-                            ? 'Group'
-                            : 'Online',
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: state.isOtherUserTyping
-                          ? Colors.greenAccent
-                          : Colors.white70,
+                  if (state.isOtherUserTyping)
+                    Text(
+                      state.typingUserName != null
+                          ? '${state.typingUserName} is typing...'
+                          : 'typing...',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: Colors.greenAccent,
+                      ),
+                    )
+                  else if (widget.type.isGroup)
+                    Text(
+                      'Group',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: Colors.white70,
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -386,36 +390,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (session == null || !session.isOngoing) return false;
     if (session.conversationId != widget.conversationId) return false;
     return !callState.isLiveKitConnected && !callState.isConnecting;
-  }
-}
-
-class _HeaderAvatar extends StatelessWidget {
-  final String? url;
-  final bool isGroup;
-
-  const _HeaderAvatar({this.url, required this.isGroup});
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        _UserAvatar(url: url, radius: 18.r, isGroup: isGroup),
-        if (!isGroup)
-          Positioned(
-            right: 0,
-            bottom: 0,
-            child: Container(
-              width: 10.r,
-              height: 10.r,
-              decoration: BoxDecoration(
-                color: Colors.green,
-                shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xff030D15), width: 1.5),
-              ),
-            ),
-          ),
-      ],
-    );
   }
 }
 

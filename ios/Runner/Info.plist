@@ -3,18 +3,26 @@
 <plist version="1.0">
 <dict>
     <key>NSCameraUsageDescription</key>
-    <string>Camera access is required to scan QR codes for classroom attendance.</string>
+    <string>Camera access is required for video calls, QR scanning, and sharing photos in chat.</string>
     <key>NSMicrophoneUsageDescription</key>
-    <string>Microphone access for audio calls</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Photo Library access for profile picture and videos</string>
-
+    <string>Microphone access is required for audio and video calls, and voice messages.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Photo library access is required to choose profile pictures, posts, and chat attachments.</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>Photo library access is required to save images from the app.</string>
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    <string>Bluetooth access is required to use headsets and speakers during calls.</string>
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>audio</string>
+        <string>voip</string>
+    </array>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Acting Academy</string>
+	<string>CINACT</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -22,7 +30,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Acting Academy</string>
+	<string>CINACT</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

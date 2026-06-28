@@ -113,13 +113,14 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
             ),
             Consumer<GroupChatProvider>(
               builder: (_, provider, __) {
+                if (!provider.isOtherUserTyping) {
+                  return const SizedBox.shrink();
+                }
                 return Text(
-                  provider.isOtherUserTyping ? 'typing...' : 'Online',
+                  'typing...',
                   style: TextStyle(
                     fontSize: 12,
-                    color: provider.isOtherUserTyping
-                        ? Colors.greenAccent
-                        : Colors.white70,
+                    color: Colors.greenAccent,
                   ),
                 );
               },

@@ -272,6 +272,7 @@ class SocketService {
     });
 
     _socket!.on('call:ended', (data) {
+      _log('Event call:ended — listeners: ${_callEndedListeners.length}');
       for (final listener
           in List<SocketDataCallback>.from(_callEndedListeners)) {
         listener(data);

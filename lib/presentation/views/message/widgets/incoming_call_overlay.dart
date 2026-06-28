@@ -86,7 +86,9 @@ class _IncomingCallBanner extends ConsumerWidget {
                     ),
                   ),
                   Text(
-                    'Incoming $kindLabel call',
+                    incoming.conversationType.isGroup
+                        ? 'Incoming group $kindLabel call'
+                        : 'Incoming $kindLabel call',
                     style: TextStyle(color: Colors.white70, fontSize: 13.sp),
                   ),
                 ],

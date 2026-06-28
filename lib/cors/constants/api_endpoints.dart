@@ -3,7 +3,8 @@ class ApiEndpoints {
 
   static const String baseUrl =
       // 'http://192.168.7.12:4000';
-      'http://10.10.9.51:7777';
+      // 'http://10.10.9.51:7777';
+      "https://elliot-haemic-biuniquely.ngrok-free.dev";
 
   static const String register = '$baseUrl/api/auth/register';
   static const String login = '$baseUrl/api/auth/login';
@@ -142,21 +143,18 @@ class ApiEndpoints {
     String? userId,
   }) {
     final cursorValue = (cursor != null && cursor.isNotEmpty) ? cursor : '';
-    final base =
-        '$baseUrl/api/community/feed?cursor=$cursorValue&limit=$limit';
+    final base = '$baseUrl/api/community/feed?cursor=$cursorValue&limit=$limit';
     if (userId != null && userId.isNotEmpty) {
       return '$base&user_id=$userId';
     }
     return base;
   }
 
-  static String communitySearchFeed({
-    required String search,
-    int limit = 10,
-  }) {
+  static String communitySearchFeed({required String search, int limit = 10}) {
     final encoded = Uri.encodeQueryComponent(search.trim());
     return '$baseUrl/api/community/feed?search=$encoded&limit=$limit';
   }
+
   static const String createPost = '$baseUrl/api/community/post';
 
   static String updatePost(String postId) =>
@@ -191,7 +189,11 @@ class ApiEndpoints {
   static String likePost(String postId) =>
       '$baseUrl/api/community/posts/$postId/like';
 
-  static String getPostComments(String postId, {String? cursor, int limit = 10}) {
+  static String getPostComments(
+    String postId, {
+    String? cursor,
+    int limit = 10,
+  }) {
     final cursorValue = (cursor != null && cursor.isNotEmpty) ? cursor : '';
     return '$baseUrl/api/community/post/$postId/comments?cursor=$cursorValue&limit=$limit';
   }
@@ -204,7 +206,6 @@ class ApiEndpoints {
 
   static String deleteComment(String commentId) =>
       '$baseUrl/api/community/posts/comments/$commentId/delete';
-
 
   // chat
   static const String createConversation = '$baseUrl/api/conversations';
@@ -240,6 +241,7 @@ class ApiEndpoints {
     }
     return '$baseUrl/api/conversations/$conversationId/messages?limit=$limit';
   }
+
   static const String groupConversationList =
       '$baseUrl/api/conversations/group-conversations';
   static const String createGroupChat = '$baseUrl/api/conversations/group';
@@ -283,10 +285,7 @@ class ApiEndpoints {
   static String leaveConversation(String conversationId) =>
       '$baseUrl/api/conversations/$conversationId/leave';
 
-  static String conversationMembers(
-    String conversationId, {
-    String? role,
-  }) {
+  static String conversationMembers(String conversationId, {String? role}) {
     if (role != null && role.isNotEmpty) {
       return '$baseUrl/api/conversations/$conversationId/members?role=$role';
     }
@@ -339,31 +338,43 @@ class ApiEndpoints {
     int take = 20,
     int skip = 0,
   }) {
-    final conversationPart = (conversationId != null && conversationId.isNotEmpty)
+    final conversationPart =
+        (conversationId != null && conversationId.isNotEmpty)
         ? '&conversationId=$conversationId'
         : '';
     return '$baseUrl/api/messages/search?q=$query$conversationPart&take=$take&skip=$skip';
   }
 
-  static String conversationMedia(String conversationId, {int take = 20, String? cursor}) {
-    final cursorPart = (cursor != null && cursor.isNotEmpty) ? '&cursor=$cursor' : '';
+  static String conversationMedia(
+    String conversationId, {
+    int take = 20,
+    String? cursor,
+  }) {
+    final cursorPart = (cursor != null && cursor.isNotEmpty)
+        ? '&cursor=$cursor'
+        : '';
     return '$baseUrl/api/conversations/$conversationId/media?take=$take$cursorPart';
   }
 
-  static String conversationFiles(String conversationId, {int take = 20, String? cursor}) {
-    final cursorPart = (cursor != null && cursor.isNotEmpty) ? '&cursor=$cursor' : '';
+  static String conversationFiles(
+    String conversationId, {
+    int take = 20,
+    String? cursor,
+  }) {
+    final cursorPart = (cursor != null && cursor.isNotEmpty)
+        ? '&cursor=$cursor'
+        : '';
     return '$baseUrl/api/conversations/$conversationId/files?take=$take$cursorPart';
   }
 
-  static String blockUser(String userId) =>
-      '$baseUrl/api/users/$userId/block';
+  static String blockUser(String userId) => '$baseUrl/api/users/$userId/block';
 
   static String unblockUser(String userId) =>
       '$baseUrl/api/users/$userId/unblock';
 
   static const String socketNamespace = '$baseUrl/ws';
 
-// call
+  // call
   static String startCall(String conversationId) =>
       '$baseUrl/api/rtc/conversations/$conversationId/start';
 
@@ -390,8 +401,6 @@ class ApiEndpoints {
 
   static const String rtcHealth = '$baseUrl/api/rtc/health';
 
-
   static String dmSendMessage(String conversationId) =>
       '$baseUrl/api/conversations/$conversationId/messages';
-
 }

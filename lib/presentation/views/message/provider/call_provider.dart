@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:abbas/cors/network/api_error_handle.dart';
 import 'package:flutter/foundation.dart';
@@ -9,6 +10,7 @@ import 'package:abbas/cors/services/user_id_storage.dart';
 import 'package:abbas/main.dart';
 import 'package:abbas/presentation/views/message/model/call_model.dart';
 import 'package:abbas/presentation/views/message/services/call_manager.dart';
+import 'package:abbas/presentation/views/message/services/call_ringtone_service.dart';
 import 'package:abbas/presentation/views/message/services/rtc_service.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -104,6 +106,7 @@ class CallNotifier extends StateNotifier<CallState> {
     state = state.copyWith(currentUserId: userId);
 
     _registerSocketListeners();
+    unawaited(_requestCallPermissions());
 
     final token = await TokenStorage().getToken();
     if (token != null && token.isNotEmpty) {
@@ -119,6 +122,7 @@ class CallNotifier extends StateNotifier<CallState> {
       );
       if (incoming.conversationId.isEmpty) return;
       if (state.isInCall || state.isConnecting) return;
+      CallRingtoneService.instance.start();
       state = state.copyWith(incomingCall: incoming, clearError: true);
     };
 
@@ -130,7 +134,8 @@ class CallNotifier extends StateNotifier<CallState> {
           state.incomingCall?.conversationId != conversationId) {
         return;
       }
-      await _cleanupCall();
+      logger.i('[Call] call:ended received for $conversationId');
+      await _cleanupCall(popRoute: true);
     };
 
     _onParticipantJoined = (data) {
@@ -147,17 +152,21 @@ class CallNotifier extends StateNotifier<CallState> {
       }
     };
 
-    _onParticipantLeft = (data) {
+    _onParticipantLeft = (data) async {
       if (data is! Map) return;
       final conversationId = data['conversation_id']?.toString();
       if (conversationId != state.activeSession?.conversationId) return;
       final count = data['participant_count'];
       if (count is num) {
-        state = state.copyWith(
-          activeSession: state.activeSession?.copyWith(
-            participantCount: count.toInt(),
-          ),
+        final session = state.activeSession!.copyWith(
+          participantCount: count.toInt(),
         );
+        state = state.copyWith(activeSession: session);
+
+        // DM: when the other person leaves, close our call UI too.
+        if (session.isDmCall && count.toInt() <= 1 && state.isLiveKitConnected) {
+          await _cleanupCall(popRoute: true);
+        }
       }
     };
 
@@ -234,6 +243,7 @@ class CallNotifier extends StateNotifier<CallState> {
       final session = await rtcService.getState(conversationId);
       if (session == null || !session.isOngoing) {
         if (state.incomingCall?.conversationId == conversationId) {
+          await CallRingtoneService.instance.stop();
           state = state.copyWith(clearIncoming: true);
         }
         if (state.activeSession?.conversationId == conversationId &&
@@ -258,6 +268,7 @@ class CallNotifier extends StateNotifier<CallState> {
       );
 
       if (showIncomingIfNeeded && !isCaller && !callManager.isConnected) {
+        CallRingtoneService.instance.start();
         state = state.copyWith(
           incomingCall: IncomingCallData.fromSession(session),
         );
@@ -267,13 +278,27 @@ class CallNotifier extends StateNotifier<CallState> {
     }
   }
 
+  Future<void> _requestCallPermissions() async {
+    await Permission.microphone.request();
+    await Permission.camera.request();
+    if (Platform.isAndroid) {
+      await Permission.notification.request();
+      await Permission.bluetoothConnect.request();
+    }
+  }
+
   Future<bool> _ensurePermissions(CallKind kind) async {
     final mic = await Permission.microphone.request();
     if (!mic.isGranted) return false;
+
     if (kind.isVideo) {
       final cam = await Permission.camera.request();
       if (!cam.isGranted) return false;
     }
+
+    // Bluetooth for headset routing during calls (Android 12+).
+    await Permission.bluetoothConnect.request();
+
     return true;
   }
 
@@ -319,6 +344,8 @@ class CallNotifier extends StateNotifier<CallState> {
   Future<void> acceptIncoming({String? title}) async {
     final incoming = state.incomingCall;
     if (incoming == null) return;
+
+    await CallRingtoneService.instance.stop();
 
     if (!await _ensurePermissions(incoming.kind)) {
       state = state.copyWith(error: 'Permission denied');
@@ -392,6 +419,7 @@ class CallNotifier extends StateNotifier<CallState> {
   Future<void> declineIncoming() async {
     final incoming = state.incomingCall;
     if (incoming == null) return;
+    await CallRingtoneService.instance.stop();
     try {
       await rtcService.declineCall(incoming.conversationId);
     } catch (e) {
@@ -401,17 +429,24 @@ class CallNotifier extends StateNotifier<CallState> {
     }
   }
 
-  Future<void> leaveCall() async {
+  /// Hang up: DM ends call for both; group only leaves this user.
+  Future<void> hangUp() async {
     final session = state.activeSession;
     if (session == null) return;
     try {
-      await rtcService.leaveCall(session.conversationId);
+      if (session.isDmCall) {
+        await rtcService.endCall(session.conversationId);
+      } else {
+        await rtcService.leaveCall(session.conversationId);
+      }
     } catch (e) {
-      logger.e('[Call] leave error: $e');
+      logger.e('[Call] hang up error: $e');
     } finally {
       await _cleanupCall(popRoute: true);
     }
   }
+
+  Future<void> leaveCall() async => hangUp();
 
   Future<void> endCallForEveryone() async {
     final session = state.activeSession;
@@ -463,7 +498,24 @@ class CallNotifier extends StateNotifier<CallState> {
     }
   }
 
+  Future<void> toggleSpeaker() async {
+    await callManager.toggleSpeaker();
+    state = state.copyWith();
+  }
+
+  Future<void> switchCamera() async {
+    await callManager.switchCamera();
+    state = state.copyWith();
+  }
+
+  /// LiveKit room closed (remote hang-up or network). Clears UI without REST call.
+  Future<void> handleRemoteDisconnect() async {
+    if (!state.isLiveKitConnected && !state.isConnecting) return;
+    await _cleanupCall(popRoute: true);
+  }
+
   Future<void> _cleanupCall({bool popRoute = false}) async {
+    await CallRingtoneService.instance.stop();
     await callManager.disconnect();
     state = state.copyWith(
       clearActive: true,

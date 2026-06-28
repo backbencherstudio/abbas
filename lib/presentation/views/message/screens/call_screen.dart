@@ -79,6 +79,11 @@ class _CallScreenState extends ConsumerState<CallScreen> {
       })
       ..on<LocalTrackPublishedEvent>((_) {
         if (mounted) setState(() {});
+      })
+      ..on<RoomDisconnectedEvent>((_) {
+        if (mounted) {
+          ref.read(callProvider.notifier).handleRemoteDisconnect();
+        }
       });
   }
 
@@ -96,6 +101,7 @@ class _CallScreenState extends ConsumerState<CallScreen> {
     final callManager = ref.read(callProvider.notifier).callManager;
     final session = callState.activeSession;
     final isVideo = widget.kind.isVideo;
+    final isGroup = session?.isGroupCall ?? false;
 
     ref.listen<CallState>(callProvider, (previous, next) {
       if (next.isLiveKitConnected && _roomListener == null) {
@@ -103,7 +109,8 @@ class _CallScreenState extends ConsumerState<CallScreen> {
       }
       if (!next.isLiveKitConnected &&
           !next.isConnecting &&
-          previous?.isLiveKitConnected == true &&
+          (previous?.isLiveKitConnected == true ||
+              previous?.isConnecting == true) &&
           mounted) {
         Navigator.of(context).maybePop();
       }
@@ -113,129 +120,247 @@ class _CallScreenState extends ConsumerState<CallScreen> {
     final remoteTracks = callManager.remoteVideoTracks;
     final micOn = session?.selfParticipant?.microphone ?? true;
     final camOn = session?.selfParticipant?.camera ?? true;
+    final speakerOn = callManager.speakerOn;
 
-    return Scaffold(
-      backgroundColor: const Color(0xff030D15),
-      body: SafeArea(
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            if (isVideo && remoteTracks.isNotEmpty)
-              Positioned.fill(
-                child: VideoTrackRenderer(remoteTracks.first),
-              )
-            else if (isVideo && localTrack != null && remoteTracks.isEmpty)
-              Positioned.fill(
-                child: VideoTrackRenderer(localTrack),
-              )
-            else
-              _AudioBackdrop(title: _displayTitle, isVideo: isVideo),
+    return PopScope(
+      canPop: !callState.isLiveKitConnected,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        if (callState.isLiveKitConnected) {
+          await ref.read(callProvider.notifier).hangUp();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xff030D15),
+        body: SafeArea(
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              if (isVideo && remoteTracks.isNotEmpty)
+                Positioned.fill(
+                  child: VideoTrackRenderer(remoteTracks.first),
+                )
+              else if (isVideo && localTrack != null && remoteTracks.isEmpty)
+                Positioned.fill(
+                  child: VideoTrackRenderer(localTrack),
+                )
+              else
+                _AudioBackdrop(
+                  title: _displayTitle,
+                  isVideo: isVideo,
+                  isGroup: isGroup,
+                  participantCount: session?.participantCount ?? 0,
+                ),
 
-            if (isVideo && localTrack != null && remoteTracks.isNotEmpty)
-              Positioned(
-                top: 16.h,
-                right: 16.w,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12.r),
-                  child: SizedBox(
-                    width: 110.w,
-                    height: 150.h,
-                    child: VideoTrackRenderer(localTrack),
+              if (isVideo && localTrack != null && remoteTracks.isNotEmpty)
+                Positioned(
+                  top: 16.h,
+                  right: 16.w,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12.r),
+                    child: SizedBox(
+                      width: 110.w,
+                      height: 150.h,
+                      child: VideoTrackRenderer(localTrack),
+                    ),
                   ),
+                ),
+
+              Positioned(
+                top: 8.h,
+                left: 8.w,
+                child: IconButton(
+                  onPressed: () async {
+                    if (callState.isLiveKitConnected) {
+                      await ref.read(callProvider.notifier).hangUp();
+                    } else {
+                      Navigator.of(context).maybePop();
+                    }
+                  },
+                  icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
                 ),
               ),
 
-            Positioned(
-              top: 8.h,
-              left: 8.w,
-              child: IconButton(
-                onPressed: () => Navigator.of(context).maybePop(),
-                icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
-              ),
-            ),
-
-            Positioned(
-              top: 56.h,
-              left: 0,
-              right: 0,
-              child: Column(
-                children: [
-                  Text(
-                    _displayTitle,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 22.sp,
-                      fontWeight: FontWeight.w600,
+              Positioned(
+                top: 56.h,
+                left: 0,
+                right: 0,
+                child: Column(
+                  children: [
+                    if (isGroup)
+                      Container(
+                        margin: EdgeInsets.only(bottom: 8.h),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12.w,
+                          vertical: 4.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xff24324A),
+                          borderRadius: BorderRadius.circular(20.r),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.groups, color: Colors.white70, size: 16.sp),
+                            SizedBox(width: 6.w),
+                            Text(
+                              'Group call',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12.sp,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    Text(
+                      _displayTitle,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 22.sp,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                  SizedBox(height: 6.h),
-                  Text(
-                    _statusLabel(callState),
-                    style: TextStyle(color: Colors.white70, fontSize: 14.sp),
-                  ),
-                ],
-              ),
-            ),
-
-            if (callState.isConnecting)
-              const Center(
-                child: CircularProgressIndicator(color: Color(0xffE9201D)),
+                    SizedBox(height: 6.h),
+                    Text(
+                      _statusLabel(callState, isGroup),
+                      style: TextStyle(color: Colors.white70, fontSize: 14.sp),
+                    ),
+                  ],
+                ),
               ),
 
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 36.h,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _ControlButton(
-                    icon: micOn ? Icons.mic : Icons.mic_off,
-                    label: micOn ? 'Mute' : 'Unmute',
-                    onTap: callState.isLiveKitConnected
-                        ? () => ref.read(callProvider.notifier).toggleMic()
-                        : null,
-                  ),
-                  if (isVideo)
-                    _ControlButton(
-                      icon: camOn ? Icons.videocam : Icons.videocam_off,
-                      label: camOn ? 'Camera off' : 'Camera on',
-                      onTap: callState.isLiveKitConnected
-                          ? () => ref.read(callProvider.notifier).toggleCamera()
-                          : null,
+              if (callState.isConnecting)
+                const Center(
+                  child: CircularProgressIndicator(color: Color(0xffE9201D)),
+                ),
+
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 24.h,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: _buildControls(
+                      callState: callState,
+                      isGroup: isGroup,
+                      isVideo: isVideo,
+                      session: session,
+                      micOn: micOn,
+                      camOn: camOn,
+                      speakerOn: speakerOn,
                     ),
-                  _ControlButton(
-                    icon: Icons.call_end,
-                    label: 'End',
-                    backgroundColor: const Color(0xffE9201D),
-                    onTap: callState.isLiveKitConnected
-                        ? () => ref.read(callProvider.notifier).leaveCall()
-                        : () => Navigator.of(context).maybePop(),
                   ),
-                  if (session != null && (session.participantCount > 1))
-                    _ControlButton(
-                      icon: Icons.group_off,
-                      label: 'End all',
-                      onTap: callState.isLiveKitConnected
-                          ? () =>
-                              ref.read(callProvider.notifier).endCallForEveryone()
-                          : null,
-                    ),
-                ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  String _statusLabel(CallState callState) {
+  bool _canEndForEveryone(CallSession session, CallState callState) {
+    final userId = callState.currentUserId;
+    if (userId == null) return false;
+    return session.startedBy == userId;
+  }
+
+  List<Widget> _buildControls({
+    required CallState callState,
+    required bool isGroup,
+    required bool isVideo,
+    required CallSession? session,
+    required bool micOn,
+    required bool camOn,
+    required bool speakerOn,
+  }) {
+    final connected = callState.isLiveKitConnected;
+    final notifier = ref.read(callProvider.notifier);
+
+    Widget slot(_ControlButton button) => Expanded(
+          child: Center(child: button),
+        );
+
+    final items = <Widget>[
+      slot(
+        _ControlButton(
+          icon: micOn ? Icons.mic : Icons.mic_off,
+          label: micOn ? 'Mute' : 'Unmute',
+          onTap: connected ? () => notifier.toggleMic() : null,
+        ),
+      ),
+      slot(
+        _ControlButton(
+          icon: speakerOn ? Icons.volume_up : Icons.hearing,
+          label: speakerOn ? 'Speaker' : 'Earpiece',
+          onTap: connected ? () => notifier.toggleSpeaker() : null,
+        ),
+      ),
+    ];
+
+    if (isVideo) {
+      items.addAll([
+        slot(
+          _ControlButton(
+            icon: camOn ? Icons.videocam : Icons.videocam_off,
+            label: camOn ? 'Cam off' : 'Cam on',
+            onTap: connected ? () => notifier.toggleCamera() : null,
+          ),
+        ),
+        slot(
+          _ControlButton(
+            icon: Icons.cameraswitch,
+            label: 'Flip',
+            onTap: connected ? () => notifier.switchCamera() : null,
+          ),
+        ),
+      ]);
+    }
+
+    items.add(
+      slot(
+        _ControlButton(
+          icon: Icons.call_end,
+          label: isGroup ? 'Leave' : 'End',
+          backgroundColor: const Color(0xffE9201D),
+          onTap: connected
+              ? () => notifier.hangUp()
+              : () => Navigator.of(context).maybePop(),
+        ),
+      ),
+    );
+
+    if (isGroup &&
+        session != null &&
+        _canEndForEveryone(session, callState)) {
+      items.add(
+        slot(
+          _ControlButton(
+            icon: Icons.group_off,
+            label: 'End all',
+            onTap: connected ? () => notifier.endCallForEveryone() : null,
+          ),
+        ),
+      );
+    }
+
+    return items;
+  }
+
+  String _statusLabel(CallState callState, bool isGroup) {
     if (callState.isConnecting) return 'Connecting...';
     if (!callState.isLiveKitConnected) return 'Waiting...';
     final count = callState.activeSession?.participantCount ?? 1;
-    if (count <= 1) return 'Waiting for others to join';
+    if (count <= 1) {
+      return isGroup
+          ? 'Waiting for others to join'
+          : 'Calling...';
+    }
+    if (isGroup) return '$count participants · ${widget.kind.isVideo ? 'Video' : 'Audio'}';
     return widget.kind.isVideo ? 'Video call' : 'Audio call';
   }
 }
@@ -243,8 +368,15 @@ class _CallScreenState extends ConsumerState<CallScreen> {
 class _AudioBackdrop extends StatelessWidget {
   final String title;
   final bool isVideo;
+  final bool isGroup;
+  final int participantCount;
 
-  const _AudioBackdrop({required this.title, required this.isVideo});
+  const _AudioBackdrop({
+    required this.title,
+    required this.isVideo,
+    required this.isGroup,
+    required this.participantCount,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -264,7 +396,9 @@ class _AudioBackdrop extends StatelessWidget {
             radius: 56.r,
             backgroundColor: const Color(0xff24324A),
             child: Icon(
-              isVideo ? Icons.videocam : Icons.phone,
+              isGroup
+                  ? Icons.groups
+                  : (isVideo ? Icons.videocam : Icons.phone),
               color: const Color(0xffE9201D),
               size: 42.sp,
             ),
@@ -278,6 +412,13 @@ class _AudioBackdrop extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
+          if (isGroup && participantCount > 1) ...[
+            SizedBox(height: 8.h),
+            Text(
+              '$participantCount in call',
+              style: TextStyle(color: Colors.white70, fontSize: 14.sp),
+            ),
+          ],
         ],
       ),
     );
@@ -309,16 +450,16 @@ class _ControlButton extends StatelessWidget {
             customBorder: const CircleBorder(),
             onTap: onTap,
             child: SizedBox(
-              width: 56.w,
-              height: 56.w,
-              child: Icon(icon, color: Colors.white, size: 24.sp),
+              width: 52.w,
+              height: 52.w,
+              child: Icon(icon, color: Colors.white, size: 22.sp),
             ),
           ),
         ),
-        SizedBox(height: 8.h),
+        SizedBox(height: 6.h),
         Text(
           label,
-          style: TextStyle(color: Colors.white70, fontSize: 12.sp),
+          style: TextStyle(color: Colors.white70, fontSize: 11.sp),
         ),
       ],
     );

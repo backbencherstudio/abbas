@@ -1,3 +1,15 @@
+enum CallConversationType { dm, group }
+
+extension CallConversationTypeApi on CallConversationType {
+  static CallConversationType fromApi(String? value) {
+    if (value?.toUpperCase() == 'GROUP') return CallConversationType.group;
+    return CallConversationType.dm;
+  }
+
+  bool get isGroup => this == CallConversationType.group;
+  bool get isDm => this == CallConversationType.dm;
+}
+
 enum CallKind { audio, video }
 
 extension CallKindApi on CallKind {
@@ -84,6 +96,7 @@ class CallSession {
   final LiveKitCredentials? livekit;
   final bool alreadyActive;
   final String? conversationTitle;
+  final CallConversationType conversationType;
 
   const CallSession({
     required this.id,
@@ -100,6 +113,7 @@ class CallSession {
     this.livekit,
     this.alreadyActive = false,
     this.conversationTitle,
+    this.conversationType = CallConversationType.dm,
   });
 
   factory CallSession.fromJson(
@@ -107,6 +121,9 @@ class CallSession {
     String? conversationTitle,
   }) {
     final rawParticipants = json['participants'];
+    final conversation = json['conversation'] is Map
+        ? Map<String, dynamic>.from(json['conversation'] as Map)
+        : null;
     return CallSession(
       id: json['id']?.toString() ?? '',
       conversationId: json['conversation_id']?.toString() ?? '',
@@ -136,11 +153,10 @@ class CallSession {
             )
           : null,
       alreadyActive: json['already_active'] == true,
-      conversationTitle: conversationTitle ??
-          (json['conversation'] is Map
-              ? Map<String, dynamic>.from(json['conversation'] as Map)['title']
-                  ?.toString()
-              : null),
+      conversationTitle: conversationTitle ?? conversation?['title']?.toString(),
+      conversationType: CallConversationTypeApi.fromApi(
+        conversation?['type']?.toString(),
+      ),
     );
   }
 
@@ -151,6 +167,8 @@ class CallSession {
     int? participantCount,
     List<CallParticipant>? participants,
     LiveKitCredentials? livekit,
+    CallConversationType? conversationType,
+    String? conversationTitle,
   }) {
     return CallSession(
       id: id,
@@ -166,9 +184,13 @@ class CallSession {
       participants: participants ?? this.participants,
       livekit: livekit ?? this.livekit,
       alreadyActive: alreadyActive,
-      conversationTitle: conversationTitle,
+      conversationTitle: conversationTitle ?? this.conversationTitle,
+      conversationType: conversationType ?? this.conversationType,
     );
   }
+
+  bool get isGroupCall => conversationType.isGroup;
+  bool get isDmCall => conversationType.isDm;
 }
 
 class IncomingCallData {
@@ -180,6 +202,7 @@ class IncomingCallData {
   final String? conversationTitle;
   final String? callerName;
   final String? callerAvatar;
+  final CallConversationType conversationType;
 
   const IncomingCallData({
     required this.conversationId,
@@ -190,6 +213,7 @@ class IncomingCallData {
     this.conversationTitle,
     this.callerName,
     this.callerAvatar,
+    this.conversationType = CallConversationType.dm,
   });
 
   factory IncomingCallData.fromSocket(Map<String, dynamic> json) {
@@ -205,6 +229,9 @@ class IncomingCallData {
       conversationTitle: json['conversation_title']?.toString(),
       callerName: caller?['name']?.toString(),
       callerAvatar: caller?['avatar']?.toString(),
+      conversationType: CallConversationTypeApi.fromApi(
+        json['conversation_type']?.toString(),
+      ),
     );
   }
 
@@ -216,6 +243,7 @@ class IncomingCallData {
       startedBy: session.startedBy,
       startedAt: session.startedAt,
       conversationTitle: session.conversationTitle,
+      conversationType: session.conversationType,
     );
   }
 }
