@@ -109,6 +109,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
         children: [
           CustomAppbar(
             title: 'Community',
+            showNotificationIcon: true,
             trailing: GestureDetector(
               onTap: _openSearch,
               child: SvgPicture.asset(

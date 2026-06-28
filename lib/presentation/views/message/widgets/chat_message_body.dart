@@ -143,12 +143,9 @@ class ChatMessageBody extends StatelessWidget {
       );
     }
 
-    return Align(
-      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Text(
-        text,
-        style: TextStyle(color: Colors.white, fontSize: 15.sp),
-      ),
+    return Text(
+      text,
+      style: TextStyle(color: Colors.white, fontSize: 15.sp),
     );
   }
 

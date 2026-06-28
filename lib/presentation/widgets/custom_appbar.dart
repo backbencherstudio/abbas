@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'notification_bell_button.dart';
 
 class CustomAppbar extends StatelessWidget {
   final String title;
@@ -9,6 +10,7 @@ class CustomAppbar extends StatelessWidget {
   final String? image2;
   final VoidCallback? onTap;
   final Widget? trailing;
+  final bool showNotificationIcon;
 
   const CustomAppbar({
     super.key,
@@ -18,6 +20,7 @@ class CustomAppbar extends StatelessWidget {
     this.image2,
     this.onTap,
     this.trailing,
+    this.showNotificationIcon = false,
   });
 
   @override
@@ -67,12 +70,15 @@ class CustomAppbar extends StatelessWidget {
                 ),
               ),
               if (trailing != null) trailing!,
-              if (image != null) GestureDetector(
-                  onTap: onTap,
-                  child: Image.asset(image!)),
+              if (image != null)
+                GestureDetector(onTap: onTap, child: Image.asset(image!)),
               if (image2 != null) ...[
-                const SizedBox(width: 12),
+                SizedBox(width: 12.w),
                 Image.asset(image2!),
+              ],
+              if (showNotificationIcon) ...[
+                SizedBox(width: 12.w),
+                const NotificationBellButton(),
               ],
             ],
           ),

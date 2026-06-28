@@ -214,6 +214,10 @@ class ConversationLastMessage {
       final callKind = map['call_kind']?.toString() ?? 'Call';
       final status = map['status']?.toString() ?? '';
       if (status == 'MISSED') return 'Missed $callKind call';
+      if (status == 'ONGOING') {
+        final label = callKind.toUpperCase() == 'AUDIO' ? 'Audio' : 'Video';
+        return '$label call in progress';
+      }
       if (status == 'ENDED') {
         final secs = map['duration_seconds'];
         if (secs != null) return '$callKind call · ${_formatDuration(secs)}';
@@ -240,6 +244,10 @@ class ConversationLastMessage {
         final callKind = map['call_kind']?.toString() ?? 'Call';
         final status = map['status']?.toString() ?? '';
         if (status == 'MISSED') return 'Missed $callKind call';
+        if (status == 'ONGOING') {
+          final label = callKind.toUpperCase() == 'AUDIO' ? 'Audio' : 'Video';
+          return '$label call in progress';
+        }
         if (status == 'ENDED') {
           final secs = map['duration_seconds'];
           if (secs != null) return '$callKind call · ${_formatDuration(secs)}';

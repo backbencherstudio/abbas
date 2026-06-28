@@ -11,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'cors/di/injection.dart';
 import 'cors/routes/app_routes.dart';
 import 'cors/theme/app_theme.dart';
+import 'presentation/views/message/widgets/incoming_call_overlay.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -65,10 +66,11 @@ class MyApp extends StatelessWidget {
             initialRoute: AppRoutes.initialRoute,
             routes: AppRoutes.routes,
             builder: (context, child) {
-              // ✅ Ensure overlay is available
               return MediaQuery(
                 data: MediaQuery.of(context),
-                child: child ?? const SizedBox.shrink(),
+                child: CallOverlayHost(
+                  child: child ?? const SizedBox.shrink(),
+                ),
               );
             },
           );

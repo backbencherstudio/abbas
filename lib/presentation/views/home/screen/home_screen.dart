@@ -137,6 +137,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           CustomAppbar(
             title: userName,
             subtitle: "Welcome back!",
+            showNotificationIcon: true,
           ),
 
           SizedBox(height: 24.h),

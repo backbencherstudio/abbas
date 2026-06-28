@@ -60,6 +60,7 @@ class _MessageScreensState extends ConsumerState<MessageScreens> {
         children: [
           CustomAppbar(
             title: 'Message',
+            showNotificationIcon: true,
             image: 'assets/icons/edit.png',
             onTap: () =>
                 Navigator.pushNamed(context, RouteNames.newMessageScreens),

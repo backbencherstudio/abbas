@@ -56,6 +56,8 @@ import '../../presentation/views/home/screen/screens/scanner/scanner.dart';
 import '../../presentation/views/message/screens/add_group_member.dart';
 import '../../presentation/views/message/screens/create_group_screen.dart';
 import '../../presentation/views/message/model/conversation_model.dart';
+import '../../presentation/views/message/model/call_model.dart';
+import '../../presentation/views/message/screens/call_screen.dart';
 import '../../presentation/views/message/screens/chat_screen.dart';
 import '../../presentation/views/message/screens/group_profile_screen.dart';
 import '../../presentation/views/message/screens/new_message_screens.dart';
@@ -71,6 +73,7 @@ import '../../presentation/views/profile/screens/feedback/feedback_and_certifica
 import '../../presentation/views/profile/screens/feedback/feedback_screen.dart';
 import '../../presentation/views/profile/screens/personal_info/edit_personal_info_screen.dart';
 import '../../presentation/views/profile/screens/personal_info/personal_info_screen.dart';
+import '../../presentation/views/notifications/screen/notifications_screen.dart';
 import '../../presentation/views/profile/screens/push_notifications/screen/push_notifications.dart';
 import '../../presentation/views/profile/screens/change_password/change_password.dart';
 import '../../presentation/views/profile/screens/subscription_and_payment/change_stripe.dart';
@@ -238,6 +241,7 @@ class AppRoutes {
       return SupportUser(reason: reason);
     },
     RouteNames.pushNotifications: (context) => const PushNotifications(),
+    RouteNames.notificationsScreen: (context) => const NotificationsScreen(),
     RouteNames.commentScreen: (context) => CommentPostScreen(),
     RouteNames.communityPostDetail: (context) {
       final postId = ModalRoute.of(context)!.settings.arguments as String;
@@ -331,6 +335,36 @@ class AppRoutes {
         title: (args['groupName'] ?? args['receiverName'] ?? 'Group Chat')
             .toString(),
         currentUserId: (args['currentUserId'] ?? '').toString(),
+      );
+    },
+
+    RouteNames.audioCallScreen: (context) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
+          {};
+      return CallScreen(
+        kind: CallKind.audio,
+        conversationId: (args['conversationId'] ?? '').toString().isEmpty
+            ? null
+            : (args['conversationId'] ?? '').toString(),
+        title: (args['callerName'] ?? args['title'] ?? args['receiverName'])
+            ?.toString(),
+        autoStart: args['autoStart'] == true,
+      );
+    },
+
+    RouteNames.videoCallScreen: (context) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
+          {};
+      return CallScreen(
+        kind: CallKind.video,
+        conversationId: (args['conversationId'] ?? '').toString().isEmpty
+            ? null
+            : (args['conversationId'] ?? '').toString(),
+        title: (args['callerName'] ?? args['title'] ?? args['receiverName'])
+            ?.toString(),
+        autoStart: args['autoStart'] == true,
       );
     },
 

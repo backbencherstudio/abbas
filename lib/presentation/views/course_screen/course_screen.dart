@@ -33,7 +33,7 @@ class _CourseScreenState extends ConsumerState<CourseScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CustomAppbar(title: "Course"),
+          const CustomAppbar(title: "Course", showNotificationIcon: true),
           SizedBox(height: 24.h),
           Expanded(
             child: coursesAsync.when(

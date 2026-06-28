@@ -1,5 +1,6 @@
 import 'package:abbas/cors/constants/api_endpoints.dart';
 import 'package:abbas/cors/network/api_error_handle.dart';
+import 'package:flutter/foundation.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
 enum SocketConnectionStatus {
@@ -28,6 +29,14 @@ class SocketService {
   final List<SocketDataCallback> _newMessageListeners = [];
   final List<SocketDataCallback> _messageStatusListeners = [];
   final List<SocketDataCallback> _typingListeners = [];
+  final List<SocketDataCallback> _callIncomingListeners = [];
+  final List<SocketDataCallback> _callEndedListeners = [];
+  final List<SocketDataCallback> _callParticipantJoinedListeners = [];
+  final List<SocketDataCallback> _callParticipantLeftListeners = [];
+  final List<SocketDataCallback> _callParticipantUpdatedListeners = [];
+  final List<SocketDataCallback> _callDeclinedListeners = [];
+  final List<SocketDataCallback> _callMessageUpdatedListeners = [];
+  final List<VoidCallback> _connectionOkListeners = [];
 
   io.Socket? get socket => _socket;
   bool get isConnected => status == SocketConnectionStatus.connected ||
@@ -66,6 +75,88 @@ class SocketService {
   void removeTypingListener(SocketDataCallback listener) {
     _typingListeners.remove(listener);
   }
+
+  void addCallIncomingListener(SocketDataCallback listener) {
+    if (!_callIncomingListeners.contains(listener)) {
+      _callIncomingListeners.add(listener);
+    }
+  }
+
+  void removeCallIncomingListener(SocketDataCallback listener) {
+    _callIncomingListeners.remove(listener);
+  }
+
+  void addCallEndedListener(SocketDataCallback listener) {
+    if (!_callEndedListeners.contains(listener)) {
+      _callEndedListeners.add(listener);
+    }
+  }
+
+  void removeCallEndedListener(SocketDataCallback listener) {
+    _callEndedListeners.remove(listener);
+  }
+
+  void addCallParticipantJoinedListener(SocketDataCallback listener) {
+    if (!_callParticipantJoinedListeners.contains(listener)) {
+      _callParticipantJoinedListeners.add(listener);
+    }
+  }
+
+  void removeCallParticipantJoinedListener(SocketDataCallback listener) {
+    _callParticipantJoinedListeners.remove(listener);
+  }
+
+  void addCallParticipantLeftListener(SocketDataCallback listener) {
+    if (!_callParticipantLeftListeners.contains(listener)) {
+      _callParticipantLeftListeners.add(listener);
+    }
+  }
+
+  void removeCallParticipantLeftListener(SocketDataCallback listener) {
+    _callParticipantLeftListeners.remove(listener);
+  }
+
+  void addCallParticipantUpdatedListener(SocketDataCallback listener) {
+    if (!_callParticipantUpdatedListeners.contains(listener)) {
+      _callParticipantUpdatedListeners.add(listener);
+    }
+  }
+
+  void removeCallParticipantUpdatedListener(SocketDataCallback listener) {
+    _callParticipantUpdatedListeners.remove(listener);
+  }
+
+  void addCallDeclinedListener(SocketDataCallback listener) {
+    if (!_callDeclinedListeners.contains(listener)) {
+      _callDeclinedListeners.add(listener);
+    }
+  }
+
+  void removeCallDeclinedListener(SocketDataCallback listener) {
+    _callDeclinedListeners.remove(listener);
+  }
+
+  void addCallMessageUpdatedListener(SocketDataCallback listener) {
+    if (!_callMessageUpdatedListeners.contains(listener)) {
+      _callMessageUpdatedListeners.add(listener);
+    }
+  }
+
+  void removeCallMessageUpdatedListener(SocketDataCallback listener) {
+    _callMessageUpdatedListeners.remove(listener);
+  }
+
+  void addConnectionOkListener(VoidCallback listener) {
+    if (!_connectionOkListeners.contains(listener)) {
+      _connectionOkListeners.add(listener);
+    }
+  }
+
+  void removeConnectionOkListener(VoidCallback listener) {
+    _connectionOkListeners.remove(listener);
+  }
+
+  String? get userId => _userId;
 
   void connect(String token) {
     if (_token == token &&
@@ -130,6 +221,9 @@ class SocketService {
       }
       _log('Authenticated — user_id: $_userId | status: ${status.name}');
       _joinActiveConversation();
+      for (final listener in List<VoidCallback>.from(_connectionOkListeners)) {
+        listener();
+      }
     });
 
     _socket!.on('connection:error', (data) {
@@ -165,6 +259,56 @@ class SocketService {
 
     _socket!.on('typing', (data) {
       for (final listener in List<SocketDataCallback>.from(_typingListeners)) {
+        listener(data);
+      }
+    });
+
+    _socket!.on('call:incoming', (data) {
+      _log('Event call:incoming — listeners: ${_callIncomingListeners.length}');
+      for (final listener
+          in List<SocketDataCallback>.from(_callIncomingListeners)) {
+        listener(data);
+      }
+    });
+
+    _socket!.on('call:ended', (data) {
+      for (final listener
+          in List<SocketDataCallback>.from(_callEndedListeners)) {
+        listener(data);
+      }
+    });
+
+    _socket!.on('call:participant_joined', (data) {
+      for (final listener
+          in List<SocketDataCallback>.from(_callParticipantJoinedListeners)) {
+        listener(data);
+      }
+    });
+
+    _socket!.on('call:participant_left', (data) {
+      for (final listener
+          in List<SocketDataCallback>.from(_callParticipantLeftListeners)) {
+        listener(data);
+      }
+    });
+
+    _socket!.on('call:participant_updated', (data) {
+      for (final listener
+          in List<SocketDataCallback>.from(_callParticipantUpdatedListeners)) {
+        listener(data);
+      }
+    });
+
+    _socket!.on('call:declined', (data) {
+      for (final listener
+          in List<SocketDataCallback>.from(_callDeclinedListeners)) {
+        listener(data);
+      }
+    });
+
+    _socket!.on('call:message_updated', (data) {
+      for (final listener
+          in List<SocketDataCallback>.from(_callMessageUpdatedListeners)) {
         listener(data);
       }
     });

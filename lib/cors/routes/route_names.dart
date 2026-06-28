@@ -53,6 +53,7 @@ class RouteNames {
   static const String certificate = '/certificate';
   static const String supportUser = '/supportUser';
   static const String pushNotifications = '/pushNotifications';
+  static const String notificationsScreen = '/notificationsScreen';
   static const String commentScreen = '/commentScreen';
   static const String communityPostDetail = '/communityPostDetail';
   static const String communitySearch = '/communitySearch';

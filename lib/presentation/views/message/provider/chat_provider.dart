@@ -10,10 +10,10 @@ import 'package:abbas/presentation/views/message/model/chat_message_model.dart';
 import 'package:abbas/presentation/views/message/model/conversation_model.dart';
 import 'package:abbas/presentation/views/message/provider/conversations_provider.dart';
 import 'package:abbas/presentation/views/message/model/chat_send_payload.dart';
+import 'package:abbas/presentation/views/message/utils/message_attachment_mime.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:path/path.dart' as p;
 
 class ChatState {
   final List<ChatMessage> messages;
@@ -121,6 +121,7 @@ class ChatNotifier extends StateNotifier<ChatState> {
   void Function(dynamic)? _onNewMessage;
   void Function(dynamic)? _onMessageStatus;
   void Function(dynamic)? _onTyping;
+  void Function(dynamic)? _onCallMessageUpdated;
 
   ChatNotifier({
     required this.ref,
@@ -172,6 +173,9 @@ class ChatNotifier extends StateNotifier<ChatState> {
     }
     if (_onTyping != null) {
       socketService.removeTypingListener(_onTyping!);
+    }
+    if (_onCallMessageUpdated != null) {
+      socketService.removeCallMessageUpdatedListener(_onCallMessageUpdated!);
     }
 
     _onNewMessage = (data) {
@@ -281,9 +285,51 @@ class ChatNotifier extends StateNotifier<ChatState> {
       }
     };
 
+    _onCallMessageUpdated = (data) {
+      try {
+        final map = Map<String, dynamic>.from(data as Map);
+        final convId = map['conversation_id']?.toString();
+        if (convId != null &&
+            convId.isNotEmpty &&
+            convId != args.conversationId) {
+          return;
+        }
+
+        final messageData = map['message'] ?? data;
+        final message = ChatMessage.fromSocket(messageData);
+        if (message.id.isEmpty) return;
+
+        _insertOrReplace(message);
+        _sortMessagesDesc();
+
+        ref.read(conversationsProvider.notifier).updateConversationPreview(
+              conversationId: args.conversationId,
+              lastMessage: ConversationLastMessage(
+                id: message.id,
+                kind: message.kind,
+                content: message.content,
+                createdAt: message.createdAt,
+                sender: message.sender != null
+                    ? ConversationParticipant(
+                        id: message.sender!.id,
+                        name: message.sender!.name,
+                        avatar: message.sender!.avatar,
+                      )
+                    : null,
+                isMe: message.isMine(state.currentUserId),
+              ),
+            );
+
+        state = state.copyWith(messages: List.of(state.messages));
+      } catch (e, st) {
+        logger.e('call:message_updated parse error: $e\n$st');
+      }
+    };
+
     socketService.addNewMessageListener(_onNewMessage!);
     socketService.addMessageStatusListener(_onMessageStatus!);
     socketService.addTypingListener(_onTyping!);
+    socketService.addCallMessageUpdatedListener(_onCallMessageUpdated!);
   }
 
   Future<void> loadMore() async {
@@ -398,11 +444,18 @@ class ChatNotifier extends StateNotifier<ChatState> {
           formData.fields.add(MapEntry('reply_to_id', payload.replyToId!));
         }
         for (final path in payload.filePaths) {
+          final filename = displayFileNameForMessageAttachment(
+            path,
+            payload.kind,
+          );
+          final mime = mimeTypeForMessageAttachment(path);
+          logger.i('[Chat] Attachment file=$filename mime=$mime');
           formData.files.add(MapEntry(
             'attachments',
             await MultipartFile.fromFile(
               path,
-              filename: p.basename(path),
+              filename: filename,
+              contentType: DioMediaType.parse(mime),
             ),
           ));
         }
@@ -459,6 +512,36 @@ class ChatNotifier extends StateNotifier<ChatState> {
         messages: state.messages.where((m) => m.id != optimistic.id).toList(),
         error: e.toString(),
       );
+    }
+  }
+
+  Future<bool> deleteMessage(String messageId) async {
+    if (messageId.isEmpty || messageId.startsWith('local_')) return false;
+
+    try {
+      final res = await dioClient.deleteHttp(
+        ApiEndpoints.deleteMessage(messageId),
+      );
+
+      if (res is Map && res['success'] == true) {
+        state = state.copyWith(
+          messages:
+              state.messages.where((m) => m.id != messageId).toList(),
+          clearError: true,
+        );
+        logger.i('[Chat] Message deleted — id=$messageId');
+        return true;
+      }
+
+      final message = res is Map
+          ? (res['message']?.toString() ?? 'Failed to delete message')
+          : 'Failed to delete message';
+      state = state.copyWith(error: message);
+      return false;
+    } catch (e) {
+      logger.e('[Chat] Delete error: $e');
+      state = state.copyWith(error: e.toString());
+      return false;
     }
   }
 
@@ -582,6 +665,9 @@ class ChatNotifier extends StateNotifier<ChatState> {
     }
     if (_onTyping != null) {
       socketService.removeTypingListener(_onTyping!);
+    }
+    if (_onCallMessageUpdated != null) {
+      socketService.removeCallMessageUpdatedListener(_onCallMessageUpdated!);
     }
     socketService.leaveConversation();
     super.dispose();

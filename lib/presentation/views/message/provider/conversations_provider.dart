@@ -7,6 +7,7 @@ import 'package:abbas/cors/services/user_id_storage.dart';
 import 'package:abbas/data/models/response_model.dart';
 import 'package:abbas/presentation/views/message/model/chat_message_model.dart';
 import 'package:abbas/presentation/views/message/model/conversation_model.dart';
+import 'package:abbas/presentation/views/message/provider/call_provider.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 enum ConversationFilter { all, groups, dm }
@@ -67,13 +68,17 @@ class ConversationsState {
 
 final conversationsProvider =
     StateNotifierProvider<ConversationsNotifier, ConversationsState>(
-  (ref) => ConversationsNotifier(dioClient: DioClient()),
+  (ref) {
+    ref.read(callProvider.notifier).ensureInitialized();
+    return ConversationsNotifier(dioClient: DioClient());
+  },
 );
 
 class ConversationsNotifier extends StateNotifier<ConversationsState> {
   final DioClient dioClient;
   bool _isFetching = false;
   void Function(dynamic)? _onNewMessageListener;
+  void Function(dynamic)? _onCallMessageUpdatedListener;
 
   ConversationsNotifier({required this.dioClient})
       : super(const ConversationsState()) {
@@ -113,12 +118,52 @@ class ConversationsNotifier extends StateNotifier<ConversationsState> {
       }
     };
     SocketService().addNewMessageListener(_onNewMessageListener!);
+
+    _onCallMessageUpdatedListener ??= (data) {
+      try {
+        final map = Map<String, dynamic>.from(data as Map);
+        final messageData = map['message'];
+        if (messageData is! Map) return;
+        final message = ChatMessage.fromSocket(messageData);
+        final conversationId = message.conversationId.isNotEmpty
+            ? message.conversationId
+            : map['conversation_id']?.toString();
+        if (conversationId == null || conversationId.isEmpty) return;
+
+        final isMe = message.senderId == state.currentUserId;
+        updateConversationPreview(
+          conversationId: conversationId,
+          lastMessage: ConversationLastMessage(
+            id: message.id,
+            kind: message.kind,
+            content: message.content,
+            createdAt: message.createdAt,
+            sender: message.sender != null
+                ? ConversationParticipant(
+                    id: message.sender!.id,
+                    name: message.sender!.name,
+                    avatar: message.sender!.avatar,
+                  )
+                : null,
+            isMe: isMe,
+          ),
+        );
+      } catch (e) {
+        logger.e('Conversations call:message_updated error: $e');
+      }
+    };
+    SocketService().addCallMessageUpdatedListener(_onCallMessageUpdatedListener!);
   }
 
   @override
   void dispose() {
     if (_onNewMessageListener != null) {
       SocketService().removeNewMessageListener(_onNewMessageListener!);
+    }
+    if (_onCallMessageUpdatedListener != null) {
+      SocketService().removeCallMessageUpdatedListener(
+        _onCallMessageUpdatedListener!,
+      );
     }
     super.dispose();
   }

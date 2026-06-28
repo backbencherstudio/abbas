@@ -2,6 +2,8 @@ import 'package:abbas/cors/routes/route_names.dart';
 import 'package:abbas/cors/theme/app_colors.dart';
 import 'package:abbas/presentation/views/message/model/chat_message_model.dart';
 import 'package:abbas/presentation/views/message/model/conversation_model.dart';
+import 'package:abbas/presentation/views/message/model/call_model.dart';
+import 'package:abbas/presentation/views/message/provider/call_provider.dart';
 import 'package:abbas/presentation/views/message/provider/chat_provider.dart';
 import 'package:abbas/presentation/views/message/widgets/chat_input_bar.dart';
 import 'package:abbas/presentation/views/message/widgets/chat_message_body.dart';
@@ -46,10 +48,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       avatarUrl: widget.avatarUrl,
     );
     _scrollController.addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(callProvider.notifier).trackConversation(
+            widget.conversationId,
+            title: widget.title,
+            showIncomingIfNeeded: true,
+          );
+    });
   }
 
   @override
   void dispose() {
+    ref.read(callProvider.notifier).untrackConversation(widget.conversationId);
     _scrollController.dispose();
     super.dispose();
   }
@@ -79,9 +89,93 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   void _cancelReply() => setState(() => _replyingTo = null);
 
+  void _showMessageActions(ChatMessage message, {required bool isMe}) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: const Color(0xff152033),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
+      ),
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(8.w, 8.h, 8.w, 12.h),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40.w,
+                  height: 4.h,
+                  margin: EdgeInsets.only(bottom: 12.h),
+                  decoration: BoxDecoration(
+                    color: const Color(0xff3D4466),
+                    borderRadius: BorderRadius.circular(2.r),
+                  ),
+                ),
+                ListTile(
+                  leading: Icon(
+                    Icons.reply,
+                    color: const Color(0xff8D9CDC),
+                    size: 22.sp,
+                  ),
+                  title: const Text(
+                    'Reply',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    _startReply(message);
+                  },
+                ),
+                if (isMe)
+                  ListTile(
+                    leading: Icon(
+                      Icons.delete_outline,
+                      color: const Color(0xffE9201D),
+                      size: 22.sp,
+                    ),
+                    title: const Text(
+                      'Delete',
+                      style: TextStyle(color: Color(0xffE9201D)),
+                    ),
+                    onTap: () async {
+                      Navigator.pop(sheetContext);
+                      final success = await ref
+                          .read(chatProvider(_args).notifier)
+                          .deleteMessage(message.id);
+                      if (!mounted) return;
+                      if (!success) {
+                        final error =
+                            ref.read(chatProvider(_args)).error ??
+                                'Failed to delete message';
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(error)),
+                        );
+                      } else if (_replyingTo?.id == message.id) {
+                        _cancelReply();
+                      }
+                    },
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _startCall(CallKind kind) {
+    ref.read(callProvider.notifier).startCall(
+          conversationId: widget.conversationId,
+          kind: kind,
+          title: widget.title,
+        );
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(chatProvider(_args));
+    final callState = ref.watch(callProvider);
 
     if (!_didInit) {
       _didInit = true;
@@ -138,10 +232,16 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ],
         ),
         actions: [
-          Icon(Icons.call, size: 20.sp, color: const Color(0xffE9201D)),
+          GestureDetector(
+            onTap: () => _startCall(CallKind.audio),
+            child: Icon(Icons.call, size: 20.sp, color: const Color(0xffE9201D)),
+          ),
           SizedBox(width: 16.w),
-          Icon(Icons.videocam_rounded,
-              size: 20.sp, color: const Color(0xffE9201D)),
+          GestureDetector(
+            onTap: () => _startCall(CallKind.video),
+            child: Icon(Icons.videocam_rounded,
+                size: 20.sp, color: const Color(0xffE9201D)),
+          ),
           SizedBox(width: 16.w),
           GestureDetector(
             onTap: () {
@@ -175,6 +275,14 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       ),
       body: Column(
         children: [
+          if (_shouldShowJoinChip(callState))
+            _ActiveCallChip(
+              kind: callState.activeSession!.kind,
+              onJoin: () => ref.read(callProvider.notifier).joinOngoingCall(
+                    conversationId: widget.conversationId,
+                    title: widget.title,
+                  ),
+            ),
           Expanded(child: _buildMessages(state)),
           ChatInputBar(
             isSending: state.isSending,
@@ -267,10 +375,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           isGroup: widget.type.isGroup,
           showSenderName: showSenderName,
           showAvatar: showAvatar,
-          onReply: () => _startReply(msg),
+          onLongPress: () => _showMessageActions(msg, isMe: isMe),
         );
       },
     );
+  }
+
+  bool _shouldShowJoinChip(CallState callState) {
+    final session = callState.activeSession;
+    if (session == null || !session.isOngoing) return false;
+    if (session.conversationId != widget.conversationId) return false;
+    return !callState.isLiveKitConnected && !callState.isConnecting;
   }
 }
 
@@ -339,7 +454,7 @@ class _MessageBubble extends StatelessWidget {
   final bool isGroup;
   final bool showSenderName;
   final bool showAvatar;
-  final VoidCallback onReply;
+  final VoidCallback onLongPress;
 
   const _MessageBubble({
     required this.message,
@@ -347,7 +462,7 @@ class _MessageBubble extends StatelessWidget {
     required this.isGroup,
     required this.showSenderName,
     required this.showAvatar,
-    required this.onReply,
+    required this.onLongPress,
   });
 
   @override
@@ -373,7 +488,7 @@ class _MessageBubble extends StatelessWidget {
               SizedBox(width: 40.w),
             ],
             GestureDetector(
-              onLongPress: onReply,
+              onLongPress: onLongPress,
               child: Column(
                 crossAxisAlignment:
                     isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
@@ -400,27 +515,31 @@ class _MessageBubble extends StatelessWidget {
                         ),
                       ),
                     ),
-                  Container(
-                    constraints: BoxConstraints(maxWidth: 0.72.sw),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 14.w,
-                      vertical: 10.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isMe
-                          ? const Color(0xff4A5D83)
-                          : const Color(0xff0A1A2A),
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(18.r),
-                        topRight: Radius.circular(18.r),
-                        bottomLeft: Radius.circular(isMe ? 18.r : 4.r),
-                        bottomRight: Radius.circular(isMe ? 4.r : 18.r),
+                  IntrinsicWidth(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: 0.72.sw),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 14.w,
+                          vertical: 10.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isMe
+                              ? const Color(0xff4A5D83)
+                              : const Color(0xff0A1A2A),
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(18.r),
+                            topRight: Radius.circular(18.r),
+                            bottomLeft: Radius.circular(isMe ? 18.r : 4.r),
+                            bottomRight: Radius.circular(isMe ? 4.r : 18.r),
+                          ),
+                        ),
+                        child: ChatMessageBody(
+                          message: message,
+                          text: text,
+                          isMe: isMe,
+                        ),
                       ),
-                    ),
-                    child: ChatMessageBody(
-                      message: message,
-                      text: text,
-                      isMe: isMe,
                     ),
                   ),
                 ],
@@ -437,5 +556,50 @@ class _MessageBubble extends StatelessWidget {
     final dt = DateTime.tryParse(iso)?.toLocal();
     if (dt == null) return '';
     return DateFormat('hh:mm a').format(dt);
+  }
+}
+
+class _ActiveCallChip extends StatelessWidget {
+  final CallKind kind;
+  final VoidCallback onJoin;
+
+  const _ActiveCallChip({required this.kind, required this.onJoin});
+
+  @override
+  Widget build(BuildContext context) {
+    final label = kind.isVideo ? 'Video call in progress' : 'Audio call in progress';
+    return Material(
+      color: const Color(0xff152033),
+      child: InkWell(
+        onTap: onJoin,
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+          child: Row(
+            children: [
+              Icon(
+                kind.isVideo ? Icons.videocam : Icons.phone,
+                color: const Color(0xffE9201D),
+                size: 20.sp,
+              ),
+              SizedBox(width: 10.w),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(color: Colors.white, fontSize: 14.sp),
+                ),
+              ),
+              Text(
+                'Join',
+                style: TextStyle(
+                  color: const Color(0xffE9201D),
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

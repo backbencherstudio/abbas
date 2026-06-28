@@ -9,7 +9,9 @@ import 'package:abbas/presentation/views/message/widgets/message_reply_preview.d
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:characters/characters.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -76,6 +78,15 @@ class _ChatInputBarState extends State<ChatInputBar> {
   }
 
   void _onTextChanged() {
+    final sanitized = _sanitizeText(_controller.text);
+    if (sanitized != _controller.text) {
+      _controller.value = TextEditingValue(
+        text: sanitized,
+        selection: TextSelection.collapsed(offset: sanitized.length),
+      );
+      return;
+    }
+
     final hasText = _controller.text.trim().isNotEmpty;
     if (hasText != _hasText) {
       setState(() => _hasText = hasText);
@@ -83,16 +94,65 @@ class _ChatInputBarState extends State<ChatInputBar> {
     widget.onTypingChanged(hasText);
   }
 
-  void _insertEmoji(String emoji) {
+  TextSelection _effectiveSelection() {
     final text = _controller.text;
     final selection = _controller.selection;
-    final start = selection.start >= 0 ? selection.start : text.length;
-    final end = selection.end >= 0 ? selection.end : text.length;
+    if (!selection.isValid || selection.start < 0) {
+      return TextSelection.collapsed(offset: text.length);
+    }
+    return selection;
+  }
+
+  void _insertEmoji(String emoji) {
+    final text = _controller.text;
+    final selection = _effectiveSelection();
+    final start = selection.start;
+    final end = selection.end;
     final updated = text.replaceRange(start, end, emoji);
     _controller.value = TextEditingValue(
       text: updated,
       selection: TextSelection.collapsed(offset: start + emoji.length),
     );
+  }
+
+  void _deleteBeforeCursor() {
+    final text = _controller.text;
+    final selection = _effectiveSelection();
+
+    if (!selection.isCollapsed) {
+      final updated = text.replaceRange(selection.start, selection.end, '');
+      _controller.value = TextEditingValue(
+        text: updated,
+        selection: TextSelection.collapsed(offset: selection.start),
+      );
+      return;
+    }
+
+    final cursor = selection.start;
+    if (cursor <= 0) return;
+
+    final before = text.substring(0, cursor);
+    final after = text.substring(cursor);
+    final beforeChars = before.characters;
+    if (beforeChars.isEmpty) return;
+
+    final newBefore = beforeChars.skipLast(1).toString();
+    final updated = newBefore + after;
+
+    _controller.value = TextEditingValue(
+      text: updated,
+      selection: TextSelection.collapsed(offset: newBefore.length),
+    );
+  }
+
+  /// Strips lone UTF-16 surrogates left by incorrect backspace handling.
+  String _sanitizeText(String value) {
+    if (value.isEmpty) return value;
+    final buffer = StringBuffer();
+    for (final rune in value.runes) {
+      buffer.writeCharCode(rune);
+    }
+    return buffer.toString();
   }
 
   void _addPending(PendingAttachment attachment) {
@@ -434,6 +494,23 @@ class _ChatInputBarState extends State<ChatInputBar> {
                             maxLines: 5,
                             minLines: 1,
                             style: const TextStyle(color: Colors.white),
+                            inputFormatters: [
+                              TextInputFormatter.withFunction(
+                                (oldValue, newValue) {
+                                  final sanitized =
+                                      _sanitizeText(newValue.text);
+                                  if (sanitized == newValue.text) {
+                                    return newValue;
+                                  }
+                                  return TextEditingValue(
+                                    text: sanitized,
+                                    selection: TextSelection.collapsed(
+                                      offset: sanitized.length,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
                             decoration: InputDecoration(
                               hintText: 'Type message...',
                               hintStyle: TextStyle(
@@ -524,34 +601,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
             height: 250.h,
             child: EmojiPicker(
               onEmojiSelected: (_, emoji) => _insertEmoji(emoji.emoji),
-              onBackspacePressed: () {
-                final text = _controller.text;
-                final selection = _controller.selection;
-                if (selection.start <= 0) return;
-                if (selection.start != selection.end) {
-                  final updated = text.replaceRange(
-                    selection.start,
-                    selection.end,
-                    '',
-                  );
-                  _controller.value = TextEditingValue(
-                    text: updated,
-                    selection:
-                        TextSelection.collapsed(offset: selection.start),
-                  );
-                  return;
-                }
-                final updated = text.replaceRange(
-                  selection.start - 1,
-                  selection.start,
-                  '',
-                );
-                _controller.value = TextEditingValue(
-                  text: updated,
-                  selection:
-                      TextSelection.collapsed(offset: selection.start - 1),
-                );
-              },
+              onBackspacePressed: _deleteBeforeCursor,
               config: Config(
                 height: 250.h,
                 checkPlatformCompatibility: true,

@@ -30,6 +30,35 @@ class ApiEndpoints {
   static const String signedDocuments = '$baseUrl/api/profile/signed_documents';
   static const String deleteAccount = '$baseUrl/api/profile/delete-account';
 
+  /// -------------------- Notifications ---------------------------------------
+  static String notifications({
+    int limit = 10,
+    String? cursor,
+    String? type,
+    String? search,
+  }) {
+    final params = <String>['limit=$limit'];
+    if (cursor != null && cursor.isNotEmpty) {
+      params.add('cursor=$cursor');
+    }
+    if (type != null && type.isNotEmpty) {
+      params.add('type=$type');
+    }
+    if (search != null && search.isNotEmpty) {
+      params.add('search=$search');
+    }
+    return '$baseUrl/api/notifications?${params.join('&')}';
+  }
+
+  static const String readAllNotifications =
+      '$baseUrl/api/notifications/read_all';
+
+  static String readNotification(String notificationId) =>
+      '$baseUrl/api/notifications/$notificationId/read';
+
+  static String deleteNotification(String notificationId) =>
+      '$baseUrl/api/notifications/$notificationId';
+
   /// -------------------- Home ------------------------------------------------
   static const String getHomeData = '$baseUrl/api/overview';
   static const String scanQrCode = '$baseUrl/api/attendance/scan-qr';
@@ -299,7 +328,7 @@ class ApiEndpoints {
       '$baseUrl/api/conversations/$conversationId/messages/upload';
 
   static String deleteMessage(String messageId) =>
-      '$baseUrl/api/messages/$messageId';
+      '$baseUrl/api/conversations/messages/$messageId';
 
   static String reportMessage(String messageId) =>
       '$baseUrl/api/messages/$messageId/report';
@@ -349,6 +378,15 @@ class ApiEndpoints {
 
   static String getToken(String conversationId) =>
       '$baseUrl/api/rtc/conversations/$conversationId/token';
+
+  static String getCallState(String conversationId) =>
+      '$baseUrl/api/rtc/conversations/$conversationId/state';
+
+  static String declineCall(String conversationId) =>
+      '$baseUrl/api/rtc/conversations/$conversationId/decline';
+
+  static String updateCallParticipant(String conversationId) =>
+      '$baseUrl/api/rtc/conversations/$conversationId/participants/me';
 
   static const String rtcHealth = '$baseUrl/api/rtc/health';
 

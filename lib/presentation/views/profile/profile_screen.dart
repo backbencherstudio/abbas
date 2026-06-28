@@ -40,7 +40,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          const CustomAppbar(title: 'Profile'),
+          const CustomAppbar(title: 'Profile', showNotificationIcon: true),
 
           Expanded(
             child: SingleChildScrollView(

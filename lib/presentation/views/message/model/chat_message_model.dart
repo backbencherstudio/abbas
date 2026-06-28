@@ -175,6 +175,9 @@ class MessageReply {
       final callKind = map['call_kind']?.toString() ?? 'Call';
       final status = map['status']?.toString() ?? '';
       if (status == 'MISSED') return 'Missed $callKind call';
+      if (status == 'ONGOING') {
+        return '${_callKindLabel(callKind)} call in progress';
+      }
       return '$callKind call';
     }
     if (content is String) {
@@ -349,6 +352,9 @@ class ChatMessage {
       final callKind = map['call_kind']?.toString() ?? 'Call';
       final callStatus = map['status']?.toString() ?? '';
       if (callStatus == 'MISSED') return 'Missed $callKind call';
+      if (callStatus == 'ONGOING') {
+        return '${_callKindLabel(callKind)} call in progress';
+      }
       if (callStatus == 'ENDED') {
         final secs = map['duration_seconds'];
         if (secs != null) {
@@ -449,6 +455,12 @@ class MessageSender {
       avatar: json['avatar']?.toString(),
     );
   }
+}
+
+String _callKindLabel(String callKind) {
+  if (callKind.toUpperCase() == 'AUDIO') return 'Audio';
+  if (callKind.toUpperCase() == 'VIDEO') return 'Video';
+  return callKind;
 }
 
 String _formatDuration(dynamic seconds) {
