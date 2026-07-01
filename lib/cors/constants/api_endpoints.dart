@@ -2,9 +2,9 @@ class ApiEndpoints {
   ApiEndpoints._();
 
   static const String baseUrl =
-      // 'http://192.168.7.12:4000';
+      'https://abbassfasaei.pixelstack.cloud';
       // 'http://10.10.9.51:7777';
-      "https://elliot-haemic-biuniquely.ngrok-free.dev";
+      // "https://elliot-haemic-biuniquely.ngrok-free.dev";
 
   static const String register = '$baseUrl/api/auth/register';
   static const String login = '$baseUrl/api/auth/login';
