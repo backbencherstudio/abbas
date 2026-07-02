@@ -419,44 +419,47 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               ),
                             ),
                             SizedBox(width: 12.w),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  upComingAssignmentsValues.title ?? 'N/A',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 15.sp,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                SizedBox(height: 3.h),
-                                Text(
-                                  '${upComingAssignmentsValues.courseTitle ?? 'N/A'} • ${upComingAssignmentsValues.teacherName ?? 'N/A'}',
-                                  style: TextStyle(
-                                    color: Color(0xFF9AA5B1),
-                                    fontSize: 12.sp,
-                                  ),
-                                ),
-                                SizedBox(height: 3.h),
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.schedule,
-                                      size: 16.sp,
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    upComingAssignmentsValues.title ?? 'N/A',
+                                    style: TextStyle(
                                       color: Colors.white,
+                                      fontSize: 15.sp,
+                                      fontWeight: FontWeight.w600,
                                     ),
-                                    SizedBox(width: 6.w),
-                                    Text(
-                                      upComingAssignmentsValues.dueLabel,
-                                      style: TextStyle(
-                                        color: Color(0xFFFFC9A3),
-                                        fontSize: 12.sp,
+                                  ),
+                                  SizedBox(height: 3.h),
+                                  Text(
+                                    '${upComingAssignmentsValues.courseTitle ?? 'N/A'} • ${upComingAssignmentsValues.teacherName ?? 'N/A'}',
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: Color(0xFF9AA5B1),
+                                      fontSize: 12.sp,
+                                    ),
+                                  ),
+                                  SizedBox(height: 3.h),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.schedule,
+                                        size: 16.sp,
+                                        color: Colors.white,
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                      SizedBox(width: 6.w),
+                                      Text(
+                                        upComingAssignmentsValues.dueLabel,
+                                        style: TextStyle(
+                                          color: Color(0xFFFFC9A3),
+                                          fontSize: 12.sp,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
